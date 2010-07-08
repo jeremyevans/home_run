@@ -1,0 +1,5 @@
+*.rbc
+/ext/Makefile
+/ext/home_run_date.o
+/ext/home_run_date.so
+*.core
