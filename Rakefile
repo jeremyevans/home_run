@@ -10,6 +10,12 @@ task :build=>[:clean] do
   sh %{cd ext && #{RUBY} extconf.rb && make}
 end
 
+desc "Build debug version of extension"
+task :build_debug=>[:clean] do
+  ENV['DEBUG'] = '1'
+  sh %{cd ext && #{RUBY} extconf.rb && make}
+end
+
 desc "Start an IRB shell using the extension"
 task :irb do
   sh %{#{IRB} -I ext -I lib -r date}
