@@ -255,4 +255,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
+
+  rb_define_alias(rhrd_class, "mday", "day");
+  rb_define_alias(rhrd_class, "mon", "month");
 }
