@@ -11,6 +11,8 @@
 #define RHR_HAVE_JD 0x1
 #define RHR_HAVE_CIVIL 0x2
 
+#define RHR_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrd_jd_to_ymd(d); }
+
 typedef struct rhrd_s {
   long jd;
   long year;
@@ -40,6 +42,7 @@ void rhrd_jd_to_ymd(rhrd_t *date) {
     date->month = e - 13;
     date->year = c - 4715;
   }
+  date.flags |= RHR_HAVE_CIVIL;
 }
 
 unsigned char rhrd_num2month(VALUE obj) {
@@ -149,20 +152,39 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
 
 /* Ruby Instance Methods */
 
+static VALUE rhrd_day(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  return INT2NUM(d->day);
+}
+
 static VALUE rhrd_inspect(VALUE self) {
   VALUE s;
   rhrd_t *d;
   char *str;
   Data_Get_Struct(self, rhrd_t, d);
-  if ((d->flags & RHR_HAVE_CIVIL) == 0) {
-    rhrd_jd_to_ymd(d);
-  }
+  RHR_FILL_CIVIL(d)
   if (asprintf(&str, "#<Date %04li-%02hhi-%02hhi>", d->year, d->month, d->day) == -1) {
     rb_raise(rb_eNoMemError, "in Date#inspect");
   }
   s = rb_str_new2(str);
   free(str);
   return s;
+}
+
+static VALUE rhrd_month(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  return INT2NUM(d->month);
+}
+
+static VALUE rhrd_year(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  return INT2NUM(d->year);
 }
 
 /* Ruby Library Initialization */
@@ -173,5 +195,8 @@ void Init_home_run_date(void) {
   rb_define_singleton_method(rhrd_class, "civil", rhrd_s_civil, -1);
   rb_define_singleton_method(rhrd_class, "jd", rhrd_s_jd, -1);
 
+  rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
+  rb_define_method(rhrd_class, "month", rhrd_month, 0);
+  rb_define_method(rhrd_class, "year", rhrd_year, 0);
 }
