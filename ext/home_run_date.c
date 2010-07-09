@@ -11,8 +11,13 @@
 #define RHR_HAVE_JD 0x1
 #define RHR_HAVE_CIVIL 0x2
 
+#define RHR_HAS_JD(d) ((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD
+#define RHR_HAS_CIVIL(d) ((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL
+
 #define RHR_FILL_JD(d) if (((d)->flags & RHR_HAVE_JD) == 0) { rhrd__civil_to_jd(d); }
 #define RHR_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrd__jd_to_civil(d); }
+
+#define RHR_SPACE_SHIP(x, l, r) if (l < r) { x = -1; } else if (l == r) { x = 0; } else { x = 1; } 
 
 typedef struct rhrd_s {
   long jd;
@@ -238,6 +243,40 @@ static VALUE rhrd_year(VALUE self) {
   return INT2NUM(d->year);
 }
 
+/* Ruby Instance Operator Methods */
+
+static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
+  rhrd_t *d, *o;
+  Data_Get_Struct(self, rhrd_t, d);
+  long diff;
+
+  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(other, rhrd_t, o);
+    if (RHR_HAS_JD(d) && RHR_HAS_JD(o)) {
+        RHR_SPACE_SHIP(diff, d->jd, o->jd)
+    } else if (RHR_HAS_CIVIL(d) && RHR_HAS_CIVIL(o)) {
+      RHR_SPACE_SHIP(diff, d->year, o->year)
+      if (!diff) {
+        RHR_SPACE_SHIP(diff, d->month, o->month)
+        if (!diff) {
+          RHR_SPACE_SHIP(diff, d->day, o->day)
+        }
+      }
+    } else {
+        RHR_FILL_JD(d)
+        RHR_FILL_JD(o)
+        RHR_SPACE_SHIP(diff, d->jd, o->jd)
+    }
+    return INT2NUM(diff);
+  } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+    diff = NUM2LONG(other);
+    RHR_FILL_JD(d)
+    RHR_SPACE_SHIP(diff, d->jd, diff)
+    return INT2NUM(diff);
+  }
+  return Qnil;
+}
+
 /* Ruby Library Initialization */
 
 void Init_home_run_date(void) {
@@ -262,4 +301,7 @@ void Init_home_run_date(void) {
 
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
+
+  rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
+  rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 }
