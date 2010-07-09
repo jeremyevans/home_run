@@ -24,6 +24,11 @@ typedef struct rhrd_s {
 unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 VALUE rhrd_class;
 
+ID rhrd_id_now;
+ID rhrd_id_year;
+ID rhrd_id_mon;
+ID rhrd_id_mday;
+
 /* C Helper Methods */
 
 void rhrd_jd_to_ymd(rhrd_t *date) {
@@ -42,7 +47,7 @@ void rhrd_jd_to_ymd(rhrd_t *date) {
     date->month = e - 13;
     date->year = c - 4715;
   }
-  date.flags |= RHR_HAVE_CIVIL;
+  date->flags |= RHR_HAVE_CIVIL;
 }
 
 unsigned char rhrd_num2month(VALUE obj) {
@@ -150,6 +155,27 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d = NULL;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE t;
+
+  switch(argc) {
+    case 0:
+    case 1:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguements: %i for 1", argc);
+      break;
+  }
+  t = rb_funcall(rb_cTime, rhrd_id_now, 0);
+  d->year = NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
+  d->month = rhrd_num2month(rb_funcall(t, rhrd_id_mon, 0));
+  d->day = rhrd_num2day(d->year, d->month, rb_funcall(t, rhrd_id_mday, 0));
+  d->flags = RHR_HAVE_CIVIL;
+  return rd;
+}
+
 /* Ruby Instance Methods */
 
 static VALUE rhrd_day(VALUE self) {
@@ -190,10 +216,15 @@ static VALUE rhrd_year(VALUE self) {
 /* Ruby Library Initialization */
 
 void Init_home_run_date(void) {
+  rhrd_id_now = rb_intern("now");
+  rhrd_id_year = rb_intern("year");
+  rhrd_id_mon = rb_intern("mon");
+  rhrd_id_mday = rb_intern("mday");
   rhrd_class = rb_define_class("Date", rb_cObject);
 
   rb_define_singleton_method(rhrd_class, "civil", rhrd_s_civil, -1);
   rb_define_singleton_method(rhrd_class, "jd", rhrd_s_jd, -1);
+  rb_define_singleton_method(rhrd_class, "today", rhrd_s_today, -1);
 
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
