@@ -24,6 +24,7 @@ typedef struct rhrd_s {
 
 unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 VALUE rhrd_class;
+VALUE rhrd_s_class;
 
 ID rhrd_id_now;
 ID rhrd_id_year;
@@ -245,10 +246,13 @@ void Init_home_run_date(void) {
   rhrd_id_mon = rb_intern("mon");
   rhrd_id_mday = rb_intern("mday");
   rhrd_class = rb_define_class("Date", rb_cObject);
+  rhrd_s_class = rb_singleton_class(rhrd_class);
 
-  rb_define_singleton_method(rhrd_class, "civil", rhrd_s_civil, -1);
-  rb_define_singleton_method(rhrd_class, "jd", rhrd_s_jd, -1);
-  rb_define_singleton_method(rhrd_class, "today", rhrd_s_today, -1);
+  rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
+  rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
+  rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
+
+  rb_define_alias(rhrd_s_class, "new", "civil");
 
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
