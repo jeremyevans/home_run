@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ruby.h>
 
+#define RHR_DEFAULT_JD 0
 #define RHR_DEFAULT_YEAR -4712
 #define RHR_DEFAULT_MONTH 1
 #define RHR_DEFAULT_DAY 1
@@ -11,8 +12,8 @@
 #define RHR_HAVE_CIVIL 0x2
 
 typedef struct rhrd_s {
-  signed long jd;
-  signed long year;
+  long jd;
+  long year;
   unsigned char month;
   unsigned char day;
   unsigned char flags;
@@ -20,6 +21,26 @@ typedef struct rhrd_s {
 
 unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 VALUE rhrd_class;
+
+/* C Helper Methods */
+
+void rhrd_jd_to_ymd(rhrd_t *date) {
+  long x, a, b, c, d, e;
+  x = (long)((date->jd - 1867216.25) / 36524.25);
+  a = date->jd + 1 + x - (x / 4);
+  b = a + 1524;
+  c = (long)((b - 122.1) / 365.25);
+  d = (long)(365.25 * c);
+  e = (long)((b - d) / 30.6001);
+  date->day = b - d - (long)(30.6001 * e);
+  if (e <= 13) {
+    date->month = e - 1;
+    date->year = c - 4716;
+  } else {
+    date->month = e - 13;
+    date->year = c - 4715;
+  }
+}
 
 unsigned char rhrd_num2month(VALUE obj) {
   int i = NUM2LONG(obj);
@@ -29,7 +50,7 @@ unsigned char rhrd_num2month(VALUE obj) {
   return (unsigned char)i;
 }
 
-int rhrd_leap_year(signed long year) {
+int rhrd_leap_year(long year) {
   if (year % 400 == 0) {
     return 1;
   } else if (year % 100 == 0) {
@@ -41,7 +62,7 @@ int rhrd_leap_year(signed long year) {
   }
 }
 
-unsigned char rhrd_num2day(signed long year, unsigned char month, VALUE obj) {
+unsigned char rhrd_num2day(long year, unsigned char month, VALUE obj) {
   long i = NUM2LONG(obj);
   if (i < 1 || i <= 28) {
     return (unsigned char)i;
@@ -70,15 +91,11 @@ unsigned char rhrd_num2day(signed long year, unsigned char month, VALUE obj) {
   }
 }
 
-static VALUE rhrd_allocate(VALUE klass) {
-  rhrd_t *d = NULL;
-  return Data_Make_Struct(klass, rhrd_t, NULL, free, d);
-}
+/* Ruby Class Methods */
 
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
-  VALUE rd = rhrd_allocate(klass);
-  rhrd_t *d;
-  Data_Get_Struct(rd, rhrd_t, d);
+  rhrd_t *d = NULL;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
     case 0:
@@ -102,24 +119,59 @@ static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
       d->month = rhrd_num2month(argv[1]);
       d->day = rhrd_num2day(d->year, d->month, argv[2]);
       break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      break;
   }
   d->flags = RHR_HAVE_CIVIL;
   return rd;
 }
+
+static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d = NULL;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->jd = RHR_DEFAULT_JD;
+      break;
+    case 1:
+    case 2:
+      d->jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguements: %i for 2", argc);
+      break;
+  }
+  d->flags = RHR_HAVE_JD;
+  return rd;
+}
+
+/* Ruby Instance Methods */
 
 static VALUE rhrd_inspect(VALUE self) {
   VALUE s;
   rhrd_t *d;
   char *str;
   Data_Get_Struct(self, rhrd_t, d);
-  asprintf(&str, "#<Date %04li-%02hhi-%02hhi>", d->year, d->month, d->day);
+  if ((d->flags & RHR_HAVE_CIVIL) == 0) {
+    rhrd_jd_to_ymd(d);
+  }
+  if (asprintf(&str, "#<Date %04li-%02hhi-%02hhi>", d->year, d->month, d->day) == -1) {
+    rb_raise(rb_eNoMemError, "in Date#inspect");
+  }
   s = rb_str_new2(str);
   free(str);
   return s;
 }
 
+/* Ruby Library Initialization */
+
 void Init_home_run_date(void) {
   rhrd_class = rb_define_class("Date", rb_cObject);
+
   rb_define_singleton_method(rhrd_class, "civil", rhrd_s_civil, -1);
+  rb_define_singleton_method(rhrd_class, "jd", rhrd_s_jd, -1);
+
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
 }
