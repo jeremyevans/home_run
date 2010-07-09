@@ -1,4 +1,5 @@
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ruby.h>
@@ -7,6 +8,41 @@
 #define RHR_DEFAULT_YEAR -4712
 #define RHR_DEFAULT_MONTH 1
 #define RHR_DEFAULT_DAY 1
+
+/*
+In both the 32-bit and 64-bit cases, the limits are chosen so that you cannot
+store a civil date where converting it to a jd would cause an overflow.
+*/
+#if __LP64__
+/* 
+On 64-bit systems, the limits depends on the number of significant digits in
+a double (15).  These are slightly below the maximum so that all numbers used
+in calculations have fewer than 15 digits.
+*/
+#define RHR_JD_MAX 999979466117609
+#define RHR_JD_MIN -999979466119058
+#define RHR_YEAR_MAX 2737850782415
+#define RHR_MONTH_MAX 12
+#define RHR_DAY_MAX 5
+#define RHR_YEAR_MIN -2737850791845
+#define RHR_MONTH_MIN 11
+#define RHR_DAY_MIN 26
+
+#else
+/* 
+On 32-bit systems, the limits depend on the storage limits of 32-bit integers.
+The numbers are slightly less than 2**31 - 1 and slightly greater than -2**31
+so that no calculations can overflow.
+*/
+#define RHR_JD_MAX 2147438064
+#define RHR_JD_MIN -2147441038
+#define RHR_YEAR_MAX 5874773
+#define RHR_MONTH_MAX 8
+#define RHR_DAY_MAX 15
+#define RHR_YEAR_MIN -5884206
+#define RHR_MONTH_MIN 1
+#define RHR_DAY_MIN 12
+#endif
 
 #define RHR_HAVE_JD 0x1
 #define RHR_HAVE_CIVIL 0x2
@@ -18,6 +54,9 @@
 #define RHR_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrd__jd_to_civil(d); }
 
 #define RHR_SPACE_SHIP(x, l, r) if (l < r) { x = -1; } else if (l == r) { x = 0; } else { x = 1; } 
+
+#define RHR_CHECK_JD(d) if ((d->jd > RHR_JD_MAX) || (d->jd < RHR_JD_MIN)) { rb_raise(rb_eRangeError, "date out of range: jd = %li", d->jd);}
+#define RHR_CHECK_CIVIL(d) if (rhrd__check_civil(d)) { rb_raise(rb_eRangeError, "date out of range: year = %li, month = %hhi, day = %hhi", d->year, d->month, d->day);}
 
 typedef struct rhrd_s {
   long jd;
@@ -38,31 +77,63 @@ ID rhrd_id_mday;
 
 /* C Helper Methods */
 
+int rhrd__check_civil(rhrd_t *d) {
+  if (d->year > RHR_YEAR_MAX || d->year < RHR_YEAR_MIN) {
+    return 1;
+  }
+  else if (d->year == RHR_YEAR_MAX) {
+    if (d->month > RHR_MONTH_MAX) {
+      return 1;
+    } else if (d->month == RHR_MONTH_MAX) {
+      if (d->day > RHR_DAY_MAX) {
+        return 1;
+      }
+    }
+  } else if (d->year == RHR_YEAR_MIN) {
+    if (d->month < RHR_MONTH_MIN) {
+      return 1;
+    } else if (d->month == RHR_MONTH_MIN) {
+      if (d->day < RHR_DAY_MIN) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+long rhrd__safe_add_long(long a, long b) {
+  if ((a > 0 && b > 0 && (a > LONG_MAX - b)) ||
+      (a < 0 && b < 0 && (a < LONG_MIN - b))) {
+    rb_raise(rb_eRangeError, "addition would overflow");
+  }
+  return a + b;
+}
+
 void rhrd__civil_to_jd(rhrd_t *d) {
   long a;
   if (d->month <= 2) {
-    a = (d->year - 1)/100;
-    d->jd = (long)(365.25 * (d->year + 4715)) + \
-          (long)(30.6001 * (d->month + 13)) + \
-          d->day - 1524 + (2 - a + (a / 4));
+    a = (long)floor((d->year - 1)/100.0);
+    d->jd = (long)floor(365.25 * (d->year + 4715)) + \
+          (long)floor(30.6001 * (d->month + 13)) + \
+          d->day - 1524 + (2 - a + (long)floor(a / 4.0));
   } else {
-    a = d->year/100;
-    d->jd = (long)(365.25 * (d->year + 4716)) + \
-          (long)(30.6001 * (d->month + 1)) + \
-          d->day - 1524 + (2 - a + (a / 4));
+    a = (long)floor(d->year/100.0);
+    d->jd = (long)floor(365.25 * (d->year + 4716)) + \
+          (long)floor(30.6001 * (d->month + 1)) + \
+          d->day - 1524 + (2 - a + (long)floor(a / 4.0));
   }
   d->flags |= RHR_HAVE_JD;
 }
 
 void rhrd__jd_to_civil(rhrd_t *date) {
   long x, a, b, c, d, e;
-  x = (long)((date->jd - 1867216.25) / 36524.25);
-  a = date->jd + 1 + x - (x / 4);
+  x = (long)floor((date->jd - 1867216.25) / 36524.25);
+  a = date->jd + 1 + x - (long)floor(x / 4.0);
   b = a + 1524;
-  c = (long)((b - 122.1) / 365.25);
-  d = (long)(365.25 * c);
-  e = (long)((b - d) / 30.6001);
-  date->day = b - d - (long)(30.6001 * e);
+  c = (long)floor((b - 122.1) / 365.25);
+  d = (long)floor(365.25 * c);
+  e = (long)floor((b - d) / 30.6001);
+  date->day = b - d - (long)floor(30.6001 * e);
   if (e <= 13) {
     date->month = e - 1;
     date->year = c - 4716;
@@ -71,6 +142,9 @@ void rhrd__jd_to_civil(rhrd_t *date) {
     date->year = c - 4715;
   }
   date->flags |= RHR_HAVE_CIVIL;
+#ifdef DEBUG
+  printf("x: %li, a: %li, b: %li, c: %li, d: %li, e: %li, day: %hhi, month: %hhi; year: %li\n", x, a, b, c, d, e, date->day, date->month, date->year);
+#endif
 }
 
 unsigned char rhrd__num2month(VALUE obj) {
@@ -125,7 +199,7 @@ unsigned char rhrd__num2day(long year, unsigned char month, VALUE obj) {
 /* Ruby Class Methods */
 
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
-  rhrd_t *d = NULL;
+  rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
@@ -154,12 +228,13 @@ static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
       rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
       break;
   }
+  RHR_CHECK_CIVIL(d)
   d->flags = RHR_HAVE_CIVIL;
   return rd;
 }
 
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
-  rhrd_t *d = NULL;
+  rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
@@ -174,12 +249,13 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
       rb_raise(rb_eArgError, "wrong number of arguements: %i for 2", argc);
       break;
   }
+  RHR_CHECK_JD(d)
   d->flags = RHR_HAVE_JD;
   return rd;
 }
 
 static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
-  rhrd_t *d = NULL;
+  rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
   VALUE t;
 
@@ -195,6 +271,7 @@ static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
   d->year = NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
   d->month = rhrd__num2month(rb_funcall(t, rhrd_id_mon, 0));
   d->day = rhrd__num2day(d->year, d->month, rb_funcall(t, rhrd_id_mday, 0));
+  RHR_CHECK_CIVIL(d)
   d->flags = RHR_HAVE_CIVIL;
   return rd;
 }
@@ -244,6 +321,39 @@ static VALUE rhrd_year(VALUE self) {
 }
 
 /* Ruby Instance Operator Methods */
+
+static VALUE rhrd_op_plus(VALUE self, VALUE other) {
+  rhrd_t *d;
+  rhrd_t *newd;
+  VALUE new;
+  Data_Get_Struct(self, rhrd_t, d);
+  long n, x;
+
+  if (!RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+    rb_raise(rb_eTypeError, "expected numeric");
+  }
+
+  n = NUM2LONG(other);
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+
+  if(!(RHR_HAS_JD(d))) {
+    x = rhrd__safe_add_long(n, (long)(d->day));
+    if (x >= 1 && x <= 28) {
+      newd->year = d->year;
+      newd->month = d->month;
+      newd->day = (unsigned char)x;
+      RHR_CHECK_CIVIL(newd)
+      newd->flags = RHR_HAVE_CIVIL;
+      return new;
+    }
+    RHR_FILL_JD(d)
+  }
+
+  newd->jd = rhrd__safe_add_long(n, d->jd);
+  RHR_CHECK_JD(newd)
+  newd->flags = RHR_HAVE_JD;
+  return new;
+}
 
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
@@ -302,6 +412,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
 
+  rb_define_method(rhrd_class, "+", rhrd_op_plus, 1);
   rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 }
