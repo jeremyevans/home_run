@@ -11,7 +11,8 @@
 #define RHR_HAVE_JD 0x1
 #define RHR_HAVE_CIVIL 0x2
 
-#define RHR_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrd_jd_to_ymd(d); }
+#define RHR_FILL_JD(d) if (((d)->flags & RHR_HAVE_JD) == 0) { rhrd__civil_to_jd(d); }
+#define RHR_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrd__jd_to_civil(d); }
 
 typedef struct rhrd_s {
   long jd;
@@ -31,7 +32,23 @@ ID rhrd_id_mday;
 
 /* C Helper Methods */
 
-void rhrd_jd_to_ymd(rhrd_t *date) {
+void rhrd__civil_to_jd(rhrd_t *d) {
+  long a;
+  if (d->month <= 2) {
+    a = (d->year - 1)/100;
+    d->jd = (long)(365.25 * (d->year + 4715)) + \
+          (long)(30.6001 * (d->month + 13)) + \
+          d->day - 1524 + (2 - a + (a / 4));
+  } else {
+    a = d->year/100;
+    d->jd = (long)(365.25 * (d->year + 4716)) + \
+          (long)(30.6001 * (d->month + 1)) + \
+          d->day - 1524 + (2 - a + (a / 4));
+  }
+  d->flags |= RHR_HAVE_JD;
+}
+
+void rhrd__jd_to_civil(rhrd_t *date) {
   long x, a, b, c, d, e;
   x = (long)((date->jd - 1867216.25) / 36524.25);
   a = date->jd + 1 + x - (x / 4);
@@ -50,7 +67,7 @@ void rhrd_jd_to_ymd(rhrd_t *date) {
   date->flags |= RHR_HAVE_CIVIL;
 }
 
-unsigned char rhrd_num2month(VALUE obj) {
+unsigned char rhrd__num2month(VALUE obj) {
   int i = NUM2LONG(obj);
   if (i < 1 || i > 12) {
     rb_raise(rb_eArgError, "invalid Date: month %i", i);
@@ -58,7 +75,7 @@ unsigned char rhrd_num2month(VALUE obj) {
   return (unsigned char)i;
 }
 
-int rhrd_leap_year(long year) {
+int rhrd__leap_year(long year) {
   if (year % 400 == 0) {
     return 1;
   } else if (year % 100 == 0) {
@@ -70,14 +87,14 @@ int rhrd_leap_year(long year) {
   }
 }
 
-unsigned char rhrd_num2day(long year, unsigned char month, VALUE obj) {
+unsigned char rhrd__num2day(long year, unsigned char month, VALUE obj) {
   long i = NUM2LONG(obj);
   if (i < 1 || i <= 28) {
     return (unsigned char)i;
   } else if (i > 31) {
     rb_raise(rb_eArgError, "invalid Date: day %i", i);
   } else if (month == 2) {
-    if (rhrd_leap_year(year)) {
+    if (rhrd__leap_year(year)) {
       if (i <= 29) {
         return (unsigned char)i;
       } else {
@@ -118,14 +135,14 @@ static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
       break;
     case 2:
       d->year = NUM2LONG(argv[0]);
-      d->month = rhrd_num2month(argv[1]);
+      d->month = rhrd__num2month(argv[1]);
       d->day = RHR_DEFAULT_DAY;
       break;
     case 3:
     case 4:
       d->year = NUM2LONG(argv[0]);
-      d->month = rhrd_num2month(argv[1]);
-      d->day = rhrd_num2day(d->year, d->month, argv[2]);
+      d->month = rhrd__num2month(argv[1]);
+      d->day = rhrd__num2day(d->year, d->month, argv[2]);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
@@ -170,8 +187,8 @@ static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
   }
   t = rb_funcall(rb_cTime, rhrd_id_now, 0);
   d->year = NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
-  d->month = rhrd_num2month(rb_funcall(t, rhrd_id_mon, 0));
-  d->day = rhrd_num2day(d->year, d->month, rb_funcall(t, rhrd_id_mday, 0));
+  d->month = rhrd__num2month(rb_funcall(t, rhrd_id_mon, 0));
+  d->day = rhrd__num2day(d->year, d->month, rb_funcall(t, rhrd_id_mday, 0));
   d->flags = RHR_HAVE_CIVIL;
   return rd;
 }
@@ -197,6 +214,13 @@ static VALUE rhrd_inspect(VALUE self) {
   s = rb_str_new2(str);
   free(str);
   return s;
+}
+
+static VALUE rhrd_jd(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return INT2NUM(d->jd);
 }
 
 static VALUE rhrd_month(VALUE self) {
@@ -228,6 +252,7 @@ void Init_home_run_date(void) {
 
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
+  rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
 }
