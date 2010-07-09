@@ -31,3 +31,14 @@ task :bench_hr do
   sh %{#{RUBY} bench/bench_home_run.rb}
 end
 
+desc "Print all methods that still need to be implemented"
+task :todo do
+  scm = `#{RUBY} -r date -e 'puts class << Date; instance_methods(true); end'`.split
+  hrcm = `#{RUBY} -I ext -I lib -r date -e 'puts class << Date; instance_methods(true); end'`.split
+  sim = `#{RUBY} -r date -e 'puts Date.instance_methods(true)'`.split
+  hrim = `#{RUBY} -I ext -I lib -r date -e 'puts Date.instance_methods(true)'`.split
+  puts "Class Methods: #{(scm-hrcm).sort.join(', ')}"
+  puts ""
+  puts "Instance Methods: #{(sim-hrim).sort.join(', ')}"
+end
+
