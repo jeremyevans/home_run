@@ -172,26 +172,26 @@ unsigned char rhrd__num2day(long year, unsigned char month, VALUE obj) {
   if (i < 1 || i <= 28) {
     return (unsigned char)i;
   } else if (i > 31) {
-    rb_raise(rb_eArgError, "invalid Date: day %i", i);
+    rb_raise(rb_eArgError, "invalid Date: day %hhi", i);
   } else if (month == 2) {
     if (rhrd__leap_year(year)) {
       if (i <= 29) {
         return (unsigned char)i;
       } else {
-        rb_raise(rb_eArgError, "invalid Date: year %i, month %i, day %i", year, month, i);
+        rb_raise(rb_eArgError, "invalid Date: year %li, month %hhi, day %hhi", year, month, i);
       }
     } else {
       if (i <= 28) {
         return (unsigned char)i;
       } else {
-        rb_raise(rb_eArgError, "invalid Date: year %i, month %i, day %i", year, month, i);
+        rb_raise(rb_eArgError, "invalid Date: year %li, month %hhi, day %hhi", year, month, i);
       }
     }
   } else {
     if (i <= rhrd_days_in_month[month]) {
       return (unsigned char)i;
     } else {
-      rb_raise(rb_eArgError, "invalid Date: month %i, day %i", month, i);
+      rb_raise(rb_eArgError, "invalid Date: month %hhi, day %hhi", month, i);
     }
   }
 }
