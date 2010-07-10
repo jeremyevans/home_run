@@ -196,6 +196,14 @@ unsigned char rhrd__num2day(long year, unsigned char month, VALUE obj) {
   }
 }
 
+unsigned char rhrd__days_in_month(long year, unsigned char month) {
+  if (month == 2) {
+    return rhrd__leap_year(year) ? 29 : 28;
+  } else {
+    return rhrd_days_in_month[month];
+  }
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
@@ -321,6 +329,42 @@ static VALUE rhrd_year(VALUE self) {
 }
 
 /* Ruby Instance Operator Methods */
+
+static VALUE rhrd_op_right_shift(VALUE self, VALUE other) {
+  rhrd_t *d;
+  rhrd_t *newd;
+  VALUE new;
+  Data_Get_Struct(self, rhrd_t, d);
+  long n, x;
+
+  if (!RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+    rb_raise(rb_eTypeError, "expected numeric");
+  }
+
+  n = NUM2LONG(other);
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+  RHR_FILL_CIVIL(d)
+  n = rhrd__safe_add_long(n, (long)(d->month));
+  if(n > 1 && n <= 12) {
+    newd->year = d->year;
+    newd->month = n;
+  } else {
+    x = n / 12;
+    n = n % 12;
+    if (n <= 0) {
+      newd->year = d->year + x - 1;
+      newd->month = n + 12;
+    } else {
+      newd->year = d->year + x;
+      newd->month = (unsigned char)n;
+    }
+  }
+  x = rhrd__days_in_month(newd->year, newd->month);
+  newd->day = (unsigned char)(d->day > x ? x : d->day);
+  RHR_CHECK_CIVIL(newd)
+  newd->flags = RHR_HAVE_CIVIL;
+  return new;
+}
 
 static VALUE rhrd_op_plus(VALUE self, VALUE other) {
   rhrd_t *d;
@@ -451,6 +495,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
 
+  rb_define_method(rhrd_class, ">>", rhrd_op_right_shift, 1);
   rb_define_method(rhrd_class, "+", rhrd_op_plus, 1);
   rb_define_method(rhrd_class, "-", rhrd_op_minus, 1);
   rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
