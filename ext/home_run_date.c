@@ -204,6 +204,33 @@ unsigned char rhrd__days_in_month(long year, unsigned char month) {
   }
 }
 
+static VALUE rhrd__add_days(VALUE self, long n) {
+  rhrd_t *d;
+  rhrd_t *newd;
+  VALUE new;
+  long x;
+  Data_Get_Struct(self, rhrd_t, d);
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+
+  if(!(RHR_HAS_JD(d))) {
+    x = rhrd__safe_add_long(n, (long)(d->day));
+    if (x >= 1 && x <= 28) {
+      newd->year = d->year;
+      newd->month = d->month;
+      newd->day = (unsigned char)x;
+      RHR_CHECK_CIVIL(newd)
+      newd->flags = RHR_HAVE_CIVIL;
+      return new;
+    }
+    RHR_FILL_JD(d)
+  }
+
+  newd->jd = rhrd__safe_add_long(n, d->jd);
+  RHR_CHECK_JD(newd)
+  newd->flags = RHR_HAVE_JD;
+  return new;
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
@@ -337,10 +364,6 @@ static VALUE rhrd_op_right_shift(VALUE self, VALUE other) {
   Data_Get_Struct(self, rhrd_t, d);
   long n, x;
 
-  if (!RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
-    rb_raise(rb_eTypeError, "expected numeric");
-  }
-
   n = NUM2LONG(other);
   new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
   RHR_FILL_CIVIL(d)
@@ -367,73 +390,22 @@ static VALUE rhrd_op_right_shift(VALUE self, VALUE other) {
 }
 
 static VALUE rhrd_op_plus(VALUE self, VALUE other) {
-  rhrd_t *d;
-  rhrd_t *newd;
-  VALUE new;
-  Data_Get_Struct(self, rhrd_t, d);
-  long n, x;
-
-  if (!RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
-    rb_raise(rb_eTypeError, "expected numeric");
-  }
-
-  n = NUM2LONG(other);
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
-
-  if(!(RHR_HAS_JD(d))) {
-    x = rhrd__safe_add_long(n, (long)(d->day));
-    if (x >= 1 && x <= 28) {
-      newd->year = d->year;
-      newd->month = d->month;
-      newd->day = (unsigned char)x;
-      RHR_CHECK_CIVIL(newd)
-      newd->flags = RHR_HAVE_CIVIL;
-      return new;
-    }
-    RHR_FILL_JD(d)
-  }
-
-  newd->jd = rhrd__safe_add_long(n, d->jd);
-  RHR_CHECK_JD(newd)
-  newd->flags = RHR_HAVE_JD;
-  return new;
+   return rhrd__add_days(self, NUM2LONG(other));
 }
 
 static VALUE rhrd_op_minus(VALUE self, VALUE other) {
   rhrd_t *d;
   rhrd_t *newd;
-  VALUE new;
   Data_Get_Struct(self, rhrd_t, d);
-  long n, x;
 
   if (RTEST(rb_obj_is_kind_of(other, rb_cNumeric))) {
-    n = -NUM2LONG(other);
-    new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
-  
-    if(!(RHR_HAS_JD(d))) {
-      x = rhrd__safe_add_long(n, (long)(d->day));
-      if (x >= 1 && x <= 28) {
-        newd->year = d->year;
-        newd->month = d->month;
-        newd->day = (unsigned char)x;
-        RHR_CHECK_CIVIL(newd)
-        newd->flags = RHR_HAVE_CIVIL;
-        return new;
-      }
-      RHR_FILL_JD(d)
-    }
-  
-    newd->jd = rhrd__safe_add_long(n, d->jd);
-    RHR_CHECK_JD(newd)
-    newd->flags = RHR_HAVE_JD;
-    return new;
+    return rhrd__add_days(self, -NUM2LONG(other));
   }
   if (RTEST((rb_obj_is_kind_of(other, rhrd_class)))) {
     Data_Get_Struct(other, rhrd_t, newd);
     RHR_FILL_JD(d)
     RHR_FILL_JD(newd)
-    n = rhrd__safe_add_long(d->jd, -newd->jd);
-    return INT2NUM(n);
+    return INT2NUM(rhrd__safe_add_long(d->jd, -newd->jd));
   }
   rb_raise(rb_eTypeError, "expected numeric or date");
 }
