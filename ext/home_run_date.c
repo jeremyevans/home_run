@@ -355,6 +355,45 @@ static VALUE rhrd_op_plus(VALUE self, VALUE other) {
   return new;
 }
 
+static VALUE rhrd_op_minus(VALUE self, VALUE other) {
+  rhrd_t *d;
+  rhrd_t *newd;
+  VALUE new;
+  Data_Get_Struct(self, rhrd_t, d);
+  long n, x;
+
+  if (RTEST(rb_obj_is_kind_of(other, rb_cNumeric))) {
+    n = -NUM2LONG(other);
+    new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+  
+    if(!(RHR_HAS_JD(d))) {
+      x = rhrd__safe_add_long(n, (long)(d->day));
+      if (x >= 1 && x <= 28) {
+        newd->year = d->year;
+        newd->month = d->month;
+        newd->day = (unsigned char)x;
+        RHR_CHECK_CIVIL(newd)
+        newd->flags = RHR_HAVE_CIVIL;
+        return new;
+      }
+      RHR_FILL_JD(d)
+    }
+  
+    newd->jd = rhrd__safe_add_long(n, d->jd);
+    RHR_CHECK_JD(newd)
+    newd->flags = RHR_HAVE_JD;
+    return new;
+  }
+  if (RTEST((rb_obj_is_kind_of(other, rhrd_class)))) {
+    Data_Get_Struct(other, rhrd_t, newd);
+    RHR_FILL_JD(d)
+    RHR_FILL_JD(newd)
+    n = rhrd__safe_add_long(d->jd, -newd->jd);
+    return INT2NUM(n);
+  }
+  rb_raise(rb_eTypeError, "expected numeric or date");
+}
+
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
   Data_Get_Struct(self, rhrd_t, d);
@@ -413,6 +452,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_class, "mon", "month");
 
   rb_define_method(rhrd_class, "+", rhrd_op_plus, 1);
+  rb_define_method(rhrd_class, "-", rhrd_op_minus, 1);
   rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 }
