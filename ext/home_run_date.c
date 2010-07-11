@@ -381,6 +381,10 @@ static VALUE rhrd_jd(VALUE self) {
   return INT2NUM(d->jd);
 }
 
+static VALUE rhrd_julian_q(VALUE self) {
+  return Qfalse;
+}
+
 static VALUE rhrd_month(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -510,6 +514,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "gregorian?", rhrd_gregorian_q, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
+  rb_define_method(rhrd_class, "julian?", rhrd_julian_q, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
   rb_define_method(rhrd_class, "new_start", rhrd_new_start, 1);
@@ -525,6 +530,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_class, "mon", "month");
   rb_define_alias(rhrd_class, "newsg", "new_start");
   rb_define_alias(rhrd_class, "ns?", "gregorian?");
+  rb_define_alias(rhrd_class, "os?", "julian?");
   rb_define_alias(rhrd_class, "sg", "start");
   rb_define_alias(rhrd_class, "succ", "next");
 
