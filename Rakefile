@@ -35,6 +35,15 @@ task :mem_bench do
   puts "home_run uses #{sprintf('%0.1f', stdlib/home_run.to_f)} times less memory"
 end
 
+desc "Run garbage creation benchmarks"
+task :garbage_bench do
+  stdlib = `#{RUBY} bench/garbage_bench.rb`.to_i
+  home_run = `#{RUBY} -I ext -I lib bench/garbage_bench.rb`.to_i
+  puts "stdlib: #{stdlib}KB"
+  puts "home_run: #{home_run}KB"
+  puts "home_run creates #{sprintf('%0.1f', stdlib/home_run.to_f)} times less garbage"
+end
+
 desc "Print all methods that still need to be implemented"
 task :todo do
   scm = `#{RUBY} -r date -e 'puts class << Date; instance_methods(true); end'`.split
