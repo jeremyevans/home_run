@@ -1,7 +1,7 @@
 require "rake"
 require "rake/clean"
 
-CLEAN.include %w'Makefile ext/home_run_date.o ext/home_run_date.so' 
+CLEAN.include %w'Makefile ext/home_run_date.o ext/home_run_date.so **/*.rbc' 
 RUBY=ENV['RUBY'] || 'ruby'
 IRB=ENV['IRB'] || 'irb'
 
@@ -22,13 +22,8 @@ task :irb do
 end
 
 desc "Run comparative benchmarks"
-task :bench=>[:bench_hr] do
-  sh %{#{RUBY} bench/bench_stdlib.rb}
-end
-
-desc "Benchmark this implementation"
-task :bench_hr do
-  sh %{#{RUBY} bench/bench_home_run.rb}
+task :bench do
+  sh %{#{RUBY} bench/cpu_bench.rb}
 end
 
 desc "Print all methods that still need to be implemented"
