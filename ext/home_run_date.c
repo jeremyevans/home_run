@@ -366,6 +366,10 @@ static VALUE rhrd_inspect(VALUE self) {
   return s;
 }
 
+static VALUE rhrd_gregorian(VALUE self) {
+  return self;
+}
+
 static VALUE rhrd_jd(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -490,6 +494,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_s_class, "new", "civil");
 
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
+  rb_define_method(rhrd_class, "gregorian", rhrd_gregorian, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
@@ -498,6 +503,9 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "yday", rhrd_yday, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
 
+  rb_define_alias(rhrd_class, "england", "gregorian");
+  rb_define_alias(rhrd_class, "italy", "gregorian");
+  rb_define_alias(rhrd_class, "julian", "gregorian");
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
   rb_define_alias(rhrd_class, "succ", "next");
