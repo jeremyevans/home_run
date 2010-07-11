@@ -379,6 +379,10 @@ static VALUE rhrd_month(VALUE self) {
   return INT2NUM(d->month);
 }
 
+static VALUE rhrd_next(VALUE self) {
+   return rhrd__add_days(self, 1);
+}
+
 static VALUE rhrd_year(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -470,9 +474,11 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
+  rb_define_method(rhrd_class, "next", rhrd_next, 0);
 
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
+  rb_define_alias(rhrd_class, "succ", "next");
 
   rb_define_method(rhrd_class, ">>", rhrd_op_right_shift, 1);
   rb_define_method(rhrd_class, "<<", rhrd_op_left_shift, 1);
