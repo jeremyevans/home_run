@@ -6,6 +6,9 @@ end
 n = 100000
 GC.start
 start_mem = mem_usage
+m = (0...n).map{nil}
+GC.start
+array_usage = mem_usage - start_mem
 m = (0...n).map{Date.jd}
 GC.start
-puts(mem_usage - start_mem)
+puts(mem_usage - start_mem - array_usage)
