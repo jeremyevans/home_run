@@ -26,6 +26,15 @@ task :bench do
   sh %{#{RUBY} bench/cpu_bench.rb}
 end
 
+desc "Run memory benchmarks"
+task :mem_bench do
+  stdlib = `#{RUBY} bench/mem_bench.rb`.to_i
+  home_run = `#{RUBY} -I ext -I lib bench/mem_bench.rb`.to_i
+  puts "stdlib: #{stdlib}KB"
+  puts "home_run: #{home_run}KB"
+  puts "home_run uses #{sprintf('%0.1f', stdlib/home_run.to_f)} times less memory"
+end
+
 desc "Print all methods that still need to be implemented"
 task :todo do
   scm = `#{RUBY} -r date -e 'puts class << Date; instance_methods(true); end'`.split
