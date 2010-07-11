@@ -388,6 +388,10 @@ static VALUE rhrd_next(VALUE self) {
    return rhrd__add_days(self, 1);
 }
 
+static VALUE rhrd_new_start(VALUE self, VALUE other) {
+  return self;
+}
+
 static VALUE rhrd_wday(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -499,6 +503,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
+  rb_define_method(rhrd_class, "new_start", rhrd_new_start, 1);
   rb_define_method(rhrd_class, "wday", rhrd_wday, 0);
   rb_define_method(rhrd_class, "yday", rhrd_yday, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
@@ -508,6 +513,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_class, "julian", "gregorian");
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
+  rb_define_alias(rhrd_class, "newsg", "new_start");
   rb_define_alias(rhrd_class, "succ", "next");
 
   rb_define_method(rhrd_class, ">>", rhrd_op_right_shift, 1);
