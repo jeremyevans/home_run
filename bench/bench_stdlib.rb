@@ -20,6 +20,7 @@ Benchmark.bm(25) do |x|
   x.report("#>> 13"){d = Date.civil(2010, 1, 31); n.times{d >> 13}}
   x.report("#<< 17"){d = Date.civil(2011, 7, 31); n.times{d << 17}}
   x.report("#next"){d = Date.civil(2010, 1, 1); n.times{d.next}}
+  x.report("#yday"){d = Date.civil(2010, 1, 1); n.times{d.yday}}
 
   x.report(".jd(jd).inspect"){n.times{Date.jd(2010).inspect}}
   x.report(".jd(jd).{year,month,day}"){n.times{d = Date.jd(2010); d.year; d.month; d.day}}

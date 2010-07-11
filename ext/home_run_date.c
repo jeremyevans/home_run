@@ -67,6 +67,7 @@ typedef struct rhrd_s {
 } rhrd_t;
 
 unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+long rhrd_cumulative_days_in_month[13] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 VALUE rhrd_class;
 VALUE rhrd_s_class;
 
@@ -383,6 +384,18 @@ static VALUE rhrd_next(VALUE self) {
    return rhrd__add_days(self, 1);
 }
 
+static VALUE rhrd_yday(VALUE self) {
+  rhrd_t *d;
+  long yday;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  yday = rhrd_cumulative_days_in_month[d->month] + d->day;
+  if(d->month > 2 && rhrd__leap_year(d->year)) {
+    yday += 1;
+  }
+  return INT2NUM(yday);
+}
+
 static VALUE rhrd_year(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -473,8 +486,9 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
-  rb_define_method(rhrd_class, "year", rhrd_year, 0);
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
+  rb_define_method(rhrd_class, "yday", rhrd_yday, 0);
+  rb_define_method(rhrd_class, "year", rhrd_year, 0);
 
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
