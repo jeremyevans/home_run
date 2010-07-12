@@ -432,6 +432,13 @@ static VALUE rhrd_julian_q(VALUE self) {
   return Qfalse;
 }
 
+static VALUE rhrd_ld(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return INT2NUM(d->jd - RHR_JD_LD);
+}
+
 static VALUE rhrd_leap_q(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -601,6 +608,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "julian?", rhrd_julian_q, 0);
+  rb_define_method(rhrd_class, "ld", rhrd_ld, 0);
   rb_define_method(rhrd_class, "leap?", rhrd_leap_q, 0);
   rb_define_method(rhrd_class, "mjd", rhrd_mjd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);

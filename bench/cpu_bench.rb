@@ -42,6 +42,7 @@ compare("#leap?"){|dc| d = dc.civil(2010, 1, 1); n.times{d.leap?}}
 compare("#day_fraction"){|dc| d = dc.civil(2010, 1, 1); n.times{d.day_fraction}}
 compare("#hash"){|dc| d = dc.civil(2010, 1, 1); n.times{d.hash}}
 compare("#mjd"){|dc| d = dc.civil(2010, 1, 1); n.times{d.mjd}}
+compare("#ld"){|dc| d = dc.civil(2010, 1, 1); n.times{d.ld}}
 
 compare(".jd.inspect"){|dc|n.times{dc.jd(2010).inspect}}
 compare(".jd.(year|month|day)"){|dc| n.times{d = dc.jd(2010); d.year; d.month; d.day}}
