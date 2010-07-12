@@ -39,13 +39,13 @@ The numbers are slightly less than 2**31 - 1 and slightly greater than -2**31
 so that no calculations can overflow.
 */
 #define RHR_JD_MAX 2147438064
-#define RHR_JD_MIN -2147441038
+#define RHR_JD_MIN -2145083647
 #define RHR_YEAR_MAX 5874773
 #define RHR_MONTH_MAX 8
 #define RHR_DAY_MAX 15
-#define RHR_YEAR_MIN -5884206
-#define RHR_MONTH_MIN 1
-#define RHR_DAY_MIN 12
+#define RHR_YEAR_MIN -5877752
+#define RHR_MONTH_MIN 5
+#define RHR_DAY_MIN 8
 #endif
 
 #define RHR_HAVE_JD 0x1
@@ -439,6 +439,13 @@ static VALUE rhrd_leap_q(VALUE self) {
   return rhrd__leap_year(d->year) ? Qtrue : Qfalse;
 }
 
+static VALUE rhrd_mjd(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return INT2NUM(d->jd - RHR_JD_MJD);
+}
+
 static VALUE rhrd_month(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -595,6 +602,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "julian?", rhrd_julian_q, 0);
   rb_define_method(rhrd_class, "leap?", rhrd_leap_q, 0);
+  rb_define_method(rhrd_class, "mjd", rhrd_mjd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
   rb_define_method(rhrd_class, "new_start", rhrd_new_start, 1);
@@ -605,6 +613,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
 
   rb_define_alias(rhrd_class, "ajd", "jd");
+  rb_define_alias(rhrd_class, "amjd", "mjd");
   rb_define_alias(rhrd_class, "england", "gregorian");
   rb_define_alias(rhrd_class, "italy", "gregorian");
   rb_define_alias(rhrd_class, "julian", "gregorian");
