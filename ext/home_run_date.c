@@ -503,6 +503,22 @@ static VALUE rhrd_op_minus(VALUE self, VALUE other) {
   rb_raise(rb_eTypeError, "expected numeric or date");
 }
 
+static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
+  rhrd_t *d, *o;
+  long diff = 1;
+  Data_Get_Struct(self, rhrd_t, d);
+
+  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(other, rhrd_t, o);
+    diff = rhrd__spaceship(d, o);
+  } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+    diff = NUM2LONG(other);
+    RHR_FILL_JD(d)
+    RHR_SPACE_SHIP(diff, d->jd, diff)
+  }
+  return diff == 0 ? Qtrue : Qfalse;
+}
+
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
   long diff;
@@ -568,6 +584,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "<<", rhrd_op_left_shift, 1);
   rb_define_method(rhrd_class, "+", rhrd_op_plus, 1);
   rb_define_method(rhrd_class, "-", rhrd_op_minus, 1);
+  rb_define_method(rhrd_class, "===", rhrd_op_relationship, 1);
   rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 }
