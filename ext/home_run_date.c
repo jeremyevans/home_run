@@ -8,6 +8,10 @@
 #define RHR_DEFAULT_YEAR -4712
 #define RHR_DEFAULT_MONTH 1
 #define RHR_DEFAULT_DAY 1
+#define RHR_JD_MJD 2400001
+#define RHR_JD_LD 2299160
+#define RHR_JD_ITALY 2299161
+#define RHR_JD_ENGLAND 2361222
 
 /*
 In both the 32-bit and 64-bit cases, the limits are chosen so that you cannot
@@ -569,6 +573,11 @@ void Init_home_run_date(void) {
 
   rhrd_class = rb_define_class("Date", rb_cObject);
   rhrd_s_class = rb_singleton_class(rhrd_class);
+
+  rb_define_const(rhrd_class, "ITALY", INT2NUM(RHR_JD_ITALY));
+  rb_define_const(rhrd_class, "ENGLAND", INT2NUM(RHR_JD_ENGLAND));
+  rb_define_const(rhrd_class, "JULIAN", INT2NUM(RHR_JD_MIN - 1));
+  rb_define_const(rhrd_class, "GREGORIAN", INT2NUM(RHR_JD_MAX + 1));
 
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
