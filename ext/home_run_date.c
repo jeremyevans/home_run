@@ -604,6 +604,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "yday", rhrd_yday, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
 
+  rb_define_alias(rhrd_class, "ajd", "jd");
   rb_define_alias(rhrd_class, "england", "gregorian");
   rb_define_alias(rhrd_class, "italy", "gregorian");
   rb_define_alias(rhrd_class, "julian", "gregorian");
