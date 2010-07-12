@@ -71,10 +71,11 @@ long rhrd_cumulative_days_in_month[13] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 
 VALUE rhrd_class;
 VALUE rhrd_s_class;
 
+ID rhrd_id_hash;
 ID rhrd_id_now;
-ID rhrd_id_year;
-ID rhrd_id_mon;
 ID rhrd_id_mday;
+ID rhrd_id_mon;
+ID rhrd_id_year;
 
 /* C Helper Methods */
 
@@ -395,6 +396,13 @@ static VALUE rhrd_gregorian_q(VALUE self) {
   return Qtrue;
 }
 
+static VALUE rhrd_hash(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return rb_funcall(INT2NUM(d->jd), rhrd_id_hash, 0);
+}
+
 static VALUE rhrd_inspect(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -553,10 +561,12 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 /* Ruby Library Initialization */
 
 void Init_home_run_date(void) {
+  rhrd_id_hash = rb_intern("hash");
   rhrd_id_now = rb_intern("now");
-  rhrd_id_year = rb_intern("year");
-  rhrd_id_mon = rb_intern("mon");
   rhrd_id_mday = rb_intern("mday");
+  rhrd_id_mon = rb_intern("mon");
+  rhrd_id_year = rb_intern("year");
+
   rhrd_class = rb_define_class("Date", rb_cObject);
   rhrd_s_class = rb_singleton_class(rhrd_class);
 
@@ -571,6 +581,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "eql?", rhrd_eql_q, 1);
   rb_define_method(rhrd_class, "gregorian", rhrd_gregorian, 0);
   rb_define_method(rhrd_class, "gregorian?", rhrd_gregorian_q, 0);
+  rb_define_method(rhrd_class, "hash", rhrd_hash, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "julian?", rhrd_julian_q, 0);
