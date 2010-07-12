@@ -550,6 +550,63 @@ static VALUE rhrd_start(VALUE self) {
   return INT2NUM(RHR_JD_MAX);
 }
 
+static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
+  rhrd_t *d, *n, *newd;
+  long step, limit, current;
+  VALUE rlimit, new;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+
+  rb_need_block();
+  switch(argc) {
+    case 1:
+      step = 1;
+      break;
+    case 2:
+      step = NUM2LONG(argv[1]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguements: %i for 2", argc);
+      break;
+  }
+
+  rlimit = argv[0];
+  if (RTEST(rb_obj_is_kind_of(rlimit, rb_cNumeric))) {
+    limit = NUM2LONG(rlimit);
+  } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrd_class)))) {
+    Data_Get_Struct(rlimit, rhrd_t, n);
+    RHR_FILL_JD(n)
+    limit = n->jd;
+  } else {
+    rb_raise(rb_eTypeError, "expected numeric or date");
+  }
+
+  current = d->jd;
+  if (limit > current) {
+    while(limit >= current) {
+      new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+      newd->jd = current;
+      RHR_CHECK_JD(newd)
+      newd->flags = RHR_HAVE_JD;
+      current += step;
+      rb_yield(new);
+    }
+  } else if (limit < current) {
+    while(limit <= current) {
+      new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+      newd->jd = current;
+      RHR_CHECK_JD(newd)
+      newd->flags = RHR_HAVE_JD;
+      current += step;
+      rb_yield(new);
+    }
+  } else {
+    rb_yield(self);
+  }
+
+  return self;
+}
+
 static VALUE rhrd_to_s(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -697,6 +754,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
   rb_define_method(rhrd_class, "new_start", rhrd_new_start, 1);
   rb_define_method(rhrd_class, "start", rhrd_start, 0);
+  rb_define_method(rhrd_class, "step", rhrd_step, -1);
   rb_define_method(rhrd_class, "to_s", rhrd_to_s, 0);
   rb_define_method(rhrd_class, "wday", rhrd_wday, 0);
   rb_define_method(rhrd_class, "yday", rhrd_yday, 0);
