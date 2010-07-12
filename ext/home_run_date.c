@@ -72,6 +72,8 @@ typedef struct rhrd_s {
 
 unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 long rhrd_cumulative_days_in_month[13] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+char * rhrd_abbr_month_names[13] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+char * rhrd_abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 VALUE rhrd_class;
 VALUE rhrd_s_class;
 
@@ -397,6 +399,25 @@ static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
 
 /* Ruby Instance Methods */
 
+static VALUE rhrd_asctime(VALUE self) {
+  VALUE s;
+  rhrd_t *d;
+  char *str;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  RHR_FILL_JD(d)
+  if (asprintf(&str, "%s %s %2hhi 00:00:00 %04li", 
+        rhrd_abbr_day_names[(d->jd + 1) % 7],
+        rhrd_abbr_month_names[d->month],
+        d->day,
+        d->year) == -1) {
+    rb_raise(rb_eNoMemError, "in Date#asctime");
+  }
+  s = rb_str_new2(str);
+  free(str);
+  return s;
+}
+
 static VALUE rhrd_cwday(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
@@ -656,6 +677,7 @@ void Init_home_run_date(void) {
 
   rb_define_alias(rhrd_s_class, "new", "civil");
 
+  rb_define_method(rhrd_class, "asctime", rhrd_asctime, 0);
   rb_define_method(rhrd_class, "cwday", rhrd_cwday, 0);
   rb_define_method(rhrd_class, "cweek", rhrd_cweek, 0);
   rb_define_method(rhrd_class, "cwyear", rhrd_cwyear, 0);
@@ -682,6 +704,7 @@ void Init_home_run_date(void) {
 
   rb_define_alias(rhrd_class, "ajd", "jd");
   rb_define_alias(rhrd_class, "amjd", "mjd");
+  rb_define_alias(rhrd_class, "ctime", "asctime");
   rb_define_alias(rhrd_class, "england", "gregorian");
   rb_define_alias(rhrd_class, "italy", "gregorian");
   rb_define_alias(rhrd_class, "julian", "gregorian");
