@@ -43,6 +43,9 @@ compare("#day_fraction"){|dc| d = dc.civil(2010, 1, 1); n.times{d.day_fraction}}
 compare("#hash"){|dc| d = dc.civil(2010, 1, 1); n.times{d.hash}}
 compare("#mjd"){|dc| d = dc.civil(2010, 1, 1); n.times{d.mjd}}
 compare("#ld"){|dc| d = dc.civil(2010, 1, 1); n.times{d.ld}}
+compare("#cwyear"){|dc| d = dc.civil(2010, 1, 1); n.times{d.cwyear}}
+compare("#cweek"){|dc| d = dc.civil(2010, 1, 1); n.times{d.cweek}}
+compare("#cwday"){|dc| d = dc.civil(2010, 1, 1); n.times{d.cwday}}
 
 compare(".jd.inspect"){|dc|n.times{dc.jd(2010).inspect}}
 compare(".jd.(year|month|day)"){|dc| n.times{d = dc.jd(2010); d.year; d.month; d.day}}

@@ -288,6 +288,33 @@ long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
   return diff;
 }
 
+long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
+  rhrd_t n;
+
+  n.year = cwyear;
+  n.month = 1;
+  n.day = 4;
+  rhrd__civil_to_jd(&n);
+  return n.jd - (n.jd % 7) + 7 * (cweek - 1) + (cwday - 1);
+}
+
+/* Abuses the year, month, and day fields to store
+ * cwyear, cweek, and cwday */
+void rhrd__fill_commercial(rhrd_t *d) {
+  long a;
+  rhrd_t n;
+
+  n.jd = d->jd - 3;
+  rhrd__jd_to_civil(&n);
+  a = n.year;
+  d->year = d->jd >= rhrd__commercial_to_jd(a + 1, 1, 1) ? a + 1 : a;
+  d->month = 1 + floor((d->jd - rhrd__commercial_to_jd(d->year, 1, 1)) / 7);
+  d->day = (d->jd + 1) % 7;
+  if (d->day == 0) {
+    d->day = 7;
+  }
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
@@ -369,6 +396,36 @@ static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
 }
 
 /* Ruby Instance Methods */
+
+static VALUE rhrd_cwday(VALUE self) {
+  rhrd_t *d;
+  rhrd_t n;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  n.jd = d->jd;
+  rhrd__fill_commercial(&n);
+  return INT2NUM(n.day);
+}
+
+static VALUE rhrd_cweek(VALUE self) {
+  rhrd_t *d;
+  rhrd_t n;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  n.jd = d->jd;
+  rhrd__fill_commercial(&n);
+  return INT2NUM(n.month);
+}
+
+static VALUE rhrd_cwyear(VALUE self) {
+  rhrd_t *d;
+  rhrd_t n;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  n.jd = d->jd;
+  rhrd__fill_commercial(&n);
+  return INT2NUM(n.year);
+}
 
 static VALUE rhrd_day(VALUE self) {
   rhrd_t *d;
@@ -599,6 +656,9 @@ void Init_home_run_date(void) {
 
   rb_define_alias(rhrd_s_class, "new", "civil");
 
+  rb_define_method(rhrd_class, "cwday", rhrd_cwday, 0);
+  rb_define_method(rhrd_class, "cweek", rhrd_cweek, 0);
+  rb_define_method(rhrd_class, "cwyear", rhrd_cwyear, 0);
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "day_fraction", rhrd_day_fraction, 0);
   rb_define_method(rhrd_class, "eql?", rhrd_eql_q, 1);
@@ -639,5 +699,6 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "-", rhrd_op_minus, 1);
   rb_define_method(rhrd_class, "===", rhrd_op_relationship, 1);
   rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
+
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 }
