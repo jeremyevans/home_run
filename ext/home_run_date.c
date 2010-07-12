@@ -385,6 +385,13 @@ static VALUE rhrd_julian_q(VALUE self) {
   return Qfalse;
 }
 
+static VALUE rhrd_leap_q(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  return rhrd__leap_year(d->year) ? Qtrue : Qfalse;
+}
+
 static VALUE rhrd_month(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -515,6 +522,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
   rb_define_method(rhrd_class, "jd", rhrd_jd, 0);
   rb_define_method(rhrd_class, "julian?", rhrd_julian_q, 0);
+  rb_define_method(rhrd_class, "leap?", rhrd_leap_q, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
   rb_define_method(rhrd_class, "new_start", rhrd_new_start, 1);
