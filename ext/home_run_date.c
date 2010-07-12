@@ -352,6 +352,10 @@ static VALUE rhrd_day(VALUE self) {
   return INT2NUM(d->day);
 }
 
+static VALUE rhrd_day_fraction(VALUE self) {
+  return INT2NUM(0);
+}
+
 static VALUE rhrd_inspect(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -517,6 +521,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_s_class, "new", "civil");
 
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
+  rb_define_method(rhrd_class, "day_fraction", rhrd_day_fraction, 0);
   rb_define_method(rhrd_class, "gregorian", rhrd_gregorian, 0);
   rb_define_method(rhrd_class, "gregorian?", rhrd_gregorian_q, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);

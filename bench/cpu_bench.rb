@@ -35,6 +35,7 @@ compare("#next"){|dc| d = dc.civil(2010, 1, 1); n.times{d.next}}
 compare("#yday"){|dc| d = dc.civil(2010, 1, 1); n.times{d.yday}}
 compare("#wday"){|dc| d = dc.civil(2010, 1, 1); n.times{d.wday}}
 compare("#leap?"){|dc| d = dc.civil(2010, 1, 1); n.times{d.leap?}}
+compare("#day_fraction"){|dc| d = dc.civil(2010, 1, 1); n.times{d.day_fraction}}
 
 compare(".jd.inspect"){|dc|n.times{dc.jd(2010).inspect}}
 compare(".jd.(year|month|day)"){|dc| n.times{d = dc.jd(2010); d.year; d.month; d.day}}
