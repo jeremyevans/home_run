@@ -83,6 +83,8 @@ ID rhrd_id_mday;
 ID rhrd_id_mon;
 ID rhrd_id_year;
 
+static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
+
 /* C Helper Methods */
 
 int rhrd__check_civil(rhrd_t *d) {
@@ -459,6 +461,13 @@ static VALUE rhrd_day_fraction(VALUE self) {
   return INT2NUM(0);
 }
 
+static VALUE rhrd_downto(VALUE self, VALUE other) {
+  VALUE argv[2];
+  argv[0] = other;
+  argv[1] = INT2FIX(-1);
+  return rhrd_step(2, argv, self);
+}
+
 static VALUE rhrd_eql_q(VALUE self, VALUE other) {
   rhrd_t *d, *o;
   Data_Get_Struct(self, rhrd_t, d);
@@ -621,6 +630,12 @@ static VALUE rhrd_to_s(VALUE self) {
   return s;
 }
 
+static VALUE rhrd_upto(VALUE self, VALUE other) {
+  VALUE argv[1];
+  argv[0] = other;
+  return rhrd_step(1, argv, self);
+}
+
 static VALUE rhrd_wday(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -740,6 +755,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "cwyear", rhrd_cwyear, 0);
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "day_fraction", rhrd_day_fraction, 0);
+  rb_define_method(rhrd_class, "downto", rhrd_downto, 1);
   rb_define_method(rhrd_class, "eql?", rhrd_eql_q, 1);
   rb_define_method(rhrd_class, "gregorian", rhrd_gregorian, 0);
   rb_define_method(rhrd_class, "gregorian?", rhrd_gregorian_q, 0);
@@ -756,6 +772,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "start", rhrd_start, 0);
   rb_define_method(rhrd_class, "step", rhrd_step, -1);
   rb_define_method(rhrd_class, "to_s", rhrd_to_s, 0);
+  rb_define_method(rhrd_class, "upto", rhrd_upto, 1);
   rb_define_method(rhrd_class, "wday", rhrd_wday, 0);
   rb_define_method(rhrd_class, "yday", rhrd_yday, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);

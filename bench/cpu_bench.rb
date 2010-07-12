@@ -53,6 +53,8 @@ compare("#cwyear"){|dc| d = dc.civil(2010, 1, 1); n.times{d.cwyear}}
 compare("#cweek"){|dc| d = dc.civil(2010, 1, 1); n.times{d.cweek}}
 compare("#cwday"){|dc| d = dc.civil(2010, 1, 1); n.times{d.cwday}}
 compare("#step"){|dc| d = dc.civil(2010, 1, 1); d2 = dc.civil(2010, 1, 10); n.times{d.step(d2){}}}
+compare("#downto"){|dc| d = dc.civil(2010, 1, 10); d2 = dc.civil(2010, 1, 1); n.times{d.downto(d2){}}}
+compare("#upto"){|dc| d = dc.civil(2010, 1, 1); d2 = dc.civil(2010, 1, 10); n.times{d.upto(d2){}}}
 
 compare(".jd.inspect"){|dc|n.times{dc.jd(2010).inspect}}
 compare(".jd.(year|month|day)"){|dc| n.times{d = dc.jd(2010); d.year; d.month; d.day}}
