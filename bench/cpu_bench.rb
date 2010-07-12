@@ -59,4 +59,7 @@ compare("#upto"){|dc| d = dc.civil(2010, 1, 1); d2 = dc.civil(2010, 1, 10); n.ti
 compare(".jd.inspect"){|dc|n.times{dc.jd(2010).inspect}}
 compare(".jd.(year|month|day)"){|dc| n.times{d = dc.jd(2010); d.year; d.month; d.day}}
 compare(".civil.jd"){|dc| n.times{dc.civil(2010, 1, 1).jd}}
+compare("Marshal.dump"){|dc| d = dc.civil(2010, 1, 1); n.times{Marshal.dump(d)}}
+compare("Marshal.load"){|dc| d = Marshal.dump(dc.civil(2010, 1, 1)); n.times{Marshal.load(d)}}
+
 

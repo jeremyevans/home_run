@@ -78,9 +78,9 @@ VALUE rhrd_class;
 VALUE rhrd_s_class;
 
 ID rhrd_id_hash;
-ID rhrd_id_now;
 ID rhrd_id_mday;
 ID rhrd_id_mon;
+ID rhrd_id_now;
 ID rhrd_id_year;
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
@@ -321,6 +321,17 @@ void rhrd__fill_commercial(rhrd_t *d) {
 
 /* Ruby Class Methods */
 
+static VALUE rhrd_s__load(VALUE klass, VALUE string) {
+  rhrd_t * d;
+  VALUE jd, rd;
+  jd = rb_marshal_load(string);
+  rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  d->jd = NUM2LONG(jd);
+  RHR_CHECK_JD(d)
+  d->flags = RHR_HAVE_JD;
+  return rd;
+}
+
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -400,6 +411,13 @@ static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
 }
 
 /* Ruby Instance Methods */
+
+static VALUE rhrd__dump(VALUE self, VALUE limit) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return rb_marshal_dump(INT2NUM(d->jd), INT2NUM(NUM2LONG(limit) - 1));
+}
 
 static VALUE rhrd_asctime(VALUE self) {
   VALUE s;
@@ -730,9 +748,9 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 void Init_home_run_date(void) {
   rhrd_id_hash = rb_intern("hash");
-  rhrd_id_now = rb_intern("now");
   rhrd_id_mday = rb_intern("mday");
   rhrd_id_mon = rb_intern("mon");
+  rhrd_id_now = rb_intern("now");
   rhrd_id_year = rb_intern("year");
 
   rhrd_class = rb_define_class("Date", rb_cObject);
@@ -743,12 +761,14 @@ void Init_home_run_date(void) {
   rb_define_const(rhrd_class, "JULIAN", INT2NUM(RHR_JD_MIN - 1));
   rb_define_const(rhrd_class, "GREGORIAN", INT2NUM(RHR_JD_MAX + 1));
 
+  rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");
 
+  rb_define_method(rhrd_class, "_dump", rhrd__dump, 1);
   rb_define_method(rhrd_class, "asctime", rhrd_asctime, 0);
   rb_define_method(rhrd_class, "cwday", rhrd_cwday, 0);
   rb_define_method(rhrd_class, "cweek", rhrd_cweek, 0);
