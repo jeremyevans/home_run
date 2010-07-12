@@ -263,6 +263,26 @@ static VALUE rhrd__add_months(VALUE self, long n) {
   return new;
 }
 
+long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
+  long diff;
+  if (RHR_HAS_JD(d) && RHR_HAS_JD(o)) {
+    RHR_SPACE_SHIP(diff, d->jd, o->jd)
+  } else if (RHR_HAS_CIVIL(d) && RHR_HAS_CIVIL(o)) {
+    RHR_SPACE_SHIP(diff, d->year, o->year)
+    if (!diff) {
+      RHR_SPACE_SHIP(diff, d->month, o->month)
+      if (!diff) {
+        RHR_SPACE_SHIP(diff, d->day, o->day)
+      }
+    }
+  } else {
+   RHR_FILL_JD(d)
+   RHR_FILL_JD(o)
+   RHR_SPACE_SHIP(diff, d->jd, o->jd)
+  }
+  return diff;
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
@@ -354,6 +374,17 @@ static VALUE rhrd_day(VALUE self) {
 
 static VALUE rhrd_day_fraction(VALUE self) {
   return INT2NUM(0);
+}
+
+static VALUE rhrd_eql_q(VALUE self, VALUE other) {
+  rhrd_t *d, *o;
+  Data_Get_Struct(self, rhrd_t, d);
+
+  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(other, rhrd_t, o);
+    return rhrd__spaceship(d, o) == 0 ? Qtrue : Qfalse;
+  }
+  return Qfalse;
 }
 
 static VALUE rhrd_inspect(VALUE self) {
@@ -474,27 +505,12 @@ static VALUE rhrd_op_minus(VALUE self, VALUE other) {
 
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
-  Data_Get_Struct(self, rhrd_t, d);
   long diff;
+  Data_Get_Struct(self, rhrd_t, d);
 
   if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
     Data_Get_Struct(other, rhrd_t, o);
-    if (RHR_HAS_JD(d) && RHR_HAS_JD(o)) {
-        RHR_SPACE_SHIP(diff, d->jd, o->jd)
-    } else if (RHR_HAS_CIVIL(d) && RHR_HAS_CIVIL(o)) {
-      RHR_SPACE_SHIP(diff, d->year, o->year)
-      if (!diff) {
-        RHR_SPACE_SHIP(diff, d->month, o->month)
-        if (!diff) {
-          RHR_SPACE_SHIP(diff, d->day, o->day)
-        }
-      }
-    } else {
-        RHR_FILL_JD(d)
-        RHR_FILL_JD(o)
-        RHR_SPACE_SHIP(diff, d->jd, o->jd)
-    }
-    return INT2NUM(diff);
+    return INT2NUM(rhrd__spaceship(d, o));
   } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
     diff = NUM2LONG(other);
     RHR_FILL_JD(d)
@@ -522,6 +538,7 @@ void Init_home_run_date(void) {
 
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "day_fraction", rhrd_day_fraction, 0);
+  rb_define_method(rhrd_class, "eql?", rhrd_eql_q, 1);
   rb_define_method(rhrd_class, "gregorian", rhrd_gregorian, 0);
   rb_define_method(rhrd_class, "gregorian?", rhrd_gregorian_q, 0);
   rb_define_method(rhrd_class, "inspect", rhrd_inspect, 0);
