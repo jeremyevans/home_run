@@ -387,6 +387,14 @@ static VALUE rhrd_eql_q(VALUE self, VALUE other) {
   return Qfalse;
 }
 
+static VALUE rhrd_gregorian(VALUE self) {
+  return self;
+}
+
+static VALUE rhrd_gregorian_q(VALUE self) {
+  return Qtrue;
+}
+
 static VALUE rhrd_inspect(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -399,14 +407,6 @@ static VALUE rhrd_inspect(VALUE self) {
   s = rb_str_new2(str);
   free(str);
   return s;
-}
-
-static VALUE rhrd_gregorian(VALUE self) {
-  return self;
-}
-
-static VALUE rhrd_gregorian_q(VALUE self) {
-  return Qtrue;
 }
 
 static VALUE rhrd_jd(VALUE self) {
@@ -444,6 +444,20 @@ static VALUE rhrd_new_start(VALUE self, VALUE other) {
 
 static VALUE rhrd_start(VALUE self) {
   return INT2NUM(RHR_JD_MAX);
+}
+
+static VALUE rhrd_to_s(VALUE self) {
+  VALUE s;
+  rhrd_t *d;
+  char *str;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  if (asprintf(&str, "%04li-%02hhi-%02hhi", d->year, d->month, d->day) == -1) {
+    rb_raise(rb_eNoMemError, "in Date#to_s");
+  }
+  s = rb_str_new2(str);
+  free(str);
+  return s;
 }
 
 static VALUE rhrd_wday(VALUE self) {
@@ -565,6 +579,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
   rb_define_method(rhrd_class, "new_start", rhrd_new_start, 1);
   rb_define_method(rhrd_class, "start", rhrd_start, 0);
+  rb_define_method(rhrd_class, "to_s", rhrd_to_s, 0);
   rb_define_method(rhrd_class, "wday", rhrd_wday, 0);
   rb_define_method(rhrd_class, "yday", rhrd_yday, 0);
   rb_define_method(rhrd_class, "year", rhrd_year, 0);
