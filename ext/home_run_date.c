@@ -322,10 +322,28 @@ long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
   return n.jd - a + 7 * (cweek - 1) + (cwday - 1);
 }
 
+long rhrd__jd_to_cwday(long jd) {
+  long day;
+  day = (jd + 1) % 7; 
+  if (day <= 0) {
+    day += 7;
+  }
+  return day;
+}
+
+long rhrd__jd_to_wday(long jd) {
+  long day;
+  day = (jd + 1) % 7; 
+  if (day < 0) {
+    day += 7;
+  }
+  return day;
+}
+
 /* Abuses the year, month, and day fields to store
  * cwyear, cweek, and cwday */
 void rhrd__fill_commercial(rhrd_t *d) {
-  long a, day;
+  long a;
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
 
@@ -334,11 +352,7 @@ void rhrd__fill_commercial(rhrd_t *d) {
   a = n.year;
   d->year = d->jd >= rhrd__commercial_to_jd(a + 1, 1, 1) ? a + 1 : a;
   d->month = 1 + (d->jd - rhrd__commercial_to_jd(d->year, 1, 1)) / 7;
-  day = (d->jd + 1) % 7;
-  if (day <= 0) {
-    day += 7;
-  }
-  d->day = (unsigned char)day;
+  d->day = (unsigned char)rhrd__jd_to_cwday(d->jd);
 }
 
 void rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
@@ -676,7 +690,7 @@ static VALUE rhrd_asctime(VALUE self) {
   RHR_FILL_CIVIL(d)
   RHR_FILL_JD(d)
   if (asprintf(&str, "%s %s %2hhi 00:00:00 %04li", 
-        rhrd_abbr_day_names[(d->jd + 1) % 7],
+        rhrd_abbr_day_names[rhrd__jd_to_wday(d->jd)],
         rhrd_abbr_month_names[d->month],
         d->day,
         d->year) == -1) {
@@ -910,7 +924,7 @@ static VALUE rhrd_wday(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
-  return INT2NUM((d->jd + 1) % 7);
+  return INT2NUM(rhrd__jd_to_wday(d->jd));
 }
 
 static VALUE rhrd_yday(VALUE self) {
