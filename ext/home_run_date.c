@@ -307,6 +307,7 @@ long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
 }
 
 long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
+  long a;
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
 
@@ -314,13 +315,17 @@ long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
   n.month = 1;
   n.day = 4;
   rhrd__civil_to_jd(&n);
-  return n.jd - (n.jd % 7) + 7 * (cweek - 1) + (cwday - 1);
+  a = n.jd % 7;
+  if (a < 0) {
+    a += 7;
+  }
+  return n.jd - a + 7 * (cweek - 1) + (cwday - 1);
 }
 
 /* Abuses the year, month, and day fields to store
  * cwyear, cweek, and cwday */
 void rhrd__fill_commercial(rhrd_t *d) {
-  long a;
+  long a, day;
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
 
@@ -328,11 +333,12 @@ void rhrd__fill_commercial(rhrd_t *d) {
   rhrd__jd_to_civil(&n);
   a = n.year;
   d->year = d->jd >= rhrd__commercial_to_jd(a + 1, 1, 1) ? a + 1 : a;
-  d->month = 1 + floor((d->jd - rhrd__commercial_to_jd(d->year, 1, 1)) / 7);
-  d->day = (d->jd + 1) % 7;
-  if (d->day == 0) {
-    d->day = 7;
+  d->month = 1 + (d->jd - rhrd__commercial_to_jd(d->year, 1, 1)) / 7;
+  day = (d->jd + 1) % 7;
+  if (day <= 0) {
+    day += 7;
   }
+  d->day = (unsigned char)day;
 }
 
 void rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
@@ -576,6 +582,23 @@ static VALUE rhrd_s_jd_to_civil(int argc, VALUE *argv, VALUE klass) {
       break;
   }
   RHR_FILL_CIVIL(&d)
+  return rb_ary_new3(3, INT2NUM(d.year), INT2NUM(d.month), INT2NUM(d.day));
+}
+
+static VALUE rhrd_s_jd_to_commercial(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 1:
+    case 2:
+      d.jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  rhrd__fill_commercial(&d);
   return rb_ary_new3(3, INT2NUM(d.year), INT2NUM(d.month), INT2NUM(d.day));
 }
 
@@ -970,6 +993,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "jd_to_ajd", rhrd_s_jd_to_ajd, -1);
   rb_define_method(rhrd_s_class, "jd_to_civil", rhrd_s_jd_to_civil, -1);
+  rb_define_method(rhrd_s_class, "jd_to_commercial", rhrd_s_jd_to_commercial, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");
