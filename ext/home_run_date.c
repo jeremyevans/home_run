@@ -602,6 +602,10 @@ static VALUE rhrd_s_jd_to_commercial(int argc, VALUE *argv, VALUE klass) {
   return rb_ary_new3(3, INT2NUM(d.year), INT2NUM(d.month), INT2NUM(d.day));
 }
 
+static VALUE rhrd_s_jd_to_ld(VALUE klass, VALUE jd) {
+  return INT2NUM(rhrd__safe_add_long(-RHR_JD_LD, NUM2LONG(jd)));
+}
+
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -994,6 +998,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "jd_to_ajd", rhrd_s_jd_to_ajd, -1);
   rb_define_method(rhrd_s_class, "jd_to_civil", rhrd_s_jd_to_civil, -1);
   rb_define_method(rhrd_s_class, "jd_to_commercial", rhrd_s_jd_to_commercial, -1);
+  rb_define_method(rhrd_s_class, "jd_to_ld", rhrd_s_jd_to_ld, 1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");
