@@ -525,6 +525,10 @@ static VALUE rhrd_s_gregorian_q(VALUE klass, VALUE jd, VALUE sg) {
   }
 }
 
+static VALUE rhrd_s_gregorian_leap_q(VALUE klass, VALUE year) {
+  return rhrd__leap_year(NUM2LONG(year)) ? Qtrue : Qfalse;
+}
+
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -933,6 +937,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "commercial_to_jd", rhrd_s_commercial_to_jd, -1);
   rb_define_method(rhrd_s_class, "day_fraction_to_time", rhrd_s_day_fraction_to_time, 1);
   rb_define_method(rhrd_s_class, "gregorian?", rhrd_s_gregorian_q, 2);
+  rb_define_method(rhrd_s_class, "gregorian_leap?", rhrd_s_gregorian_leap_q, 1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
