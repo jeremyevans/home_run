@@ -159,6 +159,9 @@ void rhrd__jd_to_civil(rhrd_t *date) {
 
 unsigned char rhrd__num2month(VALUE obj) {
   int i = NUM2LONG(obj);
+  if (i < 0 && i >= -12) {
+    i += 13;
+  }
   if (i < 1 || i > 12) {
     rb_raise(rb_eArgError, "invalid Date: month %i", i);
   }
@@ -179,9 +182,16 @@ int rhrd__leap_year(long year) {
 
 unsigned char rhrd__num2day(long year, unsigned char month, VALUE obj) {
   long i = NUM2LONG(obj);
-  if (i < 1 || i <= 28) {
+  if (i < 0) {
+    if (month == 2) {
+      i += rhrd__leap_year(year) ? 30 : 29;
+    } else {
+      i += rhrd_days_in_month[month] + 1;
+    }
+  }
+  if (i >= 1 && i <= 28) {
     return (unsigned char)i;
-  } else if (i > 31) {
+  } else if (i > 31 || i <= 0) {
     rb_raise(rb_eArgError, "invalid Date: day %hhi", i);
   } else if (month == 2) {
     if (rhrd__leap_year(year)) {
