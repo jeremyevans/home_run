@@ -37,6 +37,7 @@ compare(".gregorian? Date"){|dc| d = Date.jd(1) n.times{dc.gregorian?(d, 1)}}
 compare(".gregorian? Integer"){|dc| n.times{dc.gregorian?(1, 1)}}
 compare(".gregorian_leap?"){|dc| n.times{dc.gregorian_leap?(2000)}}
 compare(".jd_to_ajd"){|dc| n.times{dc.jd_to_ajd(2000, 0)}}
+compare(".jd_to_civil"){|dc| n.times{dc.jd_to_civil(2010)}}
 
 compare("#inspect"){|dc| d = dc.civil(2010, 1, 1); n.times{d.inspect}}
 compare("#to_s"){|dc| d = dc.civil(2010, 1, 1); n.times{d.to_s}}
