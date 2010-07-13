@@ -393,7 +393,7 @@ static VALUE rhrd_s_ajd_to_jd(int argc, VALUE *argv, VALUE klass) {
     case 2:
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 2", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
       break;
   }
 
@@ -434,7 +434,7 @@ static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
       d->day = rhrd__num2day(d->year, d->month, argv[2]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
   }
   RHR_CHECK_CIVIL(d)
@@ -454,7 +454,7 @@ static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
       d.day = (unsigned char)NUM2LONG(argv[2]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
   }
   d.flags = RHR_HAVE_CIVIL;
@@ -482,7 +482,7 @@ static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
       rhrd__valid_commercial(d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]));
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
   }
   if (!RHR_HAS_JD(d)) {
@@ -500,7 +500,7 @@ static VALUE rhrd_s_commercial_to_jd(int argc, VALUE *argv, VALUE klass) {
       jd = rhrd__commercial_to_jd(NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]));
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
   }
 
@@ -520,7 +520,7 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
       d->jd = NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 2", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
       break;
   }
   RHR_CHECK_JD(d)
@@ -538,7 +538,7 @@ static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
     case 1:
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
       break;
   }
   t = rb_funcall(rb_cTime, rhrd_id_now, 0);
@@ -736,7 +736,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
       step = NUM2LONG(argv[1]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguements: %i for 2", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
       break;
   }
 
