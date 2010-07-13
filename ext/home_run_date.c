@@ -8,6 +8,9 @@
 #define RHR_DEFAULT_YEAR -4712
 #define RHR_DEFAULT_MONTH 1
 #define RHR_DEFAULT_DAY 1
+#define RHR_DEFAULT_CWYEAR 1582
+#define RHR_DEFAULT_CWEEK 41
+#define RHR_DEFAULT_CWDAY 5
 #define RHR_JD_MJD 2400001
 #define RHR_JD_LD 2299160
 #define RHR_JD_ITALY 2299161
@@ -304,6 +307,7 @@ long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
 
 long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
   rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
 
   n.year = cwyear;
   n.month = 1;
@@ -317,6 +321,7 @@ long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
 void rhrd__fill_commercial(rhrd_t *d) {
   long a;
   rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
 
   n.jd = d->jd - 3;
   rhrd__jd_to_civil(&n);
@@ -327,6 +332,40 @@ void rhrd__fill_commercial(rhrd_t *d) {
   if (d->day == 0) {
     d->day = 7;
   }
+}
+
+void rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
+  rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
+
+  if (cwday < 0) {
+    if (cwday < -8) {
+      return;
+    }
+    cwday += 8;
+  }
+  if (cweek < 0) {
+    if (cweek < -53) {
+      return;
+    }
+    n.jd = rhrd__commercial_to_jd(cwyear + 1, 1, 1) + cweek * 7;
+    rhrd__fill_commercial(&n);
+    if (n.year != cwyear) {
+      return;
+    }
+    cweek = n.month;
+    memset(&n, 0, sizeof(rhrd_t));
+  }
+
+  n.jd = rhrd__commercial_to_jd(cwyear, cweek, cwday);
+  rhrd__fill_commercial(&n);
+  if(cwyear != n.year || cweek != n.month || cwday != n.day) {
+    return;
+  }
+
+  d->jd = n.jd;
+  RHR_CHECK_JD(d)
+  d->flags = RHR_HAVE_JD;
 }
 
 /* Ruby Class Methods */
@@ -405,6 +444,7 @@ static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
 
 static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
 
   switch(argc) {
     case 3:
@@ -421,6 +461,34 @@ static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
   RHR_FILL_JD(&d)
 
   return INT2NUM(d.jd);
+}
+
+static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      rhrd__valid_commercial(d, RHR_DEFAULT_CWYEAR, RHR_DEFAULT_CWEEK, RHR_DEFAULT_CWDAY);
+      break;
+    case 1:
+      rhrd__valid_commercial(d, NUM2LONG(argv[0]), RHR_DEFAULT_CWEEK, RHR_DEFAULT_CWDAY);
+      break;
+    case 2:
+      rhrd__valid_commercial(d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), RHR_DEFAULT_CWDAY);
+      break;
+    case 3:
+    case 4:
+      rhrd__valid_commercial(d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]));
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      break;
+  }
+  if (!RHR_HAS_JD(d)) {
+      rb_raise(rb_eArgError, "invalid date");
+  }
+  return rd;
 }
 
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
@@ -497,6 +565,7 @@ static VALUE rhrd_asctime(VALUE self) {
 static VALUE rhrd_cwday(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
   n.jd = d->jd;
@@ -507,6 +576,7 @@ static VALUE rhrd_cwday(VALUE self) {
 static VALUE rhrd_cweek(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
   n.jd = d->jd;
@@ -517,6 +587,7 @@ static VALUE rhrd_cweek(VALUE self) {
 static VALUE rhrd_cwyear(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
   n.jd = d->jd;
@@ -823,6 +894,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "amjd_to_ajd", rhrd_s_amjd_to_ajd, 1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "civil_to_jd", rhrd_s_civil_to_jd, -1);
+  rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
