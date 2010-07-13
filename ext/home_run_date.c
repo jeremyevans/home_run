@@ -651,6 +651,10 @@ static VALUE rhrd_s_jd_to_ordinal(int argc, VALUE *argv, VALUE klass) {
   return rb_ary_new3(2, INT2NUM(d.year), INT2NUM(rhrd__ordinal_day(&d)));
 }
 
+static VALUE rhrd_s_jd_to_wday(VALUE klass, VALUE jd) {
+  return INT2NUM(rhrd__jd_to_wday(NUM2LONG(jd)));
+}
+
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -1041,6 +1045,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "jd_to_ld", rhrd_s_jd_to_ld, 1);
   rb_define_method(rhrd_s_class, "jd_to_mjd", rhrd_s_jd_to_mjd, 1);
   rb_define_method(rhrd_s_class, "jd_to_ordinal", rhrd_s_jd_to_ordinal, -1);
+  rb_define_method(rhrd_s_class, "jd_to_wday", rhrd_s_jd_to_wday, 1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");
