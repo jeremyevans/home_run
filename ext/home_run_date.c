@@ -80,6 +80,7 @@ char * rhrd_abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 VALUE rhrd_class;
 VALUE rhrd_s_class;
 
+ID rhrd_id_op_gte;
 ID rhrd_id_hash;
 ID rhrd_id_mday;
 ID rhrd_id_mon;
@@ -516,6 +517,14 @@ static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
   return rb_ary_new3(4, INT2NUM(h), INT2NUM(m), INT2NUM(s), rb_float_new(f));
 }
 
+static VALUE rhrd_s_gregorian_q(VALUE klass, VALUE jd, VALUE sg) {
+  if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
+    return rb_funcall(jd, rhrd_id_op_gte, 1, sg);
+  } else {
+    return RTEST(sg) ? Qtrue : Qfalse;
+  }
+}
+
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -899,6 +908,7 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 /* Ruby Library Initialization */
 
 void Init_home_run_date(void) {
+  rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_hash = rb_intern("hash");
   rhrd_id_mday = rb_intern("mday");
   rhrd_id_mon = rb_intern("mon");
@@ -922,6 +932,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
   rb_define_method(rhrd_s_class, "commercial_to_jd", rhrd_s_commercial_to_jd, -1);
   rb_define_method(rhrd_s_class, "day_fraction_to_time", rhrd_s_day_fraction_to_time, 1);
+  rb_define_method(rhrd_s_class, "gregorian?", rhrd_s_gregorian_q, 2);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
