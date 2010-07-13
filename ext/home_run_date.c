@@ -550,6 +550,18 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+static VALUE rhrd_s_jd_to_ajd(int argc, VALUE *argv, VALUE klass) {
+  switch(argc) {
+    case 2:
+    case 3:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  return argv[0];
+}
+
 static VALUE rhrd_s_today (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -939,6 +951,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "gregorian?", rhrd_s_gregorian_q, 2);
   rb_define_method(rhrd_s_class, "gregorian_leap?", rhrd_s_gregorian_leap_q, 1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
+  rb_define_method(rhrd_s_class, "jd_to_ajd", rhrd_s_jd_to_ajd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");
