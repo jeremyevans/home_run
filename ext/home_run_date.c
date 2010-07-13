@@ -332,6 +332,10 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   return rd;
 }
 
+static VALUE rhrd_s_ajd_to_amjd(VALUE klass, VALUE ajd) {
+  return INT2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(ajd)));
+}
+
 static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -762,6 +766,7 @@ void Init_home_run_date(void) {
   rb_define_const(rhrd_class, "GREGORIAN", INT2NUM(RHR_JD_MAX + 1));
 
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
+  rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
