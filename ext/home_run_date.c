@@ -393,6 +393,26 @@ static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+
+  switch(argc) {
+    case 3:
+    case 4:
+      d.year = NUM2LONG(argv[0]);
+      d.month = (unsigned char)NUM2LONG(argv[1]);
+      d.day = (unsigned char)NUM2LONG(argv[2]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      break;
+  }
+  d.flags = RHR_HAVE_CIVIL;
+  RHR_FILL_JD(&d)
+
+  return INT2NUM(d.jd);
+}
+
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -792,6 +812,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);
   rb_define_method(rhrd_s_class, "amjd_to_ajd", rhrd_s_amjd_to_ajd, 1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
+  rb_define_method(rhrd_s_class, "civil_to_jd", rhrd_s_civil_to_jd, -1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
