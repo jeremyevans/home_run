@@ -491,6 +491,22 @@ static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+static VALUE rhrd_s_commercial_to_jd(int argc, VALUE *argv, VALUE klass) {
+  long jd;
+
+  switch(argc) {
+    case 3:
+    case 4:
+      jd = rhrd__commercial_to_jd(NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]));
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguements: %i for 4", argc);
+      break;
+  }
+
+  return INT2NUM(jd);
+}
+
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -895,6 +911,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "civil_to_jd", rhrd_s_civil_to_jd, -1);
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
+  rb_define_method(rhrd_s_class, "commercial_to_jd", rhrd_s_commercial_to_jd, -1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
