@@ -386,8 +386,6 @@ static VALUE rhrd_s_ajd_to_amjd(VALUE klass, VALUE ajd) {
 }
 
 static VALUE rhrd_s_ajd_to_jd(int argc, VALUE *argv, VALUE klass) {
-  VALUE a;
-
   switch(argc) {
     case 1:
     case 2:
@@ -397,10 +395,7 @@ static VALUE rhrd_s_ajd_to_jd(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
-  a = rb_ary_new();
-  rb_ary_push(a, argv[0]);
-  rb_ary_push(a, rb_float_new(0.5));
-  return a;
+  return rb_ary_new3(2, argv[0], rb_float_new(0.5));
 }
 
 static VALUE rhrd_s_amjd_to_ajd(VALUE klass, VALUE amjd) {
@@ -505,6 +500,20 @@ static VALUE rhrd_s_commercial_to_jd(int argc, VALUE *argv, VALUE klass) {
   }
 
   return INT2NUM(jd);
+}
+
+static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
+  double f;
+  int h, m, s;
+ 
+  f = NUM2DBL(rf) * 24;
+  h = floor(f);
+  f = (f - h) * 60;
+  m = floor(f);
+  f = (f - m) * 60;
+  s = floor(f);
+  f = (f - s)/86400;
+  return rb_ary_new3(4, INT2NUM(h), INT2NUM(m), INT2NUM(s), rb_float_new(f));
 }
 
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
@@ -912,6 +921,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "civil_to_jd", rhrd_s_civil_to_jd, -1);
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
   rb_define_method(rhrd_s_class, "commercial_to_jd", rhrd_s_commercial_to_jd, -1);
+  rb_define_method(rhrd_s_class, "day_fraction_to_time", rhrd_s_day_fraction_to_time, 1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
