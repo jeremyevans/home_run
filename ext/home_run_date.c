@@ -375,6 +375,15 @@ void rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
   d->flags = RHR_HAVE_JD;
 }
 
+long rhrd__ordinal_day(rhrd_t *d) {
+  long day;
+  day = rhrd_cumulative_days_in_month[d->month] + d->day;
+  if(d->month > 2 && rhrd__leap_year(d->year)) {
+    day += 1;
+  }
+  return day;
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -608,6 +617,24 @@ static VALUE rhrd_s_jd_to_ld(VALUE klass, VALUE jd) {
 
 static VALUE rhrd_s_jd_to_mjd(VALUE klass, VALUE jd) {
   return INT2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(jd)));
+}
+
+static VALUE rhrd_s_jd_to_ordinal(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 1:
+    case 2:
+      d.jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  RHR_FILL_CIVIL(&d)
+
+  return rb_ary_new3(2, INT2NUM(d.year), INT2NUM(rhrd__ordinal_day(&d)));
 }
 
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
@@ -888,14 +915,9 @@ static VALUE rhrd_wday(VALUE self) {
 
 static VALUE rhrd_yday(VALUE self) {
   rhrd_t *d;
-  long yday;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_CIVIL(d)
-  yday = rhrd_cumulative_days_in_month[d->month] + d->day;
-  if(d->month > 2 && rhrd__leap_year(d->year)) {
-    yday += 1;
-  }
-  return INT2NUM(yday);
+  return INT2NUM(rhrd__ordinal_day(d));
 }
 
 static VALUE rhrd_year(VALUE self) {
@@ -1004,6 +1026,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "jd_to_commercial", rhrd_s_jd_to_commercial, -1);
   rb_define_method(rhrd_s_class, "jd_to_ld", rhrd_s_jd_to_ld, 1);
   rb_define_method(rhrd_s_class, "jd_to_mjd", rhrd_s_jd_to_mjd, 1);
+  rb_define_method(rhrd_s_class, "jd_to_ordinal", rhrd_s_jd_to_ordinal, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");

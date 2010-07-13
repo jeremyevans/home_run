@@ -40,7 +40,8 @@ compare(".jd_to_ajd"){|dc| n.times{dc.jd_to_ajd(2000, 0)}}
 compare(".jd_to_civil"){|dc| n.times{dc.jd_to_civil(2010)}}
 compare(".jd_to_commercial"){|dc| n.times{dc.jd_to_commercial(2010)}}
 compare(".jd_to_ld"){|dc| n.times{dc.jd_to_ld(2010)}}
-compare(".jd_to_mjd"){|dc| n.times{dc.jd_to_ld(2010)}}
+compare(".jd_to_mjd"){|dc| n.times{dc.jd_to_mjd(2010)}}
+compare(".jd_to_ordinal"){|dc| n.times{dc.jd_to_ordinal(2010)}}
 
 compare("#inspect"){|dc| d = dc.civil(2010, 1, 1); n.times{d.inspect}}
 compare("#to_s"){|dc| d = dc.civil(2010, 1, 1); n.times{d.to_s}}
