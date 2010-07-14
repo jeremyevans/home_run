@@ -359,24 +359,24 @@ void rhrd__fill_commercial(rhrd_t *d) {
   d->day = (unsigned char)rhrd__jd_to_cwday(d->jd);
 }
 
-void rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
+int rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
 
   if (cwday < 0) {
     if (cwday < -8) {
-      return;
+      return 0;
     }
     cwday += 8;
   }
   if (cweek < 0) {
     if (cweek < -53) {
-      return;
+      return 0;
     }
     n.jd = rhrd__commercial_to_jd(cwyear + 1, 1, 1) + cweek * 7;
     rhrd__fill_commercial(&n);
     if (n.year != cwyear) {
-      return;
+      return 0;
     }
     cweek = n.month;
     memset(&n, 0, sizeof(rhrd_t));
@@ -385,12 +385,16 @@ void rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
   n.jd = rhrd__commercial_to_jd(cwyear, cweek, cwday);
   rhrd__fill_commercial(&n);
   if(cwyear != n.year || cweek != n.month || cwday != n.day) {
-    return;
+    return 0;
+  }
+
+  if ((n.jd > RHR_JD_MAX) || (n.jd < RHR_JD_MIN)) {
+    return 0;
   }
 
   d->jd = n.jd;
-  RHR_CHECK_JD(d)
   d->flags = RHR_HAVE_JD;
+  return 1;
 }
 
 long rhrd__ordinal_day(rhrd_t *d) {
@@ -486,7 +490,7 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
     case 0:
       if (!rhrd__valid_civil(d, year, month, day)) {
         RHR_CHECK_CIVIL(d)
-        rb_raise(rb_eArgError, "invalid_date: (year: %li, month: %li, day: %li)", year, month, day);
+        rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
       }
       break;
     default:
@@ -520,28 +524,28 @@ static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
 
 static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
+  long cwyear = RHR_DEFAULT_YEAR;
+  long cweek = RHR_DEFAULT_MONTH;
+  long cwday = RHR_DEFAULT_DAY;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
-    case 0:
-      rhrd__valid_commercial(d, RHR_DEFAULT_CWYEAR, RHR_DEFAULT_CWEEK, RHR_DEFAULT_CWDAY);
-      break;
-    case 1:
-      rhrd__valid_commercial(d, NUM2LONG(argv[0]), RHR_DEFAULT_CWEEK, RHR_DEFAULT_CWDAY);
-      break;
-    case 2:
-      rhrd__valid_commercial(d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), RHR_DEFAULT_CWDAY);
-      break;
     case 3:
     case 4:
-      rhrd__valid_commercial(d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]));
+      cwday = NUM2LONG(argv[2]);
+    case 2:
+      cweek = NUM2LONG(argv[1]);
+    case 1:
+      cwyear = NUM2LONG(argv[0]);
+    case 0:
+      if(!rhrd__valid_commercial(d, cwyear, cweek, cwday)) {
+        RHR_CHECK_JD(d)
+        rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %li, cwday: %li)", cwyear, cweek, cwday);
+      }
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
-  }
-  if (!RHR_HAS_JD(d)) {
-      rb_raise(rb_eArgError, "invalid date");
   }
   return rd;
 }
@@ -810,6 +814,25 @@ static VALUE rhrd_s_valid_civil_q(int argc, VALUE *argv, VALUE klass) {
   }
 
   RHR_FILL_JD(&d)
+  return INT2NUM(d.jd);
+}
+
+static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 3:
+    case 4:
+      if (!rhrd__valid_commercial(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]))) {
+        return Qnil;
+      }
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
+      break;
+  }
+
   return INT2NUM(d.jd);
 }
 
@@ -1193,9 +1216,11 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "time_to_day_fraction", rhrd_s_time_to_day_fraction, 3);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
   rb_define_method(rhrd_s_class, "valid_civil?", rhrd_s_valid_civil_q, -1);
+  rb_define_method(rhrd_s_class, "valid_commercial?", rhrd_s_valid_commercial_q, -1);
 
   rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
   rb_define_alias(rhrd_s_class, "exist3?", "valid_civil?");
+  rb_define_alias(rhrd_s_class, "existw?", "valid_commercial?");
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
   rb_define_alias(rhrd_s_class, "new", "civil");
   rb_define_alias(rhrd_s_class, "new0", "new!");
