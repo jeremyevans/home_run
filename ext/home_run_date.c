@@ -1076,6 +1076,11 @@ void Init_home_run_date(void) {
 
   rb_define_alias(rhrd_s_class, "new", "civil");
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
+  rb_define_alias(rhrd_s_class, "new1", "jd");
+  rb_define_alias(rhrd_s_class, "new3", "civil");
+  rb_define_alias(rhrd_s_class, "neww", "commercial");
+  rb_define_alias(rhrd_s_class, "ns?", "gregorian?");
+  rb_define_alias(rhrd_s_class, "os?", "julian?");
 
   rb_define_method(rhrd_class, "_dump", rhrd__dump, 1);
   rb_define_method(rhrd_class, "asctime", rhrd_asctime, 0);
