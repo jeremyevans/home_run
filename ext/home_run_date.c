@@ -716,6 +716,28 @@ static VALUE rhrd_s_mjd_to_jd(VALUE klass, VALUE mjd) {
   return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD, NUM2LONG(mjd)));
 }
 
+static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->jd = RHR_DEFAULT_JD;
+      break;
+    case 1:
+    case 2:
+    case 3:
+      d->jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  RHR_CHECK_JD(d)
+  d->flags = RHR_HAVE_JD;
+  return rd;
+}
+
 static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -1149,12 +1171,14 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "julian_leap?", rhrd_s_julian_leap_q, 1);
   rb_define_method(rhrd_s_class, "ld_to_jd", rhrd_s_ld_to_jd, 1);
   rb_define_method(rhrd_s_class, "mjd_to_jd", rhrd_s_mjd_to_jd, 1);
+  rb_define_method(rhrd_s_class, "new!", rhrd_s_new_b, -1);
   rb_define_method(rhrd_s_class, "ordinal", rhrd_s_ordinal, -1);
   rb_define_method(rhrd_s_class, "ordinal_to_jd", rhrd_s_ordinal_to_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
   rb_define_alias(rhrd_s_class, "new", "civil");
+  rb_define_alias(rhrd_s_class, "new0", "new!");
   rb_define_alias(rhrd_s_class, "new1", "jd");
   rb_define_alias(rhrd_s_class, "new2", "ordinal");
   rb_define_alias(rhrd_s_class, "new3", "civil");
