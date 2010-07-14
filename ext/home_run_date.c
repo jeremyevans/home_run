@@ -128,19 +128,23 @@ long rhrd__safe_add_long(long a, long b) {
   return a + b;
 }
 
-void rhrd__civil_to_jd(rhrd_t *d) {
+long rhrd__ymd_to_jd(long year, long month, long day) {
   long a;
-  if (d->month <= 2) {
-    a = (long)floor((d->year - 1)/100.0);
-    d->jd = (long)floor(365.25 * (d->year + 4715)) + \
-          (long)floor(30.6001 * (d->month + 13)) + \
-          d->day - 1524 + (2 - a + (long)floor(a / 4.0));
+  if (month <= 2) {
+    a = (long)floor((year - 1)/100.0);
+    return (long)floor(365.25 * (year + 4715)) + \
+          (long)floor(30.6001 * (month + 13)) + \
+          day - 1524 + (2 - a + (long)floor(a / 4.0));
   } else {
-    a = (long)floor(d->year/100.0);
-    d->jd = (long)floor(365.25 * (d->year + 4716)) + \
-          (long)floor(30.6001 * (d->month + 1)) + \
-          d->day - 1524 + (2 - a + (long)floor(a / 4.0));
+    a = (long)floor(year/100.0);
+    return (long)floor(365.25 * (year + 4716)) + \
+          (long)floor(30.6001 * (month + 1)) + \
+          day - 1524 + (2 - a + (long)floor(a / 4.0));
   }
+}
+
+void rhrd__civil_to_jd(rhrd_t *d) {
+  d->jd = rhrd__ymd_to_jd(d->year, d->month, d->day);
   d->flags |= RHR_HAVE_JD;
 }
 
@@ -737,6 +741,18 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+static VALUE rhrd_s_ordinal_to_jd(int argc, VALUE *argv, VALUE klass) {
+  switch(argc) {
+    case 2:
+    case 3:
+      return INT2NUM(rhrd__ymd_to_jd(NUM2LONG(argv[0]), 1, NUM2LONG(argv[1])));
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+}
+
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -1134,6 +1150,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "ld_to_jd", rhrd_s_ld_to_jd, 1);
   rb_define_method(rhrd_s_class, "mjd_to_jd", rhrd_s_mjd_to_jd, 1);
   rb_define_method(rhrd_s_class, "ordinal", rhrd_s_ordinal, -1);
+  rb_define_method(rhrd_s_class, "ordinal_to_jd", rhrd_s_ordinal_to_jd, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");

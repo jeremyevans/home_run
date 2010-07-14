@@ -26,6 +26,11 @@ task :bench do
   sh %{#{RUBY} bench/cpu_bench.rb}
 end
 
+desc "Run quick comparative benchmarks"
+task :bench_quick do
+  sh %{#{RUBY} bench/cpu_bench.rb 1000}
+end
+
 desc "Run memory benchmarks"
 task :mem_bench do
   stdlib = `#{RUBY} bench/mem_bench.rb`.to_i
