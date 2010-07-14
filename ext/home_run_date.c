@@ -668,6 +668,14 @@ static VALUE rhrd_s_julian_leap_q(VALUE klass, VALUE y) {
   return NUM2LONG(y) % 4 == 0 ? Qtrue : Qfalse;
 }
 
+static VALUE rhrd_s_ld_to_jd(VALUE klass, VALUE ld) {
+  return INT2NUM(rhrd__safe_add_long(RHR_JD_LD, NUM2LONG(ld)));
+}
+
+static VALUE rhrd_s_mjd_to_jd(VALUE klass, VALUE mjd) {
+  return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD, NUM2LONG(mjd)));
+}
+
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -1062,6 +1070,8 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "jd_to_wday", rhrd_s_jd_to_wday, 1);
   rb_define_method(rhrd_s_class, "julian?", rhrd_s_julian_q, 2);
   rb_define_method(rhrd_s_class, "julian_leap?", rhrd_s_julian_leap_q, 1);
+  rb_define_method(rhrd_s_class, "ld_to_jd", rhrd_s_ld_to_jd, 1);
+  rb_define_method(rhrd_s_class, "mjd_to_jd", rhrd_s_mjd_to_jd, 1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");
