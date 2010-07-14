@@ -406,8 +406,9 @@ long rhrd__ordinal_day(rhrd_t *d) {
   return day;
 }
 
-void rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
+int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   int leap;
+  long month, day;
 
   leap = rhrd__leap_year(year);
   if (yday < 0) {
@@ -418,24 +419,29 @@ void rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
     }
   }
   if (yday < 1 || yday > (leap ? 366 : 365)) {
-    d->flags = 0;
-    return;
+    return 0;
   }
   if (leap) {
-    d->month = rhrd_leap_yday_to_month[yday];
+    month = rhrd_leap_yday_to_month[yday];
     if (yday > 60) {
-      d->day = yday - rhrd_cumulative_days_in_month[d->month] - 1;
+      day = yday - rhrd_cumulative_days_in_month[d->month] - 1;
     } else {
-      d->day = yday - rhrd_cumulative_days_in_month[d->month];
+      day = yday - rhrd_cumulative_days_in_month[d->month];
     }
   } else {
-    d->month = rhrd_yday_to_month[yday];
-    d->day = yday - rhrd_cumulative_days_in_month[d->month];
+    month = rhrd_yday_to_month[yday];
+    day = yday - rhrd_cumulative_days_in_month[d->month];
   }
 
+  if(!rhrd__valid_civil_limits(year, month, day)) {
+    return 0;
+  } 
+
   d->year = year;
-  RHR_CHECK_CIVIL(d);
-  d->flags = RHR_HAVE_CIVIL;
+  d->month = (unsigned char)month;
+  d->day = (unsigned char)day;
+  d->flags |= RHR_HAVE_CIVIL;
+  return 1;
 }
 
 /* Ruby Class Methods */
@@ -733,26 +739,27 @@ static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
 
 static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
+  long year = RHR_DEFAULT_ORDINAL_YEAR;
+  long day = RHR_DEFAULT_ORDINAL_DAY;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
-    case 0:
-      rhrd__valid_ordinal(d, RHR_DEFAULT_ORDINAL_YEAR, RHR_DEFAULT_ORDINAL_DAY);
-      break;
-    case 1:
-      rhrd__valid_ordinal(d, NUM2LONG(argv[0]), RHR_DEFAULT_ORDINAL_DAY);
-      break;
     case 2:
     case 3:
-      rhrd__valid_ordinal(d, NUM2LONG(argv[0]), NUM2LONG(argv[1]));
+      day = NUM2LONG(argv[1]);
+    case 1:
+      year = NUM2LONG(argv[0]);
+    case 0:
+      if(!rhrd__valid_ordinal(d, year, day)) {
+        RHR_CHECK_JD(d)
+        rb_raise(rb_eArgError, "invalid date (year: %li, yday: %li)", year, day);
+      }
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
       break;
   }
-  if (!RHR_HAS_CIVIL(d)) {
-      rb_raise(rb_eArgError, "invalid date");
-  }
+
   return rd;
 }
 
@@ -847,6 +854,26 @@ static VALUE rhrd_s_valid_jd_q(int argc, VALUE *argv, VALUE klass) {
   }
 
   return argv[0];
+}
+
+static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 2:
+    case 3:
+      if (!rhrd__valid_ordinal(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]))) {
+        return Qnil;
+      }
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+
+  RHR_FILL_JD(&d)
+  return INT2NUM(d.jd);
 }
 
 /* Ruby Instance Methods */
@@ -1231,9 +1258,11 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "valid_civil?", rhrd_s_valid_civil_q, -1);
   rb_define_method(rhrd_s_class, "valid_commercial?", rhrd_s_valid_commercial_q, -1);
   rb_define_method(rhrd_s_class, "valid_jd?", rhrd_s_valid_jd_q, -1);
+  rb_define_method(rhrd_s_class, "valid_ordinal?", rhrd_s_valid_ordinal_q, -1);
 
   rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
   rb_define_alias(rhrd_s_class, "exist1?", "valid_jd?");
+  rb_define_alias(rhrd_s_class, "exist2?", "valid_ordinal?");
   rb_define_alias(rhrd_s_class, "exist3?", "valid_civil?");
   rb_define_alias(rhrd_s_class, "existw?", "valid_commercial?");
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");

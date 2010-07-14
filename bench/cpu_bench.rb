@@ -55,6 +55,7 @@ compare(".time_to_day_fraction"){|dc| n.times{dc.time_to_day_fraction(7, 13, 17)
 compare(".valid_civil?"){|dc| n.times{dc.valid_civil?(2010, 1, 1)}}
 compare(".valid_commercial?"){|dc| n.times{dc.valid_commercial?(2010, 1, 1)}}
 compare(".valid_jd?"){|dc| n.times{dc.valid_jd?(2010)}}
+compare(".valid_ordinal?"){|dc| n.times{dc.valid_jd?(2010, 100)}}
 
 compare("#inspect"){|dc| d = dc.civil(2010, 1, 1); n.times{d.inspect}}
 compare("#to_s"){|dc| d = dc.civil(2010, 1, 1); n.times{d.to_s}}
