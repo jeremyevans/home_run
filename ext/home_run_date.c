@@ -65,7 +65,7 @@ so that no calculations can overflow.
 #define RHR_SPACE_SHIP(x, l, r) if (l < r) { x = -1; } else if (l == r) { x = 0; } else { x = 1; } 
 
 #define RHR_CHECK_JD(d) if ((d->jd > RHR_JD_MAX) || (d->jd < RHR_JD_MIN)) { rb_raise(rb_eRangeError, "date out of range: jd = %li", d->jd);}
-#define RHR_CHECK_CIVIL(d) if (rhrd__check_civil(d)) { rb_raise(rb_eRangeError, "date out of range: year = %li, month = %hhi, day = %hhi", d->year, d->month, d->day);}
+#define RHR_CHECK_CIVIL(d) if (!rhrd__valid_civil_limits(d->year, d->month, d->day)) { rb_raise(rb_eRangeError, "date out of range: year = %li, month = %hhi, day = %hhi", d->year, d->month, d->day);}
 
 typedef struct rhrd_s {
   long jd;
@@ -96,28 +96,28 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
 
 /* C Helper Methods */
 
-int rhrd__check_civil(rhrd_t *d) {
-  if (d->year > RHR_YEAR_MAX || d->year < RHR_YEAR_MIN) {
-    return 1;
+int rhrd__valid_civil_limits(long year, long month, long day) {
+  if (year > RHR_YEAR_MAX || year < RHR_YEAR_MIN) {
+    return 0;
   }
-  else if (d->year == RHR_YEAR_MAX) {
-    if (d->month > RHR_MONTH_MAX) {
-      return 1;
-    } else if (d->month == RHR_MONTH_MAX) {
-      if (d->day > RHR_DAY_MAX) {
-        return 1;
+  else if (year == RHR_YEAR_MAX) {
+    if (month > RHR_MONTH_MAX) {
+      return 0;
+    } else if (month == RHR_MONTH_MAX) {
+      if (day > RHR_DAY_MAX) {
+        return 0;
       }
     }
-  } else if (d->year == RHR_YEAR_MIN) {
-    if (d->month < RHR_MONTH_MIN) {
-      return 1;
-    } else if (d->month == RHR_MONTH_MIN) {
-      if (d->day < RHR_DAY_MIN) {
-        return 1;
+  } else if (year == RHR_YEAR_MIN) {
+    if (month < RHR_MONTH_MIN) {
+      return 0;
+    } else if (month == RHR_MONTH_MIN) {
+      if (day < RHR_DAY_MIN) {
+        return 0;
       }
     }
   }
-  return 0;
+  return 1;
 }
 
 long rhrd__safe_add_long(long a, long b) {
@@ -227,6 +227,48 @@ unsigned char rhrd__num2day(long year, unsigned char month, VALUE obj) {
       rb_raise(rb_eArgError, "invalid Date: month %hhi, day %li", month, i);
     }
   }
+}
+
+int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
+  if (month < 0 && month >= -12) {
+    month += 13;
+  }
+  if (month < 1 || month > 12) {
+    return 0;
+  }
+
+  if (day < 0) {
+    if (month == 2) {
+      day += rhrd__leap_year(year) ? 30 : 29;
+    } else {
+      day += rhrd_days_in_month[month] + 1;
+    }
+  }
+  if (day < 1 || day > 28) {
+    if (day > 31 || day <= 0) {
+      return 0;
+    } else if (month == 2) {
+      if (rhrd__leap_year(year)) {
+        if (day > 29) {
+          return 0;
+        }
+      } else if (day > 28) {
+        return 0;
+      }
+    } else if (day > rhrd_days_in_month[month]) {
+      return 0;
+    }
+  }
+
+  if(!rhrd__valid_civil_limits(year, month, day)) {
+    return 0;
+  } 
+
+  d->year = year;
+  d->month = (unsigned char)month;
+  d->day = (unsigned char)day;
+  d->flags |= RHR_HAVE_CIVIL;
+  return 1;
 }
 
 unsigned char rhrd__days_in_month(long year, unsigned char month) {
@@ -801,6 +843,26 @@ static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+static VALUE rhrd_s_valid_civil_q(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 3:
+    case 4:
+      if (!rhrd__valid_civil(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]))) {
+        return Qnil;
+      }
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
+      break;
+  }
+
+  RHR_FILL_JD(&d)
+  return INT2NUM(d.jd);
+}
+
 /* Ruby Instance Methods */
 
 static VALUE rhrd__dump(VALUE self, VALUE limit) {
@@ -1180,7 +1242,10 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "ordinal_to_jd", rhrd_s_ordinal_to_jd, -1);
   rb_define_method(rhrd_s_class, "time_to_day_fraction", rhrd_s_time_to_day_fraction, 3);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
+  rb_define_method(rhrd_s_class, "valid_civil?", rhrd_s_valid_civil_q, -1);
 
+  rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
+  rb_define_alias(rhrd_s_class, "exist3?", "valid_civil?");
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
   rb_define_alias(rhrd_s_class, "new", "civil");
   rb_define_alias(rhrd_s_class, "new0", "new!");
@@ -1190,6 +1255,7 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_s_class, "neww", "commercial");
   rb_define_alias(rhrd_s_class, "ns?", "gregorian?");
   rb_define_alias(rhrd_s_class, "os?", "julian?");
+  rb_define_alias(rhrd_s_class, "valid_date?", "valid_civil?");
 
   rb_define_method(rhrd_class, "_dump", rhrd__dump, 1);
   rb_define_method(rhrd_class, "asctime", rhrd_asctime, 0);
