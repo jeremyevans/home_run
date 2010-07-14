@@ -18,7 +18,7 @@ def compare(label, &block)
   yield HRD
   home_run = Time.now - t
   
-  puts sprintf('%s,%0.3f,%0.3f,%0.3f', label, stdlib, home_run, stdlib/home_run)
+  puts sprintf('%s,%0.5f,%0.5f,%0.2f', label, stdlib, home_run, stdlib/home_run)
 end
 
 n = (ARGV.first || 100000).to_i
