@@ -11,6 +11,8 @@
 #define RHR_DEFAULT_CWYEAR 1582
 #define RHR_DEFAULT_CWEEK 41
 #define RHR_DEFAULT_CWDAY 5
+#define RHR_DEFAULT_ORDINAL_YEAR -4712
+#define RHR_DEFAULT_ORDINAL_DAY 1
 #define RHR_JD_MJD 2400001
 #define RHR_JD_LD 2299160
 #define RHR_JD_ITALY 2299161
@@ -54,8 +56,8 @@ so that no calculations can overflow.
 #define RHR_HAVE_JD 0x1
 #define RHR_HAVE_CIVIL 0x2
 
-#define RHR_HAS_JD(d) ((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD
-#define RHR_HAS_CIVIL(d) ((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL
+#define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
+#define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
 
 #define RHR_FILL_JD(d) if (((d)->flags & RHR_HAVE_JD) == 0) { rhrd__civil_to_jd(d); }
 #define RHR_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrd__jd_to_civil(d); }
@@ -75,6 +77,8 @@ typedef struct rhrd_s {
 
 unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 long rhrd_cumulative_days_in_month[13] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+unsigned char rhrd_yday_to_month[366] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
+unsigned char rhrd_leap_yday_to_month[367] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
 char * rhrd_abbr_month_names[13] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 char * rhrd_abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 VALUE rhrd_class;
@@ -399,6 +403,38 @@ long rhrd__ordinal_day(rhrd_t *d) {
   return day;
 }
 
+void rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
+  int leap;
+
+  leap = rhrd__leap_year(year);
+  if (yday < 0) {
+    if (leap) {
+      yday += 366;
+    } else {
+      yday += 365;
+    }
+  }
+  if (yday < 1 || yday > (leap ? 366 : 365)) {
+    d->flags = 0;
+    return;
+  }
+  if (leap) {
+    d->month = rhrd_leap_yday_to_month[yday];
+    if (yday > 60) {
+      d->day = yday - rhrd_cumulative_days_in_month[d->month] - 1;
+    } else {
+      d->day = yday - rhrd_cumulative_days_in_month[d->month];
+    }
+  } else {
+    d->month = rhrd_yday_to_month[yday];
+    d->day = yday - rhrd_cumulative_days_in_month[d->month];
+  }
+
+  d->year = year;
+  RHR_CHECK_CIVIL(d);
+  d->flags = RHR_HAVE_CIVIL;
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -674,6 +710,31 @@ static VALUE rhrd_s_ld_to_jd(VALUE klass, VALUE ld) {
 
 static VALUE rhrd_s_mjd_to_jd(VALUE klass, VALUE mjd) {
   return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD, NUM2LONG(mjd)));
+}
+
+static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      rhrd__valid_ordinal(d, RHR_DEFAULT_ORDINAL_YEAR, RHR_DEFAULT_ORDINAL_DAY);
+      break;
+    case 1:
+      rhrd__valid_ordinal(d, NUM2LONG(argv[0]), RHR_DEFAULT_ORDINAL_DAY);
+      break;
+    case 2:
+    case 3:
+      rhrd__valid_ordinal(d, NUM2LONG(argv[0]), NUM2LONG(argv[1]));
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  if (!RHR_HAS_CIVIL(d)) {
+      rb_raise(rb_eArgError, "invalid date");
+  }
+  return rd;
 }
 
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
@@ -1072,11 +1133,13 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "julian_leap?", rhrd_s_julian_leap_q, 1);
   rb_define_method(rhrd_s_class, "ld_to_jd", rhrd_s_ld_to_jd, 1);
   rb_define_method(rhrd_s_class, "mjd_to_jd", rhrd_s_mjd_to_jd, 1);
+  rb_define_method(rhrd_s_class, "ordinal", rhrd_s_ordinal, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
-  rb_define_alias(rhrd_s_class, "new", "civil");
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
+  rb_define_alias(rhrd_s_class, "new", "civil");
   rb_define_alias(rhrd_s_class, "new1", "jd");
+  rb_define_alias(rhrd_s_class, "new2", "ordinal");
   rb_define_alias(rhrd_s_class, "new3", "civil");
   rb_define_alias(rhrd_s_class, "neww", "commercial");
   rb_define_alias(rhrd_s_class, "ns?", "gregorian?");
