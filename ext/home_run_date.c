@@ -81,6 +81,7 @@ VALUE rhrd_class;
 VALUE rhrd_s_class;
 
 ID rhrd_id_op_gte;
+ID rhrd_id_op_lt;
 ID rhrd_id_hash;
 ID rhrd_id_mday;
 ID rhrd_id_mon;
@@ -655,6 +656,14 @@ static VALUE rhrd_s_jd_to_wday(VALUE klass, VALUE jd) {
   return INT2NUM(rhrd__jd_to_wday(NUM2LONG(jd)));
 }
 
+static VALUE rhrd_s_julian_q(VALUE klass, VALUE jd, VALUE sg) {
+  if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
+    return rb_funcall(jd, rhrd_id_op_lt, 1, sg);
+  } else {
+    return RTEST(sg) ? Qfalse : Qtrue;
+  }
+}
+
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -1013,6 +1022,7 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 void Init_home_run_date(void) {
   rhrd_id_op_gte = rb_intern(">=");
+  rhrd_id_op_lt = rb_intern("<");
   rhrd_id_hash = rb_intern("hash");
   rhrd_id_mday = rb_intern("mday");
   rhrd_id_mon = rb_intern("mon");
@@ -1046,6 +1056,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "jd_to_mjd", rhrd_s_jd_to_mjd, 1);
   rb_define_method(rhrd_s_class, "jd_to_ordinal", rhrd_s_jd_to_ordinal, -1);
   rb_define_method(rhrd_s_class, "jd_to_wday", rhrd_s_jd_to_wday, 1);
+  rb_define_method(rhrd_s_class, "julian?", rhrd_s_julian_q, 2);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "new", "civil");
