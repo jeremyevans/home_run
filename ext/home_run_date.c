@@ -836,6 +836,19 @@ static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
   return INT2NUM(d.jd);
 }
 
+static VALUE rhrd_s_valid_jd_q(int argc, VALUE *argv, VALUE klass) {
+  switch(argc) {
+    case 1:
+    case 2:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
+      break;
+  }
+
+  return argv[0];
+}
+
 /* Ruby Instance Methods */
 
 static VALUE rhrd__dump(VALUE self, VALUE limit) {
@@ -1217,8 +1230,10 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
   rb_define_method(rhrd_s_class, "valid_civil?", rhrd_s_valid_civil_q, -1);
   rb_define_method(rhrd_s_class, "valid_commercial?", rhrd_s_valid_commercial_q, -1);
+  rb_define_method(rhrd_s_class, "valid_jd?", rhrd_s_valid_jd_q, -1);
 
   rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
+  rb_define_alias(rhrd_s_class, "exist1?", "valid_jd?");
   rb_define_alias(rhrd_s_class, "exist3?", "valid_civil?");
   rb_define_alias(rhrd_s_class, "existw?", "valid_commercial?");
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
