@@ -170,17 +170,6 @@ void rhrd__jd_to_civil(rhrd_t *date) {
 #endif
 }
 
-unsigned char rhrd__num2month(VALUE obj) {
-  int i = NUM2LONG(obj);
-  if (i < 0 && i >= -12) {
-    i += 13;
-  }
-  if (i < 1 || i > 12) {
-    rb_raise(rb_eArgError, "invalid Date: month %i", i);
-  }
-  return (unsigned char)i;
-}
-
 int rhrd__leap_year(long year) {
   if (year % 400 == 0) {
     return 1;
@@ -190,42 +179,6 @@ int rhrd__leap_year(long year) {
     return 1;
   } else {
     return 0;
-  }
-}
-
-unsigned char rhrd__num2day(long year, unsigned char month, VALUE obj) {
-  long i = NUM2LONG(obj);
-  if (i < 0) {
-    if (month == 2) {
-      i += rhrd__leap_year(year) ? 30 : 29;
-    } else {
-      i += rhrd_days_in_month[month] + 1;
-    }
-  }
-  if (i >= 1 && i <= 28) {
-    return (unsigned char)i;
-  } else if (i > 31 || i <= 0) {
-    rb_raise(rb_eArgError, "invalid Date: day %li", i);
-  } else if (month == 2) {
-    if (rhrd__leap_year(year)) {
-      if (i <= 29) {
-        return (unsigned char)i;
-      } else {
-        rb_raise(rb_eArgError, "invalid Date: year %li, month %hhi, day %li", year, month, i);
-      }
-    } else {
-      if (i <= 28) {
-        return (unsigned char)i;
-      } else {
-        rb_raise(rb_eArgError, "invalid Date: year %li, month %hhi, day %li", year, month, i);
-      }
-    }
-  } else {
-    if (i <= rhrd_days_in_month[month]) {
-      return (unsigned char)i;
-    } else {
-      rb_raise(rb_eArgError, "invalid Date: month %hhi, day %li", month, i);
-    }
   }
 }
 
@@ -515,38 +468,32 @@ static VALUE rhrd_s_amjd_to_ajd(VALUE klass, VALUE amjd) {
   return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD - 1, NUM2LONG(amjd)));
 }
 
-static VALUE rhrd_s_civil (int argc, VALUE *argv, VALUE klass) {
+static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
+  long year = RHR_DEFAULT_YEAR;
+  long month = RHR_DEFAULT_MONTH;
+  long day = RHR_DEFAULT_DAY;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
-    case 0:
-      d->year = RHR_DEFAULT_YEAR;
-      d->month = RHR_DEFAULT_MONTH;
-      d->day = RHR_DEFAULT_DAY;
-      break;
-    case 1:
-      d->year = NUM2LONG(argv[0]);
-      d->month = RHR_DEFAULT_MONTH;
-      d->day = RHR_DEFAULT_DAY;
-      break;
-    case 2:
-      d->year = NUM2LONG(argv[0]);
-      d->month = rhrd__num2month(argv[1]);
-      d->day = RHR_DEFAULT_DAY;
-      break;
     case 3:
     case 4:
-      d->year = NUM2LONG(argv[0]);
-      d->month = rhrd__num2month(argv[1]);
-      d->day = rhrd__num2day(d->year, d->month, argv[2]);
+      day = NUM2LONG(argv[2]);
+    case 2:
+      month = NUM2LONG(argv[1]);
+    case 1:
+      year = NUM2LONG(argv[0]);
+    case 0:
+      if (!rhrd__valid_civil(d, year, month, day)) {
+        RHR_CHECK_CIVIL(d)
+        rb_raise(rb_eArgError, "invalid_date: (year: %li, month: %li, day: %li)", year, month, day);
+      }
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
   }
-  RHR_CHECK_CIVIL(d)
-  d->flags = RHR_HAVE_CIVIL;
+
   return rd;
 }
 
@@ -822,6 +769,7 @@ static VALUE rhrd_s_time_to_day_fraction(VALUE klass, VALUE h, VALUE m, VALUE s)
 }
 
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
+  long year, month, day;
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
   VALUE t;
@@ -835,11 +783,13 @@ static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
       break;
   }
   t = rb_funcall(rb_cTime, rhrd_id_now, 0);
-  d->year = NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
-  d->month = rhrd__num2month(rb_funcall(t, rhrd_id_mon, 0));
-  d->day = rhrd__num2day(d->year, d->month, rb_funcall(t, rhrd_id_mday, 0));
-  RHR_CHECK_CIVIL(d)
-  d->flags = RHR_HAVE_CIVIL;
+  year = NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
+  month = NUM2LONG(rb_funcall(t, rhrd_id_mon, 0));
+  day = NUM2LONG(rb_funcall(t, rhrd_id_mday, 0));
+  if (!rhrd__valid_civil(d, year, month, day)) {
+    RHR_CHECK_CIVIL(d)
+    rb_raise(rb_eArgError, "invalid_date: (year: %li, month: %li, day: %li)", year, month, day);
+  }
   return rd;
 }
 
