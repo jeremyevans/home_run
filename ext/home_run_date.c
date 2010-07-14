@@ -775,6 +775,10 @@ static VALUE rhrd_s_ordinal_to_jd(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+static VALUE rhrd_s_time_to_day_fraction(VALUE klass, VALUE h, VALUE m, VALUE s) {
+  return rb_float_new(NUM2DBL(h)/24.0 + NUM2DBL(m)/1440.0 + NUM2DBL(s)/86400.0);
+}
+
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -1174,6 +1178,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "new!", rhrd_s_new_b, -1);
   rb_define_method(rhrd_s_class, "ordinal", rhrd_s_ordinal, -1);
   rb_define_method(rhrd_s_class, "ordinal_to_jd", rhrd_s_ordinal_to_jd, -1);
+  rb_define_method(rhrd_s_class, "time_to_day_fraction", rhrd_s_time_to_day_fraction, 3);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
 
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
