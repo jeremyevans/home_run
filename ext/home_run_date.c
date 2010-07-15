@@ -876,6 +876,26 @@ static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
   return INT2NUM(d.jd);
 }
 
+static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
+  long h, m, s;
+  h = NUM2LONG(rh);
+  m = NUM2LONG(rm);
+  s = NUM2LONG(rs);
+  if (h < 0) {
+    h += 24;
+  }
+  if (m < 0) {
+    m += 60;
+  }
+  if (s < 0) {
+    s += 60;
+  }
+  if (h < 0 || m < 0 || s < 0 || h > 24 || m > 59 || s > 59 || (h == 24 && m != 0 && s != 0)) {
+    return Qnil;
+  }
+  return rb_float_new(h/24.0 + m/1440.0 + s/86400.0);
+}
+
 /* Ruby Instance Methods */
 
 static VALUE rhrd__dump(VALUE self, VALUE limit) {
@@ -1259,6 +1279,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "valid_commercial?", rhrd_s_valid_commercial_q, -1);
   rb_define_method(rhrd_s_class, "valid_jd?", rhrd_s_valid_jd_q, -1);
   rb_define_method(rhrd_s_class, "valid_ordinal?", rhrd_s_valid_ordinal_q, -1);
+  rb_define_method(rhrd_s_class, "valid_time?", rhrd_s_valid_time_q, 3);
 
   rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
   rb_define_alias(rhrd_s_class, "exist1?", "valid_jd?");
