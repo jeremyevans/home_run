@@ -1360,6 +1360,8 @@ void Init_home_run_date(void) {
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 
 #ifdef RUBY19
+  rb_define_alias(rhrd_class, "to_date", "gregorian");
+
   rb_define_method(rhrd_class, "sunday?", rhrd_sunday_q, 0);
   rb_define_method(rhrd_class, "monday?", rhrd_monday_q, 0);
   rb_define_method(rhrd_class, "tuesday?", rhrd_tuesday_q, 0);
