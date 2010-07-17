@@ -49,14 +49,25 @@ task :garbage_bench do
   puts "home_run creates #{sprintf('%0.1f', stdlib/home_run.to_f)} times less garbage"
 end
 
+def date_methods
+  [`#{RUBY} -r date -e 'puts class << Date; instance_methods(false); end'`.split,
+  `#{RUBY} -I ext -I lib -r date -e 'puts class << Date; instance_methods(false); end'`.split,
+  `#{RUBY} -r date -e 'puts Date.instance_methods(false)'`.split,
+  `#{RUBY} -I ext -I lib -r date -e 'puts Date.instance_methods(false)'`.split]
+end
+
 desc "Print all methods that still need to be implemented"
 task :todo do
-  scm = `#{RUBY} -r date -e 'puts class << Date; instance_methods(false); end'`.split
-  hrcm = `#{RUBY} -I ext -I lib -r date -e 'puts class << Date; instance_methods(false); end'`.split
-  sim = `#{RUBY} -r date -e 'puts Date.instance_methods(false)'`.split
-  hrim = `#{RUBY} -I ext -I lib -r date -e 'puts Date.instance_methods(false)'`.split
+  scm, hrcm, sim, hrim = date_methods
   puts "Class Methods: #{(scm-hrcm).sort.join(', ')}"
   puts ""
   puts "Instance Methods: #{(sim-hrim).sort.join(', ')}"
 end
 
+desc "Print methods that are implemented but shouldn't be"
+task :toofar do
+  scm, hrcm, sim, hrim = date_methods
+  puts "Class Methods: #{(hrcm-scm).sort.join(', ')}"
+  puts ""
+  puts "Instance Methods: #{(hrim-sim).sort.join(', ')}"
+end

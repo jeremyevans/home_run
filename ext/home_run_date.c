@@ -75,12 +75,12 @@ typedef struct rhrd_s {
   unsigned char flags;
 } rhrd_t;
 
-unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-long rhrd_cumulative_days_in_month[13] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
-unsigned char rhrd_yday_to_month[366] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
-unsigned char rhrd_leap_yday_to_month[367] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
-char * rhrd_abbr_month_names[13] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-char * rhrd_abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+const unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+const long rhrd_cumulative_days_in_month[13] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+const unsigned char rhrd_yday_to_month[366] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
+const unsigned char rhrd_leap_yday_to_month[367] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
+const char * rhrd_abbr_month_names[13] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+const char * rhrd_abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 VALUE rhrd_class;
 VALUE rhrd_s_class;
 
@@ -457,27 +457,6 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   return rd;
 }
 
-static VALUE rhrd_s_ajd_to_amjd(VALUE klass, VALUE ajd) {
-  return INT2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(ajd)));
-}
-
-static VALUE rhrd_s_ajd_to_jd(int argc, VALUE *argv, VALUE klass) {
-  switch(argc) {
-    case 1:
-    case 2:
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
-      break;
-  }
-
-  return rb_ary_new3(2, argv[0], rb_float_new(0.5));
-}
-
-static VALUE rhrd_s_amjd_to_ajd(VALUE klass, VALUE amjd) {
-  return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD - 1, NUM2LONG(amjd)));
-}
-
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   long year = RHR_DEFAULT_YEAR;
@@ -505,27 +484,6 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
   }
 
   return rd;
-}
-
-static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
-  rhrd_t d;
-  memset(&d, 0, sizeof(rhrd_t));
-
-  switch(argc) {
-    case 3:
-    case 4:
-      d.year = NUM2LONG(argv[0]);
-      d.month = (unsigned char)NUM2LONG(argv[1]);
-      d.day = (unsigned char)NUM2LONG(argv[2]);
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
-      break;
-  }
-  d.flags = RHR_HAVE_CIVIL;
-  RHR_FILL_JD(&d)
-
-  return INT2NUM(d.jd);
 }
 
 static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
@@ -556,44 +514,6 @@ static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
-static VALUE rhrd_s_commercial_to_jd(int argc, VALUE *argv, VALUE klass) {
-  long jd;
-
-  switch(argc) {
-    case 3:
-    case 4:
-      jd = rhrd__commercial_to_jd(NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]));
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
-      break;
-  }
-
-  return INT2NUM(jd);
-}
-
-static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
-  double f;
-  int h, m, s;
- 
-  f = NUM2DBL(rf) * 24;
-  h = floor(f);
-  f = (f - h) * 60;
-  m = floor(f);
-  f = (f - m) * 60;
-  s = floor(f);
-  f = (f - s)/86400;
-  return rb_ary_new3(4, INT2NUM(h), INT2NUM(m), INT2NUM(s), rb_float_new(f));
-}
-
-static VALUE rhrd_s_gregorian_q(VALUE klass, VALUE jd, VALUE sg) {
-  if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
-    return rb_funcall(jd, rhrd_id_op_gte, 1, sg);
-  } else {
-    return RTEST(sg) ? Qtrue : Qfalse;
-  }
-}
-
 static VALUE rhrd_s_gregorian_leap_q(VALUE klass, VALUE year) {
   return rhrd__leap_year(NUM2LONG(year)) ? Qtrue : Qfalse;
 }
@@ -619,100 +539,8 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
-static VALUE rhrd_s_jd_to_ajd(int argc, VALUE *argv, VALUE klass) {
-  switch(argc) {
-    case 2:
-    case 3:
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
-      break;
-  }
-  return argv[0];
-}
-
-static VALUE rhrd_s_jd_to_civil(int argc, VALUE *argv, VALUE klass) {
-  rhrd_t d;
-  memset(&d, 0, sizeof(rhrd_t));
-
-  switch(argc) {
-    case 1:
-    case 2:
-      d.jd = NUM2LONG(argv[0]);
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
-      break;
-  }
-  RHR_FILL_CIVIL(&d)
-  return rb_ary_new3(3, INT2NUM(d.year), INT2NUM(d.month), INT2NUM(d.day));
-}
-
-static VALUE rhrd_s_jd_to_commercial(int argc, VALUE *argv, VALUE klass) {
-  rhrd_t d;
-  memset(&d, 0, sizeof(rhrd_t));
-
-  switch(argc) {
-    case 1:
-    case 2:
-      d.jd = NUM2LONG(argv[0]);
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
-      break;
-  }
-  rhrd__fill_commercial(&d);
-  return rb_ary_new3(3, INT2NUM(d.year), INT2NUM(d.month), INT2NUM(d.day));
-}
-
-static VALUE rhrd_s_jd_to_ld(VALUE klass, VALUE jd) {
-  return INT2NUM(rhrd__safe_add_long(-RHR_JD_LD, NUM2LONG(jd)));
-}
-
-static VALUE rhrd_s_jd_to_mjd(VALUE klass, VALUE jd) {
-  return INT2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(jd)));
-}
-
-static VALUE rhrd_s_jd_to_ordinal(int argc, VALUE *argv, VALUE klass) {
-  rhrd_t d;
-  memset(&d, 0, sizeof(rhrd_t));
-
-  switch(argc) {
-    case 1:
-    case 2:
-      d.jd = NUM2LONG(argv[0]);
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
-      break;
-  }
-  RHR_FILL_CIVIL(&d)
-
-  return rb_ary_new3(2, INT2NUM(d.year), INT2NUM(rhrd__ordinal_day(&d)));
-}
-
-static VALUE rhrd_s_jd_to_wday(VALUE klass, VALUE jd) {
-  return INT2NUM(rhrd__jd_to_wday(NUM2LONG(jd)));
-}
-
-static VALUE rhrd_s_julian_q(VALUE klass, VALUE jd, VALUE sg) {
-  if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
-    return rb_funcall(jd, rhrd_id_op_lt, 1, sg);
-  } else {
-    return RTEST(sg) ? Qfalse : Qtrue;
-  }
-}
-
 static VALUE rhrd_s_julian_leap_q(VALUE klass, VALUE y) {
   return NUM2LONG(y) % 4 == 0 ? Qtrue : Qfalse;
-}
-
-static VALUE rhrd_s_ld_to_jd(VALUE klass, VALUE ld) {
-  return INT2NUM(rhrd__safe_add_long(RHR_JD_LD, NUM2LONG(ld)));
-}
-
-static VALUE rhrd_s_mjd_to_jd(VALUE klass, VALUE mjd) {
-  return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD, NUM2LONG(mjd)));
 }
 
 static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
@@ -761,22 +589,6 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   }
 
   return rd;
-}
-
-static VALUE rhrd_s_ordinal_to_jd(int argc, VALUE *argv, VALUE klass) {
-  switch(argc) {
-    case 2:
-    case 3:
-      return INT2NUM(rhrd__ymd_to_jd(NUM2LONG(argv[0]), 1, NUM2LONG(argv[1])));
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
-      break;
-  }
-}
-
-static VALUE rhrd_s_time_to_day_fraction(VALUE klass, VALUE h, VALUE m, VALUE s) {
-  return rb_float_new(NUM2DBL(h)/24.0 + NUM2DBL(m)/1440.0 + NUM2DBL(s)/86400.0);
 }
 
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
@@ -874,26 +686,6 @@ static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
 
   RHR_FILL_JD(&d)
   return INT2NUM(d.jd);
-}
-
-static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
-  long h, m, s;
-  h = NUM2LONG(rh);
-  m = NUM2LONG(rm);
-  s = NUM2LONG(rs);
-  if (h < 0) {
-    h += 24;
-  }
-  if (m < 0) {
-    m += 60;
-  }
-  if (s < 0) {
-    s += 60;
-  }
-  if (h < 0 || m < 0 || s < 0 || h > 24 || m > 59 || s > 59 || (h == 24 && m != 0 && s != 0)) {
-    return Qnil;
-  }
-  return rb_float_new(h/24.0 + m/1440.0 + s/86400.0);
 }
 
 /* Ruby Instance Methods */
@@ -1228,6 +1020,221 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   return Qnil;
 }
 
+#ifdef RUBY19
+#else
+
+/* 1.8 class methods */
+
+static VALUE rhrd_s_ajd_to_amjd(VALUE klass, VALUE ajd) {
+  return INT2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(ajd)));
+}
+
+static VALUE rhrd_s_ajd_to_jd(int argc, VALUE *argv, VALUE klass) {
+  switch(argc) {
+    case 1:
+    case 2:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
+      break;
+  }
+
+  return rb_ary_new3(2, argv[0], rb_float_new(0.5));
+}
+
+static VALUE rhrd_s_amjd_to_ajd(VALUE klass, VALUE amjd) {
+  return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD - 1, NUM2LONG(amjd)));
+}
+
+static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 3:
+    case 4:
+      d.year = NUM2LONG(argv[0]);
+      d.month = (unsigned char)NUM2LONG(argv[1]);
+      d.day = (unsigned char)NUM2LONG(argv[2]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
+      break;
+  }
+  d.flags = RHR_HAVE_CIVIL;
+  RHR_FILL_JD(&d)
+
+  return INT2NUM(d.jd);
+}
+
+static VALUE rhrd_s_commercial_to_jd(int argc, VALUE *argv, VALUE klass) {
+  long jd;
+
+  switch(argc) {
+    case 3:
+    case 4:
+      jd = rhrd__commercial_to_jd(NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]));
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
+      break;
+  }
+
+  return INT2NUM(jd);
+}
+
+static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
+  double f;
+  int h, m, s;
+ 
+  f = NUM2DBL(rf) * 24;
+  h = floor(f);
+  f = (f - h) * 60;
+  m = floor(f);
+  f = (f - m) * 60;
+  s = floor(f);
+  f = (f - s)/86400;
+  return rb_ary_new3(4, INT2NUM(h), INT2NUM(m), INT2NUM(s), rb_float_new(f));
+}
+
+static VALUE rhrd_s_gregorian_q(VALUE klass, VALUE jd, VALUE sg) {
+  if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
+    return rb_funcall(jd, rhrd_id_op_gte, 1, sg);
+  } else {
+    return RTEST(sg) ? Qtrue : Qfalse;
+  }
+}
+
+static VALUE rhrd_s_jd_to_ajd(int argc, VALUE *argv, VALUE klass) {
+  switch(argc) {
+    case 2:
+    case 3:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  return argv[0];
+}
+
+static VALUE rhrd_s_jd_to_civil(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 1:
+    case 2:
+      d.jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  RHR_FILL_CIVIL(&d)
+  return rb_ary_new3(3, INT2NUM(d.year), INT2NUM(d.month), INT2NUM(d.day));
+}
+
+static VALUE rhrd_s_jd_to_commercial(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 1:
+    case 2:
+      d.jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  rhrd__fill_commercial(&d);
+  return rb_ary_new3(3, INT2NUM(d.year), INT2NUM(d.month), INT2NUM(d.day));
+}
+
+static VALUE rhrd_s_jd_to_ld(VALUE klass, VALUE jd) {
+  return INT2NUM(rhrd__safe_add_long(-RHR_JD_LD, NUM2LONG(jd)));
+}
+
+static VALUE rhrd_s_jd_to_mjd(VALUE klass, VALUE jd) {
+  return INT2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(jd)));
+}
+
+static VALUE rhrd_s_jd_to_ordinal(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+
+  switch(argc) {
+    case 1:
+    case 2:
+      d.jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+  RHR_FILL_CIVIL(&d)
+
+  return rb_ary_new3(2, INT2NUM(d.year), INT2NUM(rhrd__ordinal_day(&d)));
+}
+
+static VALUE rhrd_s_jd_to_wday(VALUE klass, VALUE jd) {
+  return INT2NUM(rhrd__jd_to_wday(NUM2LONG(jd)));
+}
+
+static VALUE rhrd_s_julian_q(VALUE klass, VALUE jd, VALUE sg) {
+  if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
+    return rb_funcall(jd, rhrd_id_op_lt, 1, sg);
+  } else {
+    return RTEST(sg) ? Qfalse : Qtrue;
+  }
+}
+
+static VALUE rhrd_s_ld_to_jd(VALUE klass, VALUE ld) {
+  return INT2NUM(rhrd__safe_add_long(RHR_JD_LD, NUM2LONG(ld)));
+}
+
+static VALUE rhrd_s_mjd_to_jd(VALUE klass, VALUE mjd) {
+  return INT2NUM(rhrd__safe_add_long(RHR_JD_MJD, NUM2LONG(mjd)));
+}
+
+static VALUE rhrd_s_ordinal_to_jd(int argc, VALUE *argv, VALUE klass) {
+  switch(argc) {
+    case 2:
+    case 3:
+      return INT2NUM(rhrd__ymd_to_jd(NUM2LONG(argv[0]), 1, NUM2LONG(argv[1])));
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+}
+
+static VALUE rhrd_s_time_to_day_fraction(VALUE klass, VALUE h, VALUE m, VALUE s) {
+  return rb_float_new(NUM2DBL(h)/24.0 + NUM2DBL(m)/1440.0 + NUM2DBL(s)/86400.0);
+}
+
+static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
+  long h, m, s;
+  h = NUM2LONG(rh);
+  m = NUM2LONG(rm);
+  s = NUM2LONG(rs);
+  if (h < 0) {
+    h += 24;
+  }
+  if (m < 0) {
+    m += 60;
+  }
+  if (s < 0) {
+    s += 60;
+  }
+  if (h < 0 || m < 0 || s < 0 || h > 24 || m > 59 || s > 59 || (h == 24 && m != 0 && s != 0)) {
+    return Qnil;
+  }
+  return rb_float_new(h/24.0 + m/1440.0 + s/86400.0);
+}
+
+#endif
+
 /* Ruby Library Initialization */
 
 void Init_home_run_date(void) {
@@ -1247,54 +1254,23 @@ void Init_home_run_date(void) {
   rb_define_const(rhrd_class, "JULIAN", INT2NUM(RHR_JD_MIN - 1));
   rb_define_const(rhrd_class, "GREGORIAN", INT2NUM(RHR_JD_MAX + 1));
 
+  /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
-  rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
-  rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);
-  rb_define_method(rhrd_s_class, "amjd_to_ajd", rhrd_s_amjd_to_ajd, 1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
-  rb_define_method(rhrd_s_class, "civil_to_jd", rhrd_s_civil_to_jd, -1);
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
-  rb_define_method(rhrd_s_class, "commercial_to_jd", rhrd_s_commercial_to_jd, -1);
-  rb_define_method(rhrd_s_class, "day_fraction_to_time", rhrd_s_day_fraction_to_time, 1);
-  rb_define_method(rhrd_s_class, "gregorian?", rhrd_s_gregorian_q, 2);
   rb_define_method(rhrd_s_class, "gregorian_leap?", rhrd_s_gregorian_leap_q, 1);
   rb_define_method(rhrd_s_class, "jd", rhrd_s_jd, -1);
-  rb_define_method(rhrd_s_class, "jd_to_ajd", rhrd_s_jd_to_ajd, -1);
-  rb_define_method(rhrd_s_class, "jd_to_civil", rhrd_s_jd_to_civil, -1);
-  rb_define_method(rhrd_s_class, "jd_to_commercial", rhrd_s_jd_to_commercial, -1);
-  rb_define_method(rhrd_s_class, "jd_to_ld", rhrd_s_jd_to_ld, 1);
-  rb_define_method(rhrd_s_class, "jd_to_mjd", rhrd_s_jd_to_mjd, 1);
-  rb_define_method(rhrd_s_class, "jd_to_ordinal", rhrd_s_jd_to_ordinal, -1);
-  rb_define_method(rhrd_s_class, "jd_to_wday", rhrd_s_jd_to_wday, 1);
-  rb_define_method(rhrd_s_class, "julian?", rhrd_s_julian_q, 2);
   rb_define_method(rhrd_s_class, "julian_leap?", rhrd_s_julian_leap_q, 1);
-  rb_define_method(rhrd_s_class, "ld_to_jd", rhrd_s_ld_to_jd, 1);
-  rb_define_method(rhrd_s_class, "mjd_to_jd", rhrd_s_mjd_to_jd, 1);
   rb_define_method(rhrd_s_class, "new!", rhrd_s_new_b, -1);
   rb_define_method(rhrd_s_class, "ordinal", rhrd_s_ordinal, -1);
-  rb_define_method(rhrd_s_class, "ordinal_to_jd", rhrd_s_ordinal_to_jd, -1);
-  rb_define_method(rhrd_s_class, "time_to_day_fraction", rhrd_s_time_to_day_fraction, 3);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
   rb_define_method(rhrd_s_class, "valid_civil?", rhrd_s_valid_civil_q, -1);
   rb_define_method(rhrd_s_class, "valid_commercial?", rhrd_s_valid_commercial_q, -1);
   rb_define_method(rhrd_s_class, "valid_jd?", rhrd_s_valid_jd_q, -1);
   rb_define_method(rhrd_s_class, "valid_ordinal?", rhrd_s_valid_ordinal_q, -1);
-  rb_define_method(rhrd_s_class, "valid_time?", rhrd_s_valid_time_q, 3);
 
-  rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
-  rb_define_alias(rhrd_s_class, "exist1?", "valid_jd?");
-  rb_define_alias(rhrd_s_class, "exist2?", "valid_ordinal?");
-  rb_define_alias(rhrd_s_class, "exist3?", "valid_civil?");
-  rb_define_alias(rhrd_s_class, "existw?", "valid_commercial?");
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
   rb_define_alias(rhrd_s_class, "new", "civil");
-  rb_define_alias(rhrd_s_class, "new0", "new!");
-  rb_define_alias(rhrd_s_class, "new1", "jd");
-  rb_define_alias(rhrd_s_class, "new2", "ordinal");
-  rb_define_alias(rhrd_s_class, "new3", "civil");
-  rb_define_alias(rhrd_s_class, "neww", "commercial");
-  rb_define_alias(rhrd_s_class, "ns?", "gregorian?");
-  rb_define_alias(rhrd_s_class, "os?", "julian?");
   rb_define_alias(rhrd_s_class, "valid_date?", "valid_civil?");
 
   rb_define_method(rhrd_class, "_dump", rhrd__dump, 1);
@@ -1334,10 +1310,6 @@ void Init_home_run_date(void) {
   rb_define_alias(rhrd_class, "julian", "gregorian");
   rb_define_alias(rhrd_class, "mday", "day");
   rb_define_alias(rhrd_class, "mon", "month");
-  rb_define_alias(rhrd_class, "newsg", "new_start");
-  rb_define_alias(rhrd_class, "ns?", "gregorian?");
-  rb_define_alias(rhrd_class, "os?", "julian?");
-  rb_define_alias(rhrd_class, "sg", "start");
   rb_define_alias(rhrd_class, "succ", "next");
 
   rb_define_method(rhrd_class, ">>", rhrd_op_right_shift, 1);
@@ -1348,4 +1320,46 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
 
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
+
+#ifdef RUBY19
+#else
+  rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
+  rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);
+  rb_define_method(rhrd_s_class, "amjd_to_ajd", rhrd_s_amjd_to_ajd, 1);
+  rb_define_method(rhrd_s_class, "civil_to_jd", rhrd_s_civil_to_jd, -1);
+  rb_define_method(rhrd_s_class, "commercial_to_jd", rhrd_s_commercial_to_jd, -1);
+  rb_define_method(rhrd_s_class, "day_fraction_to_time", rhrd_s_day_fraction_to_time, 1);
+  rb_define_method(rhrd_s_class, "gregorian?", rhrd_s_gregorian_q, 2);
+  rb_define_method(rhrd_s_class, "jd_to_ajd", rhrd_s_jd_to_ajd, -1);
+  rb_define_method(rhrd_s_class, "jd_to_civil", rhrd_s_jd_to_civil, -1);
+  rb_define_method(rhrd_s_class, "jd_to_commercial", rhrd_s_jd_to_commercial, -1);
+  rb_define_method(rhrd_s_class, "jd_to_ld", rhrd_s_jd_to_ld, 1);
+  rb_define_method(rhrd_s_class, "jd_to_mjd", rhrd_s_jd_to_mjd, 1);
+  rb_define_method(rhrd_s_class, "jd_to_ordinal", rhrd_s_jd_to_ordinal, -1);
+  rb_define_method(rhrd_s_class, "jd_to_wday", rhrd_s_jd_to_wday, 1);
+  rb_define_method(rhrd_s_class, "julian?", rhrd_s_julian_q, 2);
+  rb_define_method(rhrd_s_class, "ld_to_jd", rhrd_s_ld_to_jd, 1);
+  rb_define_method(rhrd_s_class, "mjd_to_jd", rhrd_s_mjd_to_jd, 1);
+  rb_define_method(rhrd_s_class, "ordinal_to_jd", rhrd_s_ordinal_to_jd, -1);
+  rb_define_method(rhrd_s_class, "time_to_day_fraction", rhrd_s_time_to_day_fraction, 3);
+  rb_define_method(rhrd_s_class, "valid_time?", rhrd_s_valid_time_q, 3);
+
+  rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
+  rb_define_alias(rhrd_s_class, "exist1?", "valid_jd?");
+  rb_define_alias(rhrd_s_class, "exist2?", "valid_ordinal?");
+  rb_define_alias(rhrd_s_class, "exist3?", "valid_civil?");
+  rb_define_alias(rhrd_s_class, "existw?", "valid_commercial?");
+  rb_define_alias(rhrd_s_class, "new0", "new!");
+  rb_define_alias(rhrd_s_class, "new1", "jd");
+  rb_define_alias(rhrd_s_class, "new2", "ordinal");
+  rb_define_alias(rhrd_s_class, "new3", "civil");
+  rb_define_alias(rhrd_s_class, "neww", "commercial");
+  rb_define_alias(rhrd_s_class, "ns?", "gregorian?");
+  rb_define_alias(rhrd_s_class, "os?", "julian?");
+
+  rb_define_alias(rhrd_class, "newsg", "new_start");
+  rb_define_alias(rhrd_class, "ns?", "gregorian?");
+  rb_define_alias(rhrd_class, "os?", "julian?");
+  rb_define_alias(rhrd_class, "sg", "start");
+#endif
 }
