@@ -444,6 +444,13 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
+static VALUE rhrd__day_q(VALUE self, long day) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -1021,6 +1028,37 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 }
 
 #ifdef RUBY19
+
+/* 1.9 day? methods */
+
+static VALUE rhrd_sunday_q(VALUE self) {
+  return rhrd__day_q(self, 0);
+}
+
+static VALUE rhrd_monday_q(VALUE self) {
+  return rhrd__day_q(self, 1);
+}
+
+static VALUE rhrd_tuesday_q(VALUE self) {
+  return rhrd__day_q(self, 2);
+}
+
+static VALUE rhrd_wednesday_q(VALUE self) {
+  return rhrd__day_q(self, 3);
+}
+
+static VALUE rhrd_thursday_q(VALUE self) {
+  return rhrd__day_q(self, 4);
+}
+
+static VALUE rhrd_friday_q(VALUE self) {
+  return rhrd__day_q(self, 5);
+}
+
+static VALUE rhrd_saturday_q(VALUE self) {
+  return rhrd__day_q(self, 6);
+}
+
 #else
 
 /* 1.8 class methods */
@@ -1322,6 +1360,13 @@ void Init_home_run_date(void) {
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 
 #ifdef RUBY19
+  rb_define_method(rhrd_class, "sunday?", rhrd_sunday_q, 0);
+  rb_define_method(rhrd_class, "monday?", rhrd_monday_q, 0);
+  rb_define_method(rhrd_class, "tuesday?", rhrd_tuesday_q, 0);
+  rb_define_method(rhrd_class, "wednesday?", rhrd_wednesday_q, 0);
+  rb_define_method(rhrd_class, "thursday?", rhrd_thursday_q, 0);
+  rb_define_method(rhrd_class, "friday?", rhrd_friday_q, 0);
+  rb_define_method(rhrd_class, "saturday?", rhrd_saturday_q, 0);
 #else
   rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
   rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);

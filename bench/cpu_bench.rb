@@ -69,7 +69,9 @@ compare(".civil.jd"){|dc| n.times{dc.civil(2010, 1, 1).jd}}
 compare("Marshal.dump Date"){|dc| d = dc.civil(2010, 1, 1); n.times{Marshal.dump(d)}}
 compare("Marshal.load Date"){|dc| d = Marshal.dump(dc.civil(2010, 1, 1)); n.times{Marshal.load(d)}}
 
-if RUBY_VERSION < '1.9.0.'
+if RUBY_VERSION >= '1.9.0.'
+  compare("#sunday?"){|dc| d = dc.civil(2010, 1, 1); n.times{d.sunday?}}
+else
   compare(".ajd_to_amjd"){|dc| n.times{dc.ajd_to_amjd(1)}}
   compare(".ajd_to_jd"){|dc| n.times{dc.ajd_to_jd(1)}}
   compare(".amjd_to_ajd"){|dc| n.times{dc.amjd_to_ajd(1)}}
