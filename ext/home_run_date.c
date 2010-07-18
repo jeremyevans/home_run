@@ -87,6 +87,7 @@ VALUE rhrd_s_class;
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
 ID rhrd_id_hash;
+ID rhrd_id_local;
 ID rhrd_id_mday;
 ID rhrd_id_mon;
 ID rhrd_id_now;
@@ -1029,6 +1030,15 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 #ifdef RUBY19
 
+/* 1.9 instance methods */
+
+static VALUE rhrd_to_time(VALUE self) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return rb_funcall(rb_cTime, rhrd_id_local, 3, INT2NUM(d->year), INT2NUM(d->month), INT2NUM(d->day));
+}
+
 /* 1.9 day? methods */
 
 static VALUE rhrd_sunday_q(VALUE self) {
@@ -1279,6 +1289,7 @@ void Init_home_run_date(void) {
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
   rhrd_id_hash = rb_intern("hash");
+  rhrd_id_local = rb_intern("local");
   rhrd_id_mday = rb_intern("mday");
   rhrd_id_mon = rb_intern("mon");
   rhrd_id_now = rb_intern("now");
@@ -1360,6 +1371,8 @@ void Init_home_run_date(void) {
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 
 #ifdef RUBY19
+  rb_define_method(rhrd_class, "to_time", rhrd_to_time, 0);
+
   rb_define_alias(rhrd_class, "to_date", "gregorian");
 
   rb_define_method(rhrd_class, "sunday?", rhrd_sunday_q, 0);
