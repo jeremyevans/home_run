@@ -445,13 +445,6 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
-static VALUE rhrd__day_q(VALUE self, long day) {
-  rhrd_t *d;
-  Data_Get_Struct(self, rhrd_t, d);
-  RHR_FILL_JD(d)
-  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
-}
-
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -1040,6 +1033,13 @@ static VALUE rhrd_to_time(VALUE self) {
 }
 
 /* 1.9 day? methods */
+
+static VALUE rhrd__day_q(VALUE self, long day) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
+}
 
 static VALUE rhrd_sunday_q(VALUE self) {
   return rhrd__day_q(self, 0);
