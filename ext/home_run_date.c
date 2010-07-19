@@ -422,9 +422,9 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   leap = rhrd__leap_year(year);
   if (yday < 0) {
     if (leap) {
-      yday += 366;
+      yday += 367;
     } else {
-      yday += 365;
+      yday += 366;
     }
   }
   if (yday < 1 || yday > (leap ? 366 : 365)) {
@@ -931,22 +931,26 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
 
   current = d->jd;
   if (limit > current) {
-    while(limit >= current) {
-      new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
-      newd->jd = current;
-      RHR_CHECK_JD(newd)
-      newd->flags = RHR_HAVE_JD;
-      current += step;
-      rb_yield(new);
+    if (step > 0) {
+      while(limit >= current) {
+        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+        newd->jd = current;
+        RHR_CHECK_JD(newd)
+        newd->flags = RHR_HAVE_JD;
+        current += step;
+        rb_yield(new);
+      }
     }
   } else if (limit < current) {
-    while(limit <= current) {
-      new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
-      newd->jd = current;
-      RHR_CHECK_JD(newd)
-      newd->flags = RHR_HAVE_JD;
-      current += step;
-      rb_yield(new);
+    if (step < 0) {
+      while(limit <= current) {
+        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+        newd->jd = current;
+        RHR_CHECK_JD(newd)
+        newd->flags = RHR_HAVE_JD;
+        current += step;
+        rb_yield(new);
+      }
     }
   } else {
     rb_yield(self);
