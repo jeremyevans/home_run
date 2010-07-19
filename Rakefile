@@ -71,3 +71,9 @@ task :toofar do
   puts ""
   puts "Instance Methods: #{(hrim-sim).sort.join(', ')}"
 end
+
+desc "Run lex and yacc to create the lexer and parser"
+task :parser do
+  sh %{cd ext && lex -ohome_run_lexer.c -Prhrd__yy home_run_lexer.l}
+  sh %{cd ext && yacc -p rhrd__yy -b home_run_parser -d home_run_parser.y}
+end

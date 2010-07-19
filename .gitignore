@@ -1,5 +1,6 @@
 *.rbc
 /ext/Makefile
-/ext/home_run_date.o
-/ext/home_run_date.so
+/ext/home_run_date.*o
+/ext/home_run_lexer.[co]
+/ext/home_run_parser.tab.*
 *.core

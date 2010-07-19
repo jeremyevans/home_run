@@ -23,6 +23,7 @@ end
 
 n = (ARGV.first || 100000).to_i
 puts "label,stdlib,home_run,times faster"
+compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
 compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1)}}
 compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1)}}
 compare(".gregorian_leap?"){|dc| n.times{dc.gregorian_leap?(2000)}}

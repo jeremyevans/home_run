@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ruby.h>
+#include "home_run_lexer.c"
 
 #define RHR_DEFAULT_JD 0
 #define RHR_DEFAULT_YEAR -4712
@@ -83,6 +84,7 @@ const char * rhrd_abbr_month_names[13] = {"", "Jan", "Feb", "Mar", "Apr", "May",
 const char * rhrd_abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 VALUE rhrd_class;
 VALUE rhrd_s_class;
+VALUE rhrd_parsed_date_hash;
 
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
@@ -456,6 +458,31 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   RHR_CHECK_JD(d)
   d->flags = RHR_HAVE_JD;
   return rd;
+}
+
+static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
+  char * str; 
+  long str_len;
+  VALUE hash;
+  YY_BUFFER_STATE buf;
+
+  switch(argc) {
+    case 2:
+    case 1:
+      str = rb_str2cstr(argv[0], &str_len);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+
+  rhrd_parsed_date_hash = rb_hash_new();
+  buf = rhrd__yy_scan_bytes(str, str_len);
+  rhrd__yyparse();
+  rhrd__yy_delete_buffer(buf);
+  hash = rhrd_parsed_date_hash;
+  rhrd_parsed_date_hash = NULL;
+  return hash;
 }
 
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -1305,6 +1332,7 @@ void Init_home_run_date(void) {
 
   /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
+  rb_define_method(rhrd_s_class, "_parse", rhrd_s__parse, -1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
   rb_define_method(rhrd_s_class, "gregorian_leap?", rhrd_s_gregorian_leap_q, 1);
