@@ -78,6 +78,8 @@ if RUBY_VERSION >= '1.9.0.'
   compare("#prev_day"){|dc| d = dc.civil(2010, 1, 1); n.times{d.prev_day}}
   compare("#next_month"){|dc| d = dc.civil(2010, 1, 1); n.times{d.next_month}}
   compare("#prev_month"){|dc| d = dc.civil(2010, 1, 1); n.times{d.prev_month}}
+  compare("#next_year"){|dc| d = dc.civil(2010, 1, 1); n.times{d.next_year}}
+  compare("#prev_year"){|dc| d = dc.civil(2010, 1, 1); n.times{d.prev_year}}
 else
   compare(".ajd_to_amjd"){|dc| n.times{dc.ajd_to_amjd(1)}}
   compare(".ajd_to_jd"){|dc| n.times{dc.ajd_to_jd(1)}}

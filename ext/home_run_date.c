@@ -293,6 +293,27 @@ static VALUE rhrd__add_months(VALUE self, long n) {
   return new;
 }
 
+static VALUE rhrd__add_years(VALUE self, long n) {
+  rhrd_t *d;
+  rhrd_t *newd;
+  VALUE new;
+  Data_Get_Struct(self, rhrd_t, d);
+
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+  RHR_FILL_CIVIL(d)
+  newd->year = rhrd__safe_add_long(n, d->year);
+  newd->month = d->month;
+  if(d->month == 2 && d->day == 29) {
+    newd->day = rhrd__leap_year(newd->year) ? 29 : 28;
+  } else {
+    newd->day = d->day;
+  }
+
+  RHR_CHECK_CIVIL(newd)
+  newd->flags = RHR_HAVE_CIVIL;
+  return new;
+}
+
 long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
   long diff;
   if (RHR_HAS_JD(d) && RHR_HAS_JD(o)) {
@@ -1085,6 +1106,24 @@ static VALUE rhrd_next_month(int argc, VALUE *argv, VALUE self) {
   return rhrd__add_months(self, i);
 }
 
+static VALUE rhrd_next_year(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = 1;
+      break;
+    case 1:
+      i = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  return rhrd__add_years(self, i);
+}
+
 static VALUE rhrd_prev_day(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -1119,6 +1158,24 @@ static VALUE rhrd_prev_month(int argc, VALUE *argv, VALUE self) {
   }
 
   return rhrd__add_months(self, i);
+}
+
+static VALUE rhrd_prev_year(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = -1;
+      break;
+    case 1:
+      i = -NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  return rhrd__add_years(self, i);
 }
 
 static VALUE rhrd_to_time(VALUE self) {
@@ -1470,8 +1527,10 @@ void Init_home_run_date(void) {
 #ifdef RUBY19
   rb_define_method(rhrd_class, "next_day", rhrd_next_day, -1);
   rb_define_method(rhrd_class, "next_month", rhrd_next_month, -1);
+  rb_define_method(rhrd_class, "next_year", rhrd_next_year, -1);
   rb_define_method(rhrd_class, "prev_day", rhrd_prev_day, -1);
   rb_define_method(rhrd_class, "prev_month", rhrd_prev_month, -1);
+  rb_define_method(rhrd_class, "prev_year", rhrd_prev_year, -1);
   rb_define_method(rhrd_class, "to_time", rhrd_to_time, 0);
 
   rb_define_alias(rhrd_class, "to_date", "gregorian");
