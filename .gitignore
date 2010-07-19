@@ -4,3 +4,4 @@
 /ext/home_run_lexer.[co]
 /ext/home_run_parser.tab.*
 *.core
+rubyspec
