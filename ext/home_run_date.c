@@ -6,14 +6,14 @@
 #include "home_run_lexer.c"
 
 #define RHR_DEFAULT_JD 0
-#define RHR_DEFAULT_YEAR -4712
-#define RHR_DEFAULT_MONTH 1
-#define RHR_DEFAULT_DAY 1
+#define RHR_DEFAULT_YEAR -4713
+#define RHR_DEFAULT_MONTH 11
+#define RHR_DEFAULT_DAY 24
 #define RHR_DEFAULT_CWYEAR 1582
 #define RHR_DEFAULT_CWEEK 41
 #define RHR_DEFAULT_CWDAY 5
-#define RHR_DEFAULT_ORDINAL_YEAR -4712
-#define RHR_DEFAULT_ORDINAL_DAY 1
+#define RHR_DEFAULT_ORDINAL_YEAR -4713
+#define RHR_DEFAULT_ORDINAL_DAY 328
 #define RHR_JD_MJD 2400001
 #define RHR_JD_LD 2299160
 #define RHR_JD_ITALY 2299161
@@ -293,27 +293,6 @@ static VALUE rhrd__add_months(VALUE self, long n) {
   return new;
 }
 
-static VALUE rhrd__add_years(VALUE self, long n) {
-  rhrd_t *d;
-  rhrd_t *newd;
-  VALUE new;
-  Data_Get_Struct(self, rhrd_t, d);
-
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
-  RHR_FILL_CIVIL(d)
-  newd->year = rhrd__safe_add_long(n, d->year);
-  newd->month = d->month;
-  if(d->month == 2 && d->day == 29) {
-    newd->day = rhrd__leap_year(newd->year) ? 29 : 28;
-  } else {
-    newd->day = d->day;
-  }
-
-  RHR_CHECK_CIVIL(newd)
-  newd->flags = RHR_HAVE_CIVIL;
-  return new;
-}
-
 long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
   long diff;
   if (RHR_HAS_JD(d) && RHR_HAS_JD(o)) {
@@ -448,13 +427,13 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   if (leap) {
     month = rhrd_leap_yday_to_month[yday];
     if (yday > 60) {
-      day = yday - rhrd_cumulative_days_in_month[d->month] - 1;
+      day = yday - rhrd_cumulative_days_in_month[month] - 1;
     } else {
-      day = yday - rhrd_cumulative_days_in_month[d->month];
+      day = yday - rhrd_cumulative_days_in_month[month];
     }
   } else {
     month = rhrd_yday_to_month[yday];
-    day = yday - rhrd_cumulative_days_in_month[d->month];
+    day = yday - rhrd_cumulative_days_in_month[month];
   }
 
   if(!rhrd__valid_civil_limits(year, month, day)) {
@@ -1068,6 +1047,36 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 #ifdef RUBY19
 
+/* 1.9 helper methods */
+
+static VALUE rhrd__add_years(VALUE self, long n) {
+  rhrd_t *d;
+  rhrd_t *newd;
+  VALUE new;
+  Data_Get_Struct(self, rhrd_t, d);
+
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+  RHR_FILL_CIVIL(d)
+  newd->year = rhrd__safe_add_long(n, d->year);
+  newd->month = d->month;
+  if(d->month == 2 && d->day == 29) {
+    newd->day = rhrd__leap_year(newd->year) ? 29 : 28;
+  } else {
+    newd->day = d->day;
+  }
+
+  RHR_CHECK_CIVIL(newd)
+  newd->flags = RHR_HAVE_CIVIL;
+  return new;
+}
+
+static VALUE rhrd__day_q(VALUE self, long day) {
+  rhrd_t *d;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_JD(d)
+  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
+}
+
 /* 1.9 instance methods */
 
 static VALUE rhrd_next_day(int argc, VALUE *argv, VALUE self) {
@@ -1186,13 +1195,6 @@ static VALUE rhrd_to_time(VALUE self) {
 }
 
 /* 1.9 day? methods */
-
-static VALUE rhrd__day_q(VALUE self, long day) {
-  rhrd_t *d;
-  Data_Get_Struct(self, rhrd_t, d);
-  RHR_FILL_JD(d)
-  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
-}
 
 static VALUE rhrd_sunday_q(VALUE self) {
   return rhrd__day_q(self, 0);
