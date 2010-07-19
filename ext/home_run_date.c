@@ -881,7 +881,16 @@ static VALUE rhrd_next(VALUE self) {
    return rhrd__add_days(self, 1);
 }
 
-static VALUE rhrd_new_start(VALUE self, VALUE other) {
+static VALUE rhrd_new_start(int argc, VALUE *argv, VALUE self) {
+  switch(argc) {
+    case 0:
+    case 1:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
   return self;
 }
 
@@ -1506,7 +1515,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "mjd", rhrd_mjd, 0);
   rb_define_method(rhrd_class, "month", rhrd_month, 0);
   rb_define_method(rhrd_class, "next", rhrd_next, 0);
-  rb_define_method(rhrd_class, "new_start", rhrd_new_start, 1);
+  rb_define_method(rhrd_class, "new_start", rhrd_new_start, -1);
   rb_define_method(rhrd_class, "start", rhrd_start, 0);
   rb_define_method(rhrd_class, "step", rhrd_step, -1);
   rb_define_method(rhrd_class, "to_s", rhrd_to_s, 0);
