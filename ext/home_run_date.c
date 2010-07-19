@@ -513,9 +513,9 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
 
 static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
-  long cwyear = RHR_DEFAULT_YEAR;
-  long cweek = RHR_DEFAULT_MONTH;
-  long cwday = RHR_DEFAULT_DAY;
+  long cwyear = RHR_DEFAULT_CWYEAR;
+  long cweek = RHR_DEFAULT_CWEEK;
+  long cwday = RHR_DEFAULT_CWDAY;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
