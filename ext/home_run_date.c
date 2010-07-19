@@ -461,15 +461,12 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
 }
 
 static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
-  char * str; 
-  long str_len;
   VALUE hash;
   YY_BUFFER_STATE buf;
 
   switch(argc) {
     case 2:
     case 1:
-      str = rb_str2cstr(argv[0], &str_len);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
@@ -477,7 +474,7 @@ static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
   }
 
   rhrd_parsed_date_hash = rb_hash_new();
-  buf = rhrd__yy_scan_bytes(str, str_len);
+  buf = rhrd__yy_scan_bytes(StringValuePtr(argv[0]), RSTRING_LEN(argv[0]));
   rhrd__yyparse();
   rhrd__yy_delete_buffer(buf);
   hash = rhrd_parsed_date_hash;
