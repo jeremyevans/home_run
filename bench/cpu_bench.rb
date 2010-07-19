@@ -74,6 +74,7 @@ if RUBY_VERSION >= '1.9.0.'
   compare("#sunday?"){|dc| d = dc.civil(2010, 1, 1); n.times{d.sunday?}}
   compare("#to_date"){|dc| d = dc.civil(2010, 1, 1); n.times{d.to_date}}
   compare("#to_time"){|dc| d = dc.civil(2010, 1, 1); n.times{d.to_time}}
+  compare("#next_day"){|dc| d = dc.civil(2010, 1, 1); n.times{d.next_day}}
 else
   compare(".ajd_to_amjd"){|dc| n.times{dc.ajd_to_amjd(1)}}
   compare(".ajd_to_jd"){|dc| n.times{dc.ajd_to_jd(1)}}

@@ -1049,6 +1049,24 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 /* 1.9 instance methods */
 
+static VALUE rhrd_next_day(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = 1;
+      break;
+    case 1:
+      i = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+   return rhrd__add_days(self, i);
+}
+
 static VALUE rhrd_to_time(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -1396,6 +1414,7 @@ void Init_home_run_date(void) {
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
 
 #ifdef RUBY19
+  rb_define_method(rhrd_class, "next_day", rhrd_next_day, -1);
   rb_define_method(rhrd_class, "to_time", rhrd_to_time, 0);
 
   rb_define_alias(rhrd_class, "to_date", "gregorian");
