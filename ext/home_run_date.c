@@ -453,6 +453,19 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
+VALUE rhrd__parse(char *str, long len) {
+  VALUE hash;
+  YY_BUFFER_STATE buf;
+
+  rhrd_parsed_date_hash = rb_hash_new();
+  buf = rhrd__yy_scan_bytes(str, len);
+  rhrd__yyparse();
+  rhrd__yy_delete_buffer(buf);
+  hash = rhrd_parsed_date_hash;
+  rhrd_parsed_date_hash = NULL;
+  return hash;
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -467,25 +480,14 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
 }
 
 static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
-  VALUE hash;
-  YY_BUFFER_STATE buf;
-
   switch(argc) {
     case 2:
     case 1:
-      break;
+      return rhrd__parse(StringValuePtr(argv[0]), RSTRING_LEN(argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
   }
-
-  rhrd_parsed_date_hash = rb_hash_new();
-  buf = rhrd__yy_scan_bytes(StringValuePtr(argv[0]), RSTRING_LEN(argv[0]));
-  rhrd__yyparse();
-  rhrd__yy_delete_buffer(buf);
-  hash = rhrd_parsed_date_hash;
-  rhrd_parsed_date_hash = NULL;
-  return hash;
 }
 
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -617,6 +619,49 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
       break;
+  }
+
+  return rd;
+}
+
+static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
+  char * str;
+  long len;
+  long year = 0;
+  long month = 0;
+  long day = 0;
+  rhrd_t *d;
+  VALUE hash, ryear, rmonth, rday;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->jd = RHR_DEFAULT_JD;
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 1:
+    case 2:
+    case 3:
+      str = StringValuePtr(argv[0]);
+      len = RSTRING_LEN(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
+      break;
+  }
+
+  hash = rhrd__parse(str, len);
+  ryear = rb_hash_aref(hash, ID2SYM(rb_intern("year")));
+  rmonth = rb_hash_aref(hash, ID2SYM(rb_intern("mon")));
+  rday = rb_hash_aref(hash, ID2SYM(rb_intern("mday")));
+  if(RTEST(ryear) && RTEST(rmonth) && RTEST(rday)) {
+    year = NUM2LONG(ryear);
+    month = NUM2LONG(rmonth);
+    day = NUM2LONG(rday);
+  }
+  if (!rhrd__valid_civil(d, year, month, day)) {
+    RHR_CHECK_CIVIL(d)
+    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
   }
 
   return rd;
@@ -1489,6 +1534,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "julian_leap?", rhrd_s_julian_leap_q, 1);
   rb_define_method(rhrd_s_class, "new!", rhrd_s_new_b, -1);
   rb_define_method(rhrd_s_class, "ordinal", rhrd_s_ordinal, -1);
+  rb_define_method(rhrd_s_class, "parse", rhrd_s_parse, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
   rb_define_method(rhrd_s_class, "valid_civil?", rhrd_s_valid_civil_q, -1);
   rb_define_method(rhrd_s_class, "valid_commercial?", rhrd_s_valid_commercial_q, -1);
