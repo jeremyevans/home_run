@@ -1,7 +1,7 @@
 require "rake"
 require "rake/clean"
 
-CLEAN.include %w'Makefile ext/home_run_date.*o ext/home_run_lexer.[co] ext/home_run_parser.tab.* **/*.rbc *.core' 
+CLEAN.include %w'Makefile ext/home_run_date.*o **/*.rbc *.core' 
 RUBY=ENV['RUBY'] || 'ruby'
 IRB=ENV['IRB'] || 'irb'
 MSPEC=ENV['MSPEC'] || 'mspec'
@@ -13,12 +13,12 @@ task :spec do
 end
 
 desc "Build the extension"
-task :build=>[:parser] do
+task :build=>[:clean] do
   sh %{cd ext && #{RUBY} extconf.rb && make}
 end
 
 desc "Build debug version of extension"
-task :build_debug=>[:parser] do
+task :build_debug=>[:clean] do
   ENV['DEBUG'] = '1'
   sh %{cd ext && #{RUBY} extconf.rb && make}
 end
@@ -77,10 +77,4 @@ task :toofar do
   puts "Class Methods: #{(hrcm-scm).sort.join(', ')}"
   puts ""
   puts "Instance Methods: #{(hrim-sim).sort.join(', ')}"
-end
-
-desc "Run lex and yacc to create the lexer and parser"
-task :parser=>:clean do
-  sh %{cd ext && lex -ohome_run_lexer.c -Prhrd__yy home_run_lexer.l}
-  sh %{cd ext && yacc -p rhrd__yy -b home_run_parser -d home_run_parser.y}
 end
