@@ -467,8 +467,8 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   long year = RHR_DEFAULT_YEAR;
-  long month = RHR_DEFAULT_MONTH;
-  long day = RHR_DEFAULT_DAY;
+  long month = 1;
+  long day = 1;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
@@ -479,17 +479,20 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
       month = NUM2LONG(argv[1]);
     case 1:
       year = NUM2LONG(argv[0]);
+      break;
     case 0:
-      if (!rhrd__valid_civil(d, year, month, day)) {
-        RHR_CHECK_CIVIL(d)
-        rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
-      }
+      month = RHR_DEFAULT_MONTH;
+      day = RHR_DEFAULT_DAY;
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
   }
 
+  if (!rhrd__valid_civil(d, year, month, day)) {
+    RHR_CHECK_CIVIL(d)
+    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
+  }
   return rd;
 }
 
