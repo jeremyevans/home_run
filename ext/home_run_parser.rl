@@ -16,55 +16,90 @@ long rhrd__month_num(char * str) {
     }
   }
 
-  return 0;
+  return atol(str);
 }
 
 %%{
   machine home_run_parser;
 
-  action tag_iso_year4 { t_iso_year4 = p; }
-  action tag_iso_month { t_iso_month = p; }
-  action tag_iso_day { t_iso_day = p; }
-  action tag_abbr_month { t_abbr_month = p; }
-  action tag_us_day { t_us_day = p; }
-  action tag_us_year { t_us_year = p; }
+  action tag_le_year { t_le_year = p; }
+  action tag_le_month { t_le_month = p; }
+  action tag_le_day { t_le_day = p; }
+  action tag_be_year { t_be_year = p; }
+  action tag_be_month { t_be_month = p; }
+  action tag_be_day { t_be_day = p; }
+  action tag_me_year { t_me_year = p; }
+  action tag_me_month { t_me_month = p; }
+  action tag_me_day { t_me_day = p; }
+  action set_bc { bc = 1; }
 
-  action set_iso_date { 
-    year = atol(t_iso_year4);
-    month = atol(t_iso_month);
-    day = atol(t_iso_day);
-    state |= RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET;
-  }
-  action set_bc { 
-    bc = 1;
-  }
-  action set_us_date { 
-    if (t_us_year) {
-      year = atol(t_us_year);
+  action set_le_date { 
+    if (t_le_year) {
+      year = atol(t_le_year);
       state |= RHRR_YEAR_SET;
     }
-    month = rhrd__month_num(t_abbr_month);
-    day = atol(t_us_day);
+    month = rhrd__month_num(t_le_month);
+    day = atol(t_le_day);
     state |= RHRR_MONTH_SET | RHRR_DAY_SET;
   }
 
-  abbr_month = (/jan/i | /feb/i | /mar/i | /apr/i | /may/i | /jun/i | /jul/i | /aug/i | /sep/i | /oct/i| /nov/i | /dec/i) >tag_abbr_month;
-  ws = [ \t\n\r];
+  action set_be_date { 
+    year = atol(t_be_year);
+    month = rhrd__month_num(t_be_month);
+    state |= RHRR_YEAR_SET | RHRR_MONTH_SET;
+    if (t_be_day) {
+      day = atol(t_be_day);
+      state |= RHRR_DAY_SET;
+    }
+  }
+
+  action set_me_date { 
+    if (t_me_year) {
+      year = atol(t_me_year);
+      state |= RHRR_YEAR_SET;
+    }
+    month = rhrd__month_num(t_me_month);
+    day = atol(t_me_day);
+    state |= RHRR_MONTH_SET | RHRR_DAY_SET;
+  }
+
+  abbr_month = (/jan/i | /feb/i | /mar/i | /apr/i | /may/i | /jun/i | /jul/i | /aug/i | /sep/i | /oct/i| /nov/i | /dec/i);
+  full_month = (/january/i | /february/i | /march/i | /april/i | /may/i | /june/i | /july/i | /august/i | /september/i | /october/i| /november/i | /december/i); 
+  month_name = (abbr_month | full_month);
+  month_num = (('0'? . [1-9]) | '1' . [0-2]); 
+  month = (month_num | month_name);
+
+  abbr_day = (/sun/i | /mon/i | /tue/i | /wed/i | /thu/i | /fri/i | /sat/i);
+  full_day = (/sunday/i | /monday/i | /tuesday/i | /wednesday/i | /thursday/i | /friday/i | /saturday/i);
+
   bc = (/bc/i | /b\.c\./i | /bce/i | /b\.c\.e\./i) %set_bc;
   ad = (/ce/i | /ad/i | /c\.e\./i | /a\.d\./i);
   bc_ad = bc | ad;
+  day = ((([0-2]? . [1-9]) | ([123] . '0') | '31')) . ('st' | 'nd' | 'rd' | 'th')?;
+  year = ('-'? . digit{4}) . (space* . bc_ad)?;
 
-  iso_year4 = ('-'? . digit{4}) >tag_iso_year4;
-  iso_month = (('0' . [1-9]) | '1' . [0-2]) >tag_iso_month;
-  iso_day = (([0-2] . [1-9]) | ([123] . '0') | '31') >tag_iso_day;
-  iso_date = (iso_year4 . '-' . iso_month . '-' . iso_day) %set_iso_date;
+  le_sep = [ \-/.];
+  le_day = day >tag_le_day;
+  le_month = month >tag_le_month;
+  le_year = year >tag_le_year;
+  le_date = (le_day . le_sep . le_month . (le_sep . le_year)?) %set_le_date;
 
-  us_skip = [^\-0-9 \t\v\f\n\r']*;
-  us_day = (([0-2]? . [1-9]) | ([123] . '0') | '31') >tag_us_day;
-  us_year = ('-'? . digit+) >tag_us_year;
-  us_date = (abbr_month . us_skip . space* . us_day . us_skip . (space* . bc_ad? . space* . us_year)?) %set_us_date;
+  be_sep = ([ \-] | '. ')?;
+  be_day = day >tag_be_day;
+  be_month = month >tag_be_month;
+  be_year = ('-'? . digit{4}) > tag_be_year;
+  be_date = (be_year . be_sep . be_month . (be_sep . be_day)?) %set_be_date;
+
+  me_sep = [.,/\-]? . space*;
+  me_day = day >tag_me_day;
+  me_month = month >tag_me_month;
+  me_year = bc_ad? . space* . (year >tag_me_year);
+  me_date = (me_month . me_sep . me_day . (me_sep . me_year)?) %set_me_date;
+
+  date = (le_date | be_date | me_date);
+  opt_day = (abbr_day | full_day)? . space*;
   
-  main := iso_date | us_date;
+  main := space* . opt_day . (date | abbr_day | full_day) . space* . opt_day;
   write data;
 }%%
 
@@ -72,22 +107,31 @@ VALUE rhrd__parse(char * p, long len) {
   VALUE hash;
   long state = 0;
   int cs = 0;
+
   int bc = 0;
   long year = 0;
   long month = 0;
   long day = 0;
   long yday = 0;
+
   long hour = 0;
   long minute = 0;
   long second = 0;
   long offset = 0;
   char * zone = NULL;
-  char * t_iso_year4 = NULL;
-  char * t_iso_month = NULL;
-  char * t_iso_day = NULL;
-  char * t_abbr_month = NULL;
-  char * t_us_day = NULL;
-  char * t_us_year = NULL;
+
+  char * t_le_year = NULL;
+  char * t_le_month = NULL;
+  char * t_le_day = NULL;
+
+  char * t_be_year = NULL;
+  char * t_be_month = NULL;
+  char * t_be_day = NULL;
+
+  char * t_me_year = NULL;
+  char * t_me_month = NULL;
+  char * t_me_day = NULL;
+
   char * eof;
   char * pe;
   pe = p + len;
