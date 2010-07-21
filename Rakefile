@@ -12,6 +12,11 @@ task :spec do
   sh %{#{MSPEC} -I ext -I lib rubyspec/library/date/*_spec.rb}
 end
 
+desc "Build the ragel parser"
+task :parser do
+  sh %{cd ext && ragel home_run_parser.rl}
+end
+
 desc "Build the extension"
 task :build=>[:clean] do
   sh %{cd ext && #{RUBY} extconf.rb && make}
@@ -78,3 +83,4 @@ task :toofar do
   puts ""
   puts "Instance Methods: #{(hrim-sim).sort.join(', ')}"
 end
+
