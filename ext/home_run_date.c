@@ -453,6 +453,12 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
+long rhrd__current_year(void) {
+  VALUE t;
+  t = rb_funcall(rb_cTime, rhrd_id_now, 0);
+  return NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -644,8 +650,12 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   ryear = rb_hash_aref(hash, ID2SYM(rb_intern("year")));
   rmonth = rb_hash_aref(hash, ID2SYM(rb_intern("mon")));
   rday = rb_hash_aref(hash, ID2SYM(rb_intern("mday")));
-  if(RTEST(ryear) && RTEST(rmonth) && RTEST(rday)) {
-    year = NUM2LONG(ryear);
+  if (RTEST(rmonth) && RTEST(rday)) {
+    if (RTEST(ryear)) {
+      year = NUM2LONG(ryear);
+    } else {
+      year = rhrd__current_year();
+    }
     month = NUM2LONG(rmonth);
     day = NUM2LONG(rday);
   }
