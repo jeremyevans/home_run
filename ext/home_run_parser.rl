@@ -41,6 +41,8 @@ long rhrd__month_num(char * str) {
   action me_year_error { t_me_year = NULL; }
 
   action set_le_inc_pri { le_inc_pri = 1; }
+  action set_be_dec_pri { be_dec_pri = 1; }
+
   action set_le_year2 { le_year2 = 1; }
   action unset_le_year2 { le_year2 = 0; }
   action set_be_year2 { be_year2 = 1; }
@@ -84,7 +86,10 @@ long rhrd__month_num(char * str) {
       year = atol(t_be_year);
       if (be_year2) {
         year += year < 70 ? 2000 : 1900;
-      }
+        if (be_dec_pri) {
+        date_priority -= 11;
+        }
+      } 
       month = rhrd__month_num(t_be_month);
       state |= RHRR_YEAR_SET | RHRR_MONTH_SET;
       if (t_be_day) {
@@ -139,11 +144,11 @@ long rhrd__month_num(char * str) {
   le_year = bc_ad? . space* . ('-'? . (digit{2} %set_le_year2) :>> (digit{2} %unset_le_year2)? . (space* . bc_ad %unset_le_year2)?) >tag_le_year $^le_year_error;
   le_date = (le_day . ([\-.] %set_le_inc_pri | [ /]) . le_month . (le_sep . le_year)?) %set_le_date;
 
-  be_sep = ([ \-.] | '. ')?;
+  be_sep = ([ /\-.] | '. ')?;
   be_day = day >tag_be_day $^be_day_error;
   be_month = month >tag_be_month;
   be_year = ('-'? . (digit{2} %set_be_year2) :>> (digit{2} %unset_be_year2)?) >tag_be_year;
-  be_date = (be_year . be_sep . be_month . (be_sep . be_day)?) %set_be_date;
+  be_date = (be_year . ('/' % set_be_dec_pri | [ \-.] | '. ') . be_month . (be_sep . be_day)?) %set_be_date;
 
   me_sep = [.,/\-]? . space*;
   me_day = day >tag_me_day;
@@ -190,6 +195,7 @@ VALUE rhrd__parse(char * p, long len) {
   char * t_be_month = NULL;
   char * t_be_day = NULL;
   int be_year2 = 0;
+  int be_dec_pri = 0;
 
   char * t_me_year = NULL;
   char * t_me_month = NULL;
