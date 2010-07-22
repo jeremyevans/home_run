@@ -31,6 +31,16 @@ long rhrd__month_num(char * str) {
   action tag_me_year { t_me_year = p; }
   action tag_me_month { t_me_month = p; }
   action tag_me_day { t_me_day = p; }
+
+  action le_year_error { t_le_year = NULL; }
+  action be_day_error { t_be_day = NULL; }
+  action me_year_error { t_me_year = NULL; }
+
+  action set_be_year2 { be_year2 = 1; }
+  action unset_be_year2 { be_year2 = 0; }
+  action set_me_year2 { me_year2 = 1; }
+  action unset_me_year2 { me_year2 = 0; }
+
   action set_bc { bc = 1; }
 
   action set_le_date { 
@@ -45,6 +55,9 @@ long rhrd__month_num(char * str) {
 
   action set_be_date { 
     year = atol(t_be_year);
+    if (be_year2) {
+      year += year < 70 ? 2000 : 1900;
+    }
     month = rhrd__month_num(t_be_month);
     state |= RHRR_YEAR_SET | RHRR_MONTH_SET;
     if (t_be_day) {
@@ -81,22 +94,26 @@ long rhrd__month_num(char * str) {
   le_sep = [ \-/.];
   le_day = day >tag_le_day;
   le_month = month >tag_le_month;
-  le_year = year >tag_le_year;
+  le_year = year >tag_le_year $^le_year_error;
   le_date = (le_day . le_sep . le_month . (le_sep . le_year)?) %set_le_date;
 
-  be_sep = ([ \-] | '. ')?;
-  be_day = day >tag_be_day;
+  be_sep = ([ \-.] | '. ')?;
+  be_day = day >tag_be_day $^be_day_error;
   be_month = month >tag_be_month;
-  be_year = ('-'? . digit{4}) > tag_be_year;
+  be_year = ('-'? . (digit{2} %set_be_year2) :>> (digit{2} %unset_be_year2)?) >tag_be_year;
   be_date = (be_year . be_sep . be_month . (be_sep . be_day)?) %set_be_date;
 
   me_sep = [.,/\-]? . space*;
   me_day = day >tag_me_day;
   me_month = month >tag_me_month;
-  me_year = bc_ad? . space* . (year >tag_me_year);
+  me_year = bc_ad? . space* . (('-'? . (digit{2} %set_me_year2) :>> (digit{2} %unset_me_year2)?) >tag_me_year $^me_year_error);
   me_date = (me_month . me_sep . me_day . (me_sep . me_year)?) %set_me_date;
 
-  date = (le_date | be_date | me_date);
+  # MM/DD/YY
+  # MM.DD.YY
+  # DD-MM-YYYY
+  # YY-MM-DD
+  date = (le_date % (date_style, 20) | be_date % (date_style, 40) | me_date % (date_style, 30));
   opt_day = (abbr_day | full_day)? . space*;
   
   main := space* . opt_day . (date | abbr_day | full_day) . space* . opt_day;
@@ -127,10 +144,12 @@ VALUE rhrd__parse(char * p, long len) {
   char * t_be_year = NULL;
   char * t_be_month = NULL;
   char * t_be_day = NULL;
+  int be_year2 = 0;
 
   char * t_me_year = NULL;
   char * t_me_month = NULL;
   char * t_me_day = NULL;
+  int me_year2 = 0;
 
   char * eof;
   char * pe;
