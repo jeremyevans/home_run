@@ -7,10 +7,10 @@
 #define RHRR_MINUTE_SET 0x1 << 5
 #define RHRR_SECOND_SET 0x1 << 6
 
-#define RHRR_LE_DATE_PRIORTY 40
-#define RHRR_BE_DATE_PRIORTY 60
-#define RHRR_ME_DATE_PRIORTY 50
-#define RHRR_MY_DATE_PRIORTY 25
+#define RHRR_LE_DATE_PRIORITY 40
+#define RHRR_BE_DATE_PRIORITY 60
+#define RHRR_ME_DATE_PRIORITY 50
+#define RHRR_MY_DATE_PRIORITY 25
 
 long rhrd__month_num(char * str) {
   int i;
@@ -56,12 +56,12 @@ long rhrd__month_num(char * str) {
   action set_bc { bc = 1; }
 
   action set_le_date { 
-    if (date_priority <= RHRR_LE_DATE_PRIORTY) {
+    if (date_priority <= RHRR_LE_DATE_PRIORITY) {
 #ifdef DEBUG
       printf("Setting little endian (day month year) date\n");
 #endif
       state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
-      date_priority = RHRR_LE_DATE_PRIORTY;
+      date_priority = RHRR_LE_DATE_PRIORITY;
       if (t_le_year) {
         year = atol(t_le_year);
         if (le_year2) {
@@ -80,12 +80,12 @@ long rhrd__month_num(char * str) {
   }
 
   action set_be_date { 
-    if (date_priority <= RHRR_BE_DATE_PRIORTY) {
+    if (date_priority <= RHRR_BE_DATE_PRIORITY) {
 #ifdef DEBUG
       printf("Setting big endian (year month day) date\n");
 #endif
       state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
-      date_priority = RHRR_BE_DATE_PRIORTY;
+      date_priority = RHRR_BE_DATE_PRIORITY;
       year = atol(t_be_year);
       if (be_year2) {
         year += year < 70 ? 2000 : 1900;
@@ -105,12 +105,12 @@ long rhrd__month_num(char * str) {
   }
 
   action set_me_date { 
-    if (date_priority <= RHRR_ME_DATE_PRIORTY) {
+    if (date_priority <= RHRR_ME_DATE_PRIORITY) {
 #ifdef DEBUG
       printf("Setting middle endian (month day year) date\n");
 #endif
       state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
-      date_priority = RHRR_ME_DATE_PRIORTY;
+      date_priority = RHRR_ME_DATE_PRIORITY;
       if (t_me_year) {
         year = atol(t_me_year);
         if (me_year2) {
@@ -127,12 +127,12 @@ long rhrd__month_num(char * str) {
   }
 
   action set_my_date { 
-    if (date_priority <= RHRR_MY_DATE_PRIORTY) {
+    if (date_priority <= RHRR_MY_DATE_PRIORITY) {
 #ifdef DEBUG
       printf("Setting month year date\n");
 #endif
       state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
-      date_priority = RHRR_MY_DATE_PRIORTY;
+      date_priority = RHRR_MY_DATE_PRIORITY;
       year = atol(t_my_year);
       month = rhrd__month_num(t_my_month);
       state |= RHRR_YEAR_SET | RHRR_MONTH_SET;
