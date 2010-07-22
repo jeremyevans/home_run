@@ -97,7 +97,13 @@ ID rhrd_id_local;
 ID rhrd_id_mday;
 ID rhrd_id_mon;
 ID rhrd_id_now;
+ID rhrd_id_yday;
 ID rhrd_id_year;
+
+VALUE rhrd_sym_mday;
+VALUE rhrd_sym_mon;
+VALUE rhrd_sym_year;
+VALUE rhrd_sym_yday;
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
 
@@ -459,6 +465,12 @@ long rhrd__current_year(void) {
   return NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
 }
 
+long rhrd__current_month(void) {
+  VALUE t;
+  t = rb_funcall(rb_cTime, rhrd_id_now, 0);
+  return NUM2LONG(rb_funcall(t, rhrd_id_mon, 0));
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -626,8 +638,9 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   long year = 0;
   long month = 0;
   long day = 0;
+  long yday = 0;
   rhrd_t *d;
-  VALUE hash, ryear, rmonth, rday;
+  VALUE hash, ryear, rmonth, rday, ryday;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
@@ -647,19 +660,33 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   }
 
   hash = rhrd__parse(str, len);
-  ryear = rb_hash_aref(hash, ID2SYM(rb_intern("year")));
-  rmonth = rb_hash_aref(hash, ID2SYM(rb_intern("mon")));
-  rday = rb_hash_aref(hash, ID2SYM(rb_intern("mday")));
+  ryear = rb_hash_aref(hash, rhrd_sym_year);
+  rmonth = rb_hash_aref(hash, rhrd_sym_mon);
+  rday = rb_hash_aref(hash, rhrd_sym_mday);
+  ryday = rb_hash_aref(hash, rhrd_sym_yday);
   if (RTEST(ryear)) {
     year = NUM2LONG(ryear);
-    month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
-    day = RTEST(rday) ? NUM2LONG(rday) : 1;
-  } else if (RTEST(rmonth) && RTEST(rday)) {
+    if (RTEST(ryday)) {
+      yday = NUM2LONG(ryday);
+    } else {
+      month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
+      day = RTEST(rday) ? NUM2LONG(rday) : 1;
+    }
+  } else if (RTEST(rmonth)) {
     year = rhrd__current_year();
     month = NUM2LONG(rmonth);
+    day = RTEST(rday) ? NUM2LONG(rday) : 1;
+  } else if (RTEST(rday)) {
+    year = rhrd__current_year();
+    month = rhrd__current_month();
     day = NUM2LONG(rday);
+  } else if (RTEST(ryday)) {
+    year = rhrd__current_year();
+    yday = NUM2LONG(ryday);
   }
-  if (!rhrd__valid_civil(d, year, month, day)) {
+  if (yday && rhrd__valid_ordinal(d, year, yday)) {
+    RHR_CHECK_CIVIL(d)
+  } else if (!rhrd__valid_civil(d, year, month, day)) {
     RHR_CHECK_CIVIL(d)
     rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
   }
@@ -1514,7 +1541,13 @@ void Init_home_run_date(void) {
   rhrd_id_mday = rb_intern("mday");
   rhrd_id_mon = rb_intern("mon");
   rhrd_id_now = rb_intern("now");
+  rhrd_id_yday = rb_intern("yday");
   rhrd_id_year = rb_intern("year");
+
+  rhrd_sym_mday = ID2SYM(rhrd_id_mday);
+  rhrd_sym_mon = ID2SYM(rhrd_id_mon);
+  rhrd_sym_year = ID2SYM(rhrd_id_year);
+  rhrd_sym_yday = ID2SYM(rhrd_id_yday);
 
   rhrd_class = rb_define_class("Date", rb_cObject);
   rhrd_s_class = rb_singleton_class(rhrd_class);

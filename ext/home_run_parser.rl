@@ -11,6 +11,9 @@
 #define RHRR_BE_DATE_PRIORITY 60
 #define RHRR_ME_DATE_PRIORITY 50
 #define RHRR_MY_DATE_PRIORITY 25
+#define RHRR_NUM_DATE_PRIORITY 5
+#define RHRR_MO_DATE_PRIORITY 5
+#define RHRR_DO_DATE_PRIORITY 5
 
 long rhrd__month_num(char * str) {
   int i;
@@ -38,6 +41,9 @@ long rhrd__month_num(char * str) {
   action tag_me_day { t_me_day = p; }
   action tag_my_year { t_my_year = p; }
   action tag_my_month { t_my_month = p; }
+  action tag_num_date { t_num_date = p; }
+  action tag_month_only { t_month_only = p; }
+  action tag_day_only { t_day_only = p; }
 
   action le_year_error { t_le_year = NULL; }
   action be_day_error { t_be_day = NULL; }
@@ -139,6 +145,69 @@ long rhrd__month_num(char * str) {
     }
   }
 
+  action set_num_date { 
+    if (date_priority <= RHRR_NUM_DATE_PRIORITY) {
+#ifdef DEBUG
+      printf("Setting num date (for %ld characters)\n", p - t_num_date);
+#endif
+      switch(p - t_num_date) {
+        case 2:
+          sscanf(t_num_date, "%2ld", &day);
+          state |= RHRR_DAY_SET;
+          break;
+        case 3:
+          sscanf(t_num_date, "%3ld", &yday);
+          state |= RHRR_YDAY_SET;
+          break;
+        case 4:
+          sscanf(t_num_date, "%2ld%2ld", &month, &day);
+          state |= RHRR_MONTH_SET | RHRR_DAY_SET;
+          break;
+        case 5:
+          sscanf(t_num_date, "%2ld%3ld", &year, &yday);
+          year += year < 70 ? 2000 : 1900;
+          state |= RHRR_YEAR_SET | RHRR_YDAY_SET;
+          break;
+        case 6:
+          sscanf(t_num_date, "%2ld%2ld%2ld", &year, &month, &day);
+          year += year < 70 ? 2000 : 1900;
+          state |= RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET;
+          break;
+        case 7:
+          sscanf(t_num_date, "%4ld%3ld", &year, &yday);
+          state |= RHRR_YEAR_SET | RHRR_YDAY_SET;
+          break;
+        case 8:
+          sscanf(t_num_date, "%4ld%2ld%2ld", &year, &month, &day);
+          state |= RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET;
+          break;
+      }
+      date_priority = RHRR_NUM_DATE_PRIORITY;
+    }
+  }
+
+  action set_month_only {
+    if (date_priority <= RHRR_MO_DATE_PRIORITY) {
+#ifdef DEBUG
+      printf("Setting month only date\n");
+#endif
+      month = rhrd__month_num(t_month_only);
+      state |= RHRR_MONTH_SET;
+      date_priority = RHRR_MO_DATE_PRIORITY;
+    }
+  }
+
+  action set_day_only {
+    if (date_priority <= RHRR_DO_DATE_PRIORITY) {
+#ifdef DEBUG
+      printf("Setting day only date\n");
+#endif
+      day = atol(t_day_only);
+      state |= RHRR_DAY_SET;
+      date_priority = RHRR_DO_DATE_PRIORITY;
+    }
+  }
+
   abbr_month = (/jan/i | /feb/i | /mar/i | /apr/i | /may/i | /jun/i | /jul/i | /aug/i | /sep/i | /oct/i| /nov/i | /dec/i);
   full_month = (/january/i | /february/i | /march/i | /april/i | /may/i | /june/i | /july/i | /august/i | /september/i | /october/i| /november/i | /december/i); 
   month_name = (abbr_month | full_month);
@@ -166,15 +235,19 @@ long rhrd__month_num(char * str) {
   be_year = ('-'? . (digit{2} %set_be_year2) :>> (digit{2} %unset_be_year2)?) >tag_be_year;
   be_date = (be_year . ('/' % set_be_dec_pri | [ \-.] | '. ') . be_month . (be_sep . be_day)?) %set_be_date;
 
-  me_sep = [.,/\-]? . space*;
+  me_sep = [.,/\- ] . space*;
   me_day = day >tag_me_day;
   me_month = month >tag_me_month;
   me_year = bc_ad? . space* . (('-'? . (digit{2} %set_me_year2) :>> (digit{2} %unset_me_year2)? :>> (space* . bc_ad %unset_me_year2)?) >tag_me_year $^me_year_error);
   me_date = (me_month . me_sep . me_day . (me_sep . me_year)?) %set_me_date;
 
-  my_date = (month_name > tag_my_month . [ /.] . ('-'? . digit{4}) > tag_my_year) % set_my_date;
+  my_date = (month_name >tag_my_month . [ /.] . ('-'? . digit{4}) >tag_my_year) %set_my_date;
 
-  date = (le_date | be_date | me_date | my_date);
+  num_date = digit{2,14} >tag_num_date %set_num_date;
+  month_only_date = month_name >tag_month_only %set_month_only;
+  day_only_date = (((([0-2]? . [1-9]) | ([123] . '0') | '31')) . ('st' | 'nd' | 'rd' | 'th')) >tag_day_only %set_day_only;
+
+  date = (le_date | be_date | me_date | my_date | num_date | month_only_date | day_only_date);
   opt_day = (abbr_day | full_day)? . space*;
   
   main := space* . opt_day . date . space* . opt_day;
@@ -219,6 +292,10 @@ VALUE rhrd__parse(char * p, long len) {
   char * t_my_year = NULL;
   char * t_my_month = NULL;
 
+  char * t_num_date = NULL;
+  char * t_month_only = NULL;
+  char * t_day_only = NULL;
+
   char * eof;
   char * pe;
   pe = p + len;
@@ -229,13 +306,16 @@ VALUE rhrd__parse(char * p, long len) {
 
   hash = rb_hash_new();
   if(state & RHRR_YEAR_SET) {
-    rb_hash_aset(hash, ID2SYM(rb_intern("year")), INT2NUM(bc ? -(year - 1) : year));
+    rb_hash_aset(hash, rhrd_sym_year, INT2NUM(bc ? -(year - 1) : year));
   } 
   if(state & RHRR_MONTH_SET) {
-    rb_hash_aset(hash, ID2SYM(rb_intern("mon")), INT2NUM(month));
+    rb_hash_aset(hash, rhrd_sym_mon, INT2NUM(month));
   } 
   if(state & RHRR_DAY_SET) {
-    rb_hash_aset(hash, ID2SYM(rb_intern("mday")), INT2NUM(day));
+    rb_hash_aset(hash, rhrd_sym_mday, INT2NUM(day));
+  } 
+  if(state & RHRR_YDAY_SET) {
+    rb_hash_aset(hash, rhrd_sym_yday, INT2NUM(yday));
   } 
   return hash;
 }
