@@ -650,12 +650,12 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   ryear = rb_hash_aref(hash, ID2SYM(rb_intern("year")));
   rmonth = rb_hash_aref(hash, ID2SYM(rb_intern("mon")));
   rday = rb_hash_aref(hash, ID2SYM(rb_intern("mday")));
-  if (RTEST(rmonth) && RTEST(rday)) {
-    if (RTEST(ryear)) {
-      year = NUM2LONG(ryear);
-    } else {
-      year = rhrd__current_year();
-    }
+  if (RTEST(ryear)) {
+    year = NUM2LONG(ryear);
+    month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
+    day = RTEST(rday) ? NUM2LONG(rday) : 1;
+  } else if (RTEST(rmonth) && RTEST(rday)) {
+    year = rhrd__current_year();
     month = NUM2LONG(rmonth);
     day = NUM2LONG(rday);
   }

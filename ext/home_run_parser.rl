@@ -10,6 +10,7 @@
 #define RHRR_LE_DATE_PRIORTY 40
 #define RHRR_BE_DATE_PRIORTY 60
 #define RHRR_ME_DATE_PRIORTY 50
+#define RHRR_MY_DATE_PRIORTY 25
 
 long rhrd__month_num(char * str) {
   int i;
@@ -35,6 +36,8 @@ long rhrd__month_num(char * str) {
   action tag_me_year { t_me_year = p; }
   action tag_me_month { t_me_month = p; }
   action tag_me_day { t_me_day = p; }
+  action tag_my_year { t_my_year = p; }
+  action tag_my_month { t_my_month = p; }
 
   action le_year_error { t_le_year = NULL; }
   action be_day_error { t_be_day = NULL; }
@@ -55,7 +58,7 @@ long rhrd__month_num(char * str) {
   action set_le_date { 
     if (date_priority <= RHRR_LE_DATE_PRIORTY) {
 #ifdef DEBUG
-      printf("Setting LE date\n");
+      printf("Setting little endian (day month year) date\n");
 #endif
       state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
       date_priority = RHRR_LE_DATE_PRIORTY;
@@ -68,7 +71,7 @@ long rhrd__month_num(char * str) {
         }
         state |= RHRR_YEAR_SET;
       } else {
-        date_priority -= 30;
+        date_priority -= 36;
       }
       month = rhrd__month_num(t_le_month);
       day = atol(t_le_day);
@@ -79,7 +82,7 @@ long rhrd__month_num(char * str) {
   action set_be_date { 
     if (date_priority <= RHRR_BE_DATE_PRIORTY) {
 #ifdef DEBUG
-      printf("Setting BE date\n");
+      printf("Setting big endian (year month day) date\n");
 #endif
       state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
       date_priority = RHRR_BE_DATE_PRIORTY;
@@ -96,7 +99,7 @@ long rhrd__month_num(char * str) {
         day = atol(t_be_day);
         state |= RHRR_DAY_SET;
       } else {
-        date_priority -= 30;
+        date_priority -= 36;
       }
     }
   }
@@ -104,7 +107,7 @@ long rhrd__month_num(char * str) {
   action set_me_date { 
     if (date_priority <= RHRR_ME_DATE_PRIORTY) {
 #ifdef DEBUG
-      printf("Setting ME date\n");
+      printf("Setting middle endian (month day year) date\n");
 #endif
       state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
       date_priority = RHRR_ME_DATE_PRIORTY;
@@ -115,11 +118,24 @@ long rhrd__month_num(char * str) {
         }
         state |= RHRR_YEAR_SET;
       } else {
-        date_priority -= 30;
+        date_priority -= 36;
       }
       month = rhrd__month_num(t_me_month);
       day = atol(t_me_day);
       state |= RHRR_MONTH_SET | RHRR_DAY_SET;
+    }
+  }
+
+  action set_my_date { 
+    if (date_priority <= RHRR_MY_DATE_PRIORTY) {
+#ifdef DEBUG
+      printf("Setting month year date\n");
+#endif
+      state &= ~(RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET);
+      date_priority = RHRR_MY_DATE_PRIORTY;
+      year = atol(t_my_year);
+      month = rhrd__month_num(t_my_month);
+      state |= RHRR_YEAR_SET | RHRR_MONTH_SET;
     }
   }
 
@@ -156,11 +172,9 @@ long rhrd__month_num(char * str) {
   me_year = bc_ad? . space* . (('-'? . (digit{2} %set_me_year2) :>> (digit{2} %unset_me_year2)? :>> (space* . bc_ad %unset_me_year2)?) >tag_me_year $^me_year_error);
   me_date = (me_month . me_sep . me_day . (me_sep . me_year)?) %set_me_date;
 
-  # MM/DD/YY
-  # MM.DD.YY
-  # DD-MM-YYYY
-  # YY-MM-DD
-  date = (le_date | be_date | me_date);
+  my_date = (month_name > tag_my_month . [ /.] . ('-'? . digit{4}) > tag_my_year) % set_my_date;
+
+  date = (le_date | be_date | me_date | my_date);
   opt_day = (abbr_day | full_day)? . space*;
   
   main := space* . opt_day . date . space* . opt_day;
@@ -201,6 +215,9 @@ VALUE rhrd__parse(char * p, long len) {
   char * t_me_month = NULL;
   char * t_me_day = NULL;
   int me_year2 = 0;
+
+  char * t_my_year = NULL;
+  char * t_my_month = NULL;
 
   char * eof;
   char * pe;
