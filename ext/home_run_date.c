@@ -97,11 +97,13 @@ ID rhrd_id_local;
 ID rhrd_id_mday;
 ID rhrd_id_mon;
 ID rhrd_id_now;
+ID rhrd_id_wday;
 ID rhrd_id_yday;
 ID rhrd_id_year;
 
 VALUE rhrd_sym_mday;
 VALUE rhrd_sym_mon;
+VALUE rhrd_sym_wday;
 VALUE rhrd_sym_year;
 VALUE rhrd_sym_yday;
 
@@ -639,8 +641,9 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   long month = 0;
   long day = 0;
   long yday = 0;
+  long wday = 0;
   rhrd_t *d;
-  VALUE hash, ryear, rmonth, rday, ryday;
+  VALUE hash, ryear, rmonth, rday, ryday, rwday;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
@@ -664,6 +667,7 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   rmonth = rb_hash_aref(hash, rhrd_sym_mon);
   rday = rb_hash_aref(hash, rhrd_sym_mday);
   ryday = rb_hash_aref(hash, rhrd_sym_yday);
+  rwday = rb_hash_aref(hash, rhrd_sym_wday);
   if (RTEST(ryear)) {
     year = NUM2LONG(ryear);
     if (RTEST(ryday)) {
@@ -683,9 +687,26 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   } else if (RTEST(ryday)) {
     year = rhrd__current_year();
     yday = NUM2LONG(ryday);
+  } else if (RTEST(rwday)) {
+    wday = NUM2LONG(rwday);
+    rwday = rb_funcall(rb_cTime, rhrd_id_now, 0);
+    year = NUM2LONG(rb_funcall(rwday, rhrd_id_year, 0));
+    month = NUM2LONG(rb_funcall(rwday, rhrd_id_mon, 0));
+    day = NUM2LONG(rb_funcall(rwday, rhrd_id_mday, 0));
+    rhrd__valid_civil(d, year, month, day);    
+    RHR_CHECK_CIVIL(d)
+    RHR_FILL_JD(d)
+    rhrd__fill_commercial(d);
+    if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
+      RHR_CHECK_JD(d)
+      rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
+    }
+    RHR_CHECK_JD(d)
+    d->flags &= ~RHR_HAVE_CIVIL;
+    return rd;
   }
   if (yday && rhrd__valid_ordinal(d, year, yday)) {
-    RHR_CHECK_CIVIL(d)
+    return rd;
   } else if (!rhrd__valid_civil(d, year, month, day)) {
     RHR_CHECK_CIVIL(d)
     rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
@@ -1541,11 +1562,13 @@ void Init_home_run_date(void) {
   rhrd_id_mday = rb_intern("mday");
   rhrd_id_mon = rb_intern("mon");
   rhrd_id_now = rb_intern("now");
+  rhrd_id_wday = rb_intern("wday");
   rhrd_id_yday = rb_intern("yday");
   rhrd_id_year = rb_intern("year");
 
   rhrd_sym_mday = ID2SYM(rhrd_id_mday);
   rhrd_sym_mon = ID2SYM(rhrd_id_mon);
+  rhrd_sym_wday = ID2SYM(rhrd_id_wday);
   rhrd_sym_year = ID2SYM(rhrd_id_year);
   rhrd_sym_yday = ID2SYM(rhrd_id_yday);
 

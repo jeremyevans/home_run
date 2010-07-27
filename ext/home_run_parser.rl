@@ -6,6 +6,7 @@
 #define RHRR_HOUR_SET 0x1 << 4
 #define RHRR_MINUTE_SET 0x1 << 5
 #define RHRR_SECOND_SET 0x1 << 6
+#define RHRR_WDAY_SET 0x1 << 7
 
 #define RHRR_LE_DATE_PRIORITY 40
 #define RHRR_BE_DATE_PRIORITY 60
@@ -27,6 +28,18 @@ long rhrd__month_num(char * str) {
   return atol(str);
 }
 
+long rhrd__weekday_num(char * str) {
+  int i;
+
+  for(i = 0; i < 6; i++) {
+    if(strncasecmp(str, rhrd__abbr_day_names[i], 3) == 0) {
+      return i;
+    }
+  }
+
+  return 7;
+}
+
 %%{
   machine home_run_parser;
 
@@ -44,6 +57,7 @@ long rhrd__month_num(char * str) {
   action tag_num_date { t_num_date = p; }
   action tag_month_only { t_month_only = p; }
   action tag_day_only { t_day_only = p; }
+  action tag_weekday { t_weekday = p; }
 
   action le_year_error { t_le_year = NULL; }
   action be_day_error { t_be_day = NULL; }
@@ -208,6 +222,14 @@ long rhrd__month_num(char * str) {
     }
   }
 
+  action set_weekday {
+#ifdef DEBUG
+    printf("Setting weekday\n");
+#endif
+    wday = rhrd__weekday_num(t_weekday);
+    state |= RHRR_WDAY_SET;
+  }
+
   abbr_month = (/jan/i | /feb/i | /mar/i | /apr/i | /may/i | /jun/i | /jul/i | /aug/i | /sep/i | /oct/i| /nov/i | /dec/i);
   full_month = (/january/i | /february/i | /march/i | /april/i | /may/i | /june/i | /july/i | /august/i | /september/i | /october/i| /november/i | /december/i); 
   month_name = (abbr_month | full_month);
@@ -248,7 +270,7 @@ long rhrd__month_num(char * str) {
   day_only_date = (((([0-2]? . [1-9]) | ([123] . '0') | '31')) . ('st' | 'nd' | 'rd' | 'th')) >tag_day_only %set_day_only;
 
   date = (le_date | be_date | me_date | my_date | num_date | month_only_date | day_only_date);
-  opt_day = (abbr_day | full_day)? . space*;
+  opt_day = ((abbr_day | full_day) >tag_weekday %set_weekday)? . space*;
   
   main := space* . opt_day . date . space* . opt_day;
   write data;
@@ -265,6 +287,7 @@ VALUE rhrd__parse(char * p, long len) {
   long month = 0;
   long day = 0;
   long yday = 0;
+  long wday = 0;
 
   long hour = 0;
   long minute = 0;
@@ -295,6 +318,7 @@ VALUE rhrd__parse(char * p, long len) {
   char * t_num_date = NULL;
   char * t_month_only = NULL;
   char * t_day_only = NULL;
+  char * t_weekday = NULL;
 
   char * eof;
   char * pe;
@@ -316,6 +340,9 @@ VALUE rhrd__parse(char * p, long len) {
   } 
   if(state & RHRR_YDAY_SET) {
     rb_hash_aset(hash, rhrd_sym_yday, INT2NUM(yday));
+  } 
+  if(state & RHRR_WDAY_SET) {
+    rb_hash_aset(hash, rhrd_sym_wday, INT2NUM(wday));
   } 
   return hash;
 }
