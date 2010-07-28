@@ -32,6 +32,8 @@ compare(".jd"){|dc| n.times{dc.jd(2010)}}
 compare(".julian_leap?"){|dc| n.times{dc.julian_leap?(2000)}}
 compare(".new!"){|dc| n.times{dc.new!(2012)}}
 compare(".ordinal"){|dc| n.times{dc.ordinal(2012, 100)}}
+compare(".parse '2010-12-13'"){|dc| n.times{dc.parse('2010-12-13')}}
+compare(".parse 'jan 5 2010'"){|dc| n.times{dc.parse('jan 5 2010')}}
 compare(".today"){|dc| n.times{dc.today}}
 compare(".valid_date?"){|dc| n.times{dc.valid_date?(2010, 1, 1)}}
 
