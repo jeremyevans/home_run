@@ -823,20 +823,22 @@ static VALUE rhrd__dump(VALUE self, VALUE limit) {
 static VALUE rhrd_asctime(VALUE self) {
   VALUE s;
   rhrd_t *d;
-  char *str;
+  int len;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_CIVIL(d)
   RHR_FILL_JD(d)
-  if (asprintf(&str, "%s %s %2hhi 00:00:00 %04li", 
+
+  s = rb_str_buf_new(128);
+  len = snprintf(StringValuePtr(s), 128, "%s %s %2hhi 00:00:00 %04li", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
         rhrd__abbr_month_names[d->month],
         d->day,
-        d->year) == -1) {
-    rb_raise(rb_eNoMemError, "in Date#asctime");
+        d->year);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#asctime (in snprintf)");
   }
-  s = rb_str_new2(str);
-  free(str);
-  return s;
+
+  return rb_str_resize(s, len);
 }
 
 static VALUE rhrd_cwday(VALUE self) {
@@ -919,15 +921,18 @@ static VALUE rhrd_hash(VALUE self) {
 static VALUE rhrd_inspect(VALUE self) {
   VALUE s;
   rhrd_t *d;
-  char *str;
+  int len;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_CIVIL(d)
-  if (asprintf(&str, "#<Date %04li-%02hhi-%02hhi>", d->year, d->month, d->day) == -1) {
-    rb_raise(rb_eNoMemError, "in Date#inspect");
+
+  s = rb_str_buf_new(128);
+  len = snprintf(StringValuePtr(s), 128, "#<Date %04li-%02hhi-%02hhi>",
+        d->year, d->month, d->day);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#inspect (in snprintf)");
   }
-  s = rb_str_new2(str);
-  free(str);
-  return s;
+
+  return rb_str_resize(s, len);
 }
 
 static VALUE rhrd_jd(VALUE self) {
@@ -1054,15 +1059,18 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
 static VALUE rhrd_to_s(VALUE self) {
   VALUE s;
   rhrd_t *d;
-  char *str;
+  int len;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_CIVIL(d)
-  if (asprintf(&str, "%04li-%02hhi-%02hhi", d->year, d->month, d->day) == -1) {
-    rb_raise(rb_eNoMemError, "in Date#to_s");
+
+  s = rb_str_buf_new(128);
+  len = snprintf(StringValuePtr(s), 128, "%04li-%02hhi-%02hhi",
+        d->year, d->month, d->day);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#to_s (in snprintf)");
   }
-  s = rb_str_new2(str);
-  free(str);
-  return s;
+
+  return rb_str_resize(s, len);
 }
 
 static VALUE rhrd_upto(VALUE self, VALUE other) {
