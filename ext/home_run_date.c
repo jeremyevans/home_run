@@ -109,6 +109,7 @@ VALUE rhrd_sym_year;
 VALUE rhrd_sym_yday;
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
+static VALUE rhrd_to_s(VALUE self);
 
 #include "home_run_parser.c"
 
@@ -503,7 +504,7 @@ static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 2:
     case 1:
-      return rhrd__parse(StringValuePtr(argv[0]), RSTRING_LEN(argv[0]));
+      return rhrd__parse(RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
@@ -667,7 +668,7 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
     case 1:
     case 2:
     case 3:
-      str = StringValuePtr(argv[0]);
+      str = RSTRING_PTR(argv[0]);
       len = RSTRING_LEN(argv[0]);
       break;
     default:
@@ -829,7 +830,7 @@ static VALUE rhrd_asctime(VALUE self) {
   RHR_FILL_JD(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(StringValuePtr(s), 128, "%s %s %2hhi 00:00:00 %04li", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2hhi 00:00:00 %04li", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
         rhrd__abbr_month_names[d->month],
         d->day,
@@ -926,7 +927,7 @@ static VALUE rhrd_inspect(VALUE self) {
   RHR_FILL_CIVIL(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(StringValuePtr(s), 128, "#<Date %04li-%02hhi-%02hhi>",
+  len = snprintf(RSTRING_PTR(s), 128, "#<Date %04li-%02hhi-%02hhi>",
         d->year, d->month, d->day);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in Date#inspect (in snprintf)");
@@ -1056,6 +1057,71 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
+  VALUE s;
+  rhrd_t *d;
+  int i, fmt_len;
+  int cp = 0;
+  int str_len = 128;
+  int str_lim = 64;
+  int mod = 0;
+  char * fmt;
+  char * str;
+  char c;
+
+  switch(argc) {
+    case 0:
+      return rhrd_to_s(self);
+    case 1:
+      fmt = RSTRING_PTR(argv[0]);
+      fmt_len = RSTRING_LEN(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  RHR_FILL_JD(d)
+
+  s = rb_str_buf_new(str_len);
+  str = RSTRING_PTR(s);
+  for (i = 0; i < fmt_len; i++) {
+    if (cp >= str_lim) {
+       str_len *= 2;
+       str_lim = str_len - 64;
+       s = rb_str_resize(s, str_len);
+       str = RSTRING_PTR(s);
+    }
+    c = fmt[i];
+
+    if (mod) {
+      switch (c) {
+        case 'y':
+          cp += sprintf(str + cp, "%02li", d->year % 100);
+          break;
+        case 'Y':
+          cp += sprintf(str + cp, "%04li", d->year);
+          break;
+        default:
+          str[cp] = c;
+          cp += 1;
+      }
+      mod = 0;
+    } else {
+      if (c == '%') {
+        mod = 1;
+      } else {
+        str[cp] = c;
+        cp += 1;
+      }
+    }
+  }
+
+  return rb_str_resize(s, cp);
+}
+
 static VALUE rhrd_to_s(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -1064,7 +1130,7 @@ static VALUE rhrd_to_s(VALUE self) {
   RHR_FILL_CIVIL(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(StringValuePtr(s), 128, "%04li-%02hhi-%02hhi",
+  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhi",
         d->year, d->month, d->day);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in Date#to_s (in snprintf)");
@@ -1631,6 +1697,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_class, "new_start", rhrd_new_start, -1);
   rb_define_method(rhrd_class, "start", rhrd_start, 0);
   rb_define_method(rhrd_class, "step", rhrd_step, -1);
+  rb_define_method(rhrd_class, "strftime", rhrd_strftime, -1);
   rb_define_method(rhrd_class, "to_s", rhrd_to_s, 0);
   rb_define_method(rhrd_class, "upto", rhrd_upto, 1);
   rb_define_method(rhrd_class, "wday", rhrd_wday, 0);
