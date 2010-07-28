@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ruby.h>
+#include <time.h>
 
 #define RHR_DEFAULT_JD 0
 #define RHR_DEFAULT_YEAR -4713
@@ -461,16 +462,28 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
+void rhrd__today(rhrd_t * d) {
+  time_t t;
+  t = time(NULL);
+  t /= 86400; /* Convert to days */
+  d->jd = t + 2440588; /* Convert from unix epoch to jd */
+  RHR_CHECK_JD(d);
+}
+
 long rhrd__current_year(void) {
-  VALUE t;
-  t = rb_funcall(rb_cTime, rhrd_id_now, 0);
-  return NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+  rhrd__today(&d);
+  RHR_FILL_CIVIL(&d);
+  return d.year;
 }
 
 long rhrd__current_month(void) {
-  VALUE t;
-  t = rb_funcall(rb_cTime, rhrd_id_now, 0);
-  return NUM2LONG(rb_funcall(t, rhrd_id_mon, 0));
+  rhrd_t d;
+  memset(&d, 0, sizeof(rhrd_t));
+  rhrd__today(&d);
+  RHR_FILL_CIVIL(&d);
+  return d.month;
 }
 
 /* Ruby Class Methods */
@@ -689,13 +702,7 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
     yday = NUM2LONG(ryday);
   } else if (RTEST(rwday)) {
     wday = NUM2LONG(rwday);
-    rwday = rb_funcall(rb_cTime, rhrd_id_now, 0);
-    year = NUM2LONG(rb_funcall(rwday, rhrd_id_year, 0));
-    month = NUM2LONG(rb_funcall(rwday, rhrd_id_mon, 0));
-    day = NUM2LONG(rb_funcall(rwday, rhrd_id_mday, 0));
-    rhrd__valid_civil(d, year, month, day);    
-    RHR_CHECK_CIVIL(d)
-    RHR_FILL_JD(d)
+    rhrd__today(d);
     rhrd__fill_commercial(d);
     if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
       RHR_CHECK_JD(d)
@@ -716,10 +723,8 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
 }
 
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
-  long year, month, day;
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
-  VALUE t;
 
   switch(argc) {
     case 0:
@@ -729,14 +734,8 @@ static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
       break;
   }
-  t = rb_funcall(rb_cTime, rhrd_id_now, 0);
-  year = NUM2LONG(rb_funcall(t, rhrd_id_year, 0));
-  month = NUM2LONG(rb_funcall(t, rhrd_id_mon, 0));
-  day = NUM2LONG(rb_funcall(t, rhrd_id_mday, 0));
-  if (!rhrd__valid_civil(d, year, month, day)) {
-    RHR_CHECK_CIVIL(d)
-    rb_raise(rb_eArgError, "invalid_date: (year: %li, month: %li, day: %li)", year, month, day);
-  }
+
+  rhrd__today(d);
   return rd;
 }
 
@@ -1302,7 +1301,7 @@ static VALUE rhrd_prev_year(int argc, VALUE *argv, VALUE self) {
 static VALUE rhrd_to_time(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
-  RHR_FILL_JD(d)
+  RHR_FILL_CIVIL(d)
   return rb_funcall(rb_cTime, rhrd_id_local, 3, INT2NUM(d->year), INT2NUM(d->month), INT2NUM(d->day));
 }
 
