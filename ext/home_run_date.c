@@ -18,6 +18,8 @@
 #define RHR_JD_LD 2299160
 #define RHR_JD_ITALY 2299161
 #define RHR_JD_ENGLAND 2361222
+#define RHR_UNIX_EPOCH 2440588
+#define RHR_SECONDS_PER_DAY 86400
 
 /*
 In both the 32-bit and 64-bit cases, the limits are chosen so that you cannot
@@ -463,11 +465,16 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
+long rhrd__jd_to_unix(long jd) {
+  return (jd - RHR_UNIX_EPOCH) * RHR_SECONDS_PER_DAY;
+}
+
+long rhrd__unix_to_jd(long t) {
+  return t/RHR_SECONDS_PER_DAY + RHR_UNIX_EPOCH;
+}
+
 void rhrd__today(rhrd_t * d) {
-  time_t t;
-  t = time(NULL);
-  t /= 86400; /* Convert to days */
-  d->jd = t + 2440588; /* Convert from unix epoch to jd */
+  d->jd = rhrd__unix_to_jd(time(NULL));
   RHR_CHECK_JD(d);
 }
 
@@ -1174,11 +1181,17 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
         case 'P':
           cp += sprintf(str + cp, "am");
           break;
+        case 'Q':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd) * 1000);
+          break;
         case 'r':
           cp += sprintf(str + cp, "12:00:00 AM");
           break;
         case 'R':
           cp += sprintf(str + cp, "00:00");
+          break;
+        case 's':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd));
           break;
         case 'S':
           cp += sprintf(str + cp, "00");
