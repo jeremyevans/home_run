@@ -1060,6 +1060,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
 static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
   VALUE s;
   rhrd_t *d;
+  rhrd_t cd;
   int i, fmt_len;
   int cp = 0;
   int str_len = 128;
@@ -1084,6 +1085,11 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_CIVIL(d)
   RHR_FILL_JD(d)
+
+  memset(&cd, 0, sizeof(rhrd_t));
+  cd.jd = d->jd;
+  cd.flags = RHR_HAVE_JD;
+  rhrd__fill_commercial(&cd);
 
   s = rb_str_buf_new(str_len);
   str = RSTRING_PTR(s);
@@ -1125,6 +1131,12 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
           break;
         case 'F':
           cp += sprintf(str + cp, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
+          break;
+        case 'g':
+          cp += sprintf(str + cp, "%02li", cd.year % 100);
+          break;
+        case 'G':
+          cp += sprintf(str + cp, "%04li", cd.year);
           break;
         case 'H':
           cp += sprintf(str + cp, "00");
@@ -1177,8 +1189,14 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
         case 'T':
           cp += sprintf(str + cp, "00:00:00");
           break;
+        case 'u':
+          cp += sprintf(str + cp, "%hhi", cd.day);
+          break;
         case 'v':
           cp += sprintf(str + cp, "%2hhi-%s-%04li", d->day, rhrd__abbr_month_names[d->month], d->year);
+          break;
+        case 'V':
+          cp += sprintf(str + cp, "%02hhi", cd.month);
           break;
         case 'w':
           cp += sprintf(str + cp, "%li", rhrd__jd_to_wday(d->jd));
