@@ -1104,6 +1104,7 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
         case 'A':
           cp += sprintf(str + cp, "%s", rhrd__day_names[rhrd__jd_to_wday(d->jd)]);
           break;
+        case 'h':
         case 'b':
           cp += sprintf(str + cp, "%s", rhrd__abbr_month_names[d->month]);
           break;
@@ -1126,69 +1127,68 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
           cp += sprintf(str + cp, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
           break;
         case 'H':
-          str[cp] = '0';
-          str[cp+1] = '0';
-          cp += 2;
+          cp += sprintf(str + cp, "00");
           break;
         case 'I':
-          str[cp] = '1';
-          str[cp+1] = '2';
-          cp += 2;
+          cp += sprintf(str + cp, "12");
           break;
         case 'j':
           cp += sprintf(str + cp, "%03li", rhrd__ordinal_day(d));
           break;
         case 'k':
-          str[cp] = ' ';
-          str[cp+1] = '0';
-          cp += 2;
+          cp += sprintf(str + cp, " 0");
+          break;
+        case 'l':
+          cp += sprintf(str + cp, "12");
+          break;
+        case 'L':
+          cp += sprintf(str + cp, "000");
           break;
         case 'm':
           cp += sprintf(str + cp, "%02hhi", d->month);
           break;
         case 'M':
-          str[cp] = '0';
-          str[cp+1] = '0';
-          cp += 2;
+          cp += sprintf(str + cp, "00");
           break;
-        case 'L':
-          str[cp] = '0';
-          str[cp+1] = '0';
-          str[cp+2] = '0';
-          cp += 3;
+        case 'N':
+          cp += sprintf(str + cp, "000000000");
+          break;
+        case 'n':
+          cp += sprintf(str + cp, "\n");
           break;
         case 'p':
-          str[cp] = 'A';
-          str[cp+1] = 'M';
-          cp += 2;
+          cp += sprintf(str + cp, "AM");
           break;
         case 'P':
-          str[cp] = 'a';
-          str[cp+1] = 'm';
-          cp += 2;
+          cp += sprintf(str + cp, "am");
+          break;
+        case 'r':
+          cp += sprintf(str + cp, "12:00:00 AM");
+          break;
+        case 'R':
+          cp += sprintf(str + cp, "00:00");
           break;
         case 'S':
-          str[cp] = '0';
-          str[cp+1] = '0';
-          cp += 2;
+          cp += sprintf(str + cp, "00");
+          break;
+        case 't':
+          cp += sprintf(str + cp, "\t");
+          break;
+        case 'T':
+          cp += sprintf(str + cp, "00:00:00");
+          break;
+        case 'v':
+          cp += sprintf(str + cp, "%2hhi-%s-%04li", d->day, rhrd__abbr_month_names[d->month], d->year);
           break;
         case 'w':
-          cp += sprintf(str + cp, "%02li", rhrd__jd_to_wday(d->jd));
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_wday(d->jd));
           break;
         case 'D':
         case 'x':
           cp += sprintf(str + cp, "%02hhi/%02hhi/%02li", d->month, d->day, d->year % 100);
           break;
         case 'X':
-          str[cp] = '0';
-          str[cp+1] = '0';
-          str[cp+2] = ':';
-          str[cp+3] = '0';
-          str[cp+4] = '0';
-          str[cp+5] = ':';
-          str[cp+6] = '0';
-          str[cp+7] = '0';
-          cp += 8;
+          cp += sprintf(str + cp, "00:00:00");
           break;
         case 'y':
           cp += sprintf(str + cp, "%02li", d->year % 100);
@@ -1197,21 +1197,10 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
           cp += sprintf(str + cp, "%04li", d->year);
           break;
         case 'z':
-          str[cp] = '+';
-          str[cp+1] = '0';
-          str[cp+2] = '0';
-          str[cp+3] = '0';
-          str[cp+4] = '0';
-          cp += 5;
+          cp += sprintf(str + cp, "+0000");
           break;
         case 'Z':
-          str[cp] = '+';
-          str[cp+1] = '0';
-          str[cp+2] = '0';
-          str[cp+3] = ':';
-          str[cp+4] = '0';
-          str[cp+5] = '0';
-          cp += 6;
+          cp += sprintf(str + cp, "+00:00");
           break;
         case '+':
           cp += sprintf(str + cp, "%s %s %2hhi 00:00:00 +00:00 %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->year);
