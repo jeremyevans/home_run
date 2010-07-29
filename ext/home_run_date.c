@@ -117,6 +117,15 @@ static VALUE rhrd_to_s(VALUE self);
 
 /* C Helper Methods */
 
+long rhrd__mod(long a, long b) {
+  long c;
+  c = a % b;
+  if (c < 0) {
+    c += b;
+  }
+  return c;
+}
+
 int rhrd__valid_civil_limits(long year, long month, long day) {
   if (year > RHR_YEAR_MAX || year < RHR_YEAR_MIN) {
     return 0;
@@ -332,7 +341,6 @@ long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
 }
 
 long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
-  long a;
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
 
@@ -340,11 +348,7 @@ long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
   n.month = 1;
   n.day = 4;
   rhrd__civil_to_jd(&n);
-  a = n.jd % 7;
-  if (a < 0) {
-    a += 7;
-  }
-  return n.jd - a + 7 * (cweek - 1) + (cwday - 1);
+  return n.jd - rhrd__mod(n.jd, 7) + 7 * (cweek - 1) + (cwday - 1);
 }
 
 long rhrd__jd_to_cwday(long jd) {
@@ -357,12 +361,7 @@ long rhrd__jd_to_cwday(long jd) {
 }
 
 long rhrd__jd_to_wday(long jd) {
-  long day;
-  day = (jd + 1) % 7; 
-  if (day < 0) {
-    day += 7;
-  }
-  return day;
+  return rhrd__mod(jd + 1, 7);
 }
 
 /* Abuses the year, month, and day fields to store
@@ -492,6 +491,32 @@ long rhrd__current_month(void) {
   rhrd__today(&d);
   RHR_FILL_CIVIL(&d);
   return d.month;
+}
+
+long rhrd__yday1_jd(long year) {
+  rhrd_t d;
+
+  memset(&d, 0, sizeof(rhrd_t));
+  d.year = year;
+  d.month = 1;
+  d.day = 1;
+  d.flags = RHR_HAVE_CIVIL;
+  RHR_FILL_JD(&d);
+
+  return d.jd;
+}
+
+long rhrd__jd_to_weeknum(long jd, int f) {
+  long yday1_jd;
+  rhrd_t d;
+
+  memset(&d, 0, sizeof(rhrd_t));
+  d.jd = jd;
+  d.flags = RHR_HAVE_JD;
+  RHR_FILL_CIVIL(&d)
+
+  yday1_jd = rhrd__yday1_jd(d.year) + 6;
+  return (jd - (yday1_jd - (rhrd__mod(yday1_jd - f + 1, 7) + 7))) / 7;
 }
 
 /* Ruby Class Methods */
@@ -1205,6 +1230,9 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
         case 'u':
           cp += sprintf(str + cp, "%hhi", cd.day);
           break;
+        case 'U':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_weeknum(d->jd, 0));
+          break;
         case 'v':
           cp += sprintf(str + cp, "%2hhi-%s-%04li", d->day, rhrd__abbr_month_names[d->month], d->year);
           break;
@@ -1213,6 +1241,9 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
           break;
         case 'w':
           cp += sprintf(str + cp, "%li", rhrd__jd_to_wday(d->jd));
+          break;
+        case 'W':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_weeknum(d->jd, 1));
           break;
         case 'D':
         case 'x':
