@@ -67,6 +67,7 @@ so that no calculations can overflow.
 #define RHRR_MINUTE_SET 32
 #define RHRR_SECOND_SET 64
 #define RHRR_WDAY_SET 128
+#define RHRR_CENTURY_SET 256
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -619,6 +620,10 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long day = 0;
   long yday = 0;
   long wday = 0;
+  long century = 0;
+  long hour = 0;
+  long minute = 0;
+  long second = 0;
   long state = 0;
   long mod = 0;
   long pos = 0;
@@ -710,20 +715,109 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           }
           state |= RHRR_MONTH_SET;
           break;
-        case 'y':
-          if (sscanf(str + pos, "%2ld%n", &year, &scan_len) != 1) {
+        case 'C':
+          if (sscanf(str + pos, "%2ld%n", &century, &scan_len) != 1) {
             return Qnil;
           }
-          year += year < 70 ? 2000 : 1900;
-          state |= RHRR_YEAR_SET;
+          state |= RHRR_CENTURY_SET;
+          break;
+        case 'e':
+        case 'd':
+          if (sscanf(str + pos, "%02ld%n", &day, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (day < 1 || day > 31) {
+            return Qnil;
+          }
+          state |= RHRR_DAY_SET;
+          break;
+        case 'k':
+        case 'H':
+          if (sscanf(str + pos, "%02ld%n", &hour, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (hour < 0 || hour > 24) {
+            return Qnil;
+          }
+          state |= RHRR_HOUR_SET;
+          break;
+        case 'l':
+        case 'I':
+          if (sscanf(str + pos, "%02ld%n", &hour, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (hour < 1 || hour > 12) {
+            return Qnil;
+          }
+          state |= RHRR_HOUR_SET;
+          break;
+        case 'j':
+          if (sscanf(str + pos, "%03ld%n", &yday, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (yday < 1 || yday > 366) {
+            return Qnil;
+          }
+          state |= RHRR_YDAY_SET;
+          break;
+        case 'm':
+          if (sscanf(str + pos, "%02ld%n", &month, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (month < 1 || month > 12) {
+            return Qnil;
+          }
+          state |= RHRR_MONTH_SET;
+          break;
+        case 'M':
+          if (sscanf(str + pos, "%02ld%n", &minute, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (minute < 0 || minute > 59) {
+            return Qnil;
+          }
+          state |= RHRR_MINUTE_SET;
+          break;
+        case 'n':
+          if (str[pos] != '\n') {
+            return Qnil;
+          }
+          pos++;
+          break;
+        case 'S':
+          if (sscanf(str + pos, "%02ld%n", &second, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (second < 0 || second > 59) {
+            return Qnil;
+          }
+          state |= RHRR_SECOND_SET;
+          break;
+        case 't':
+          if (str[pos] != '\t') {
+            return Qnil;
+          }
+          pos++;
+          break;
+        case 'y':
+          if (sscanf(str + pos, "%02ld%n", &year, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (!(state & RHRR_CENTURY_SET)) {
+            century = year < 70 ? 20 : 19;
+          }
+          state |= RHRR_YEAR_SET | RHRR_CENTURY_SET;
           break;
         case 'Y':
           if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
             return Qnil;
           }
-          state |= RHRR_YEAR_SET;
+          state |= RHRR_YEAR_SET + RHRR_CENTURY_SET;
           break;
         default:
+          if (str[pos] != fmt_str[fmt_pos]) {
+            return Qnil;
+          }
           pos++;
           break;
       }
@@ -738,6 +832,9 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
 
   hash = rb_hash_new();
   if(state & RHRR_YEAR_SET) {
+    if (state & RHRR_CENTURY_SET) {
+      year += century * 100;
+    }
     rb_hash_aset(hash, rhrd_sym_year, INT2NUM(year));
   } 
   if(state & RHRR_MONTH_SET) {
