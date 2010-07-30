@@ -652,50 +652,50 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
       scan_len = 0;
       switch (fmt_str[fmt_pos]) {
         case 'a':
-	  if (pos + 3 > len) {
-	    return Qnil;
-	  }
-	  for(i = 0; wday == 0 && i < 7; i++) {
-	    if(strncasecmp(str + pos, rhrd__abbr_day_names[i], 3) == 0) {
-	      wday = i;
-	    }
-	  }
-	  if (i >= 7) {
-	    return Qnil;
-	  }
-	  scan_len = 3;
-	  state |= RHRR_WDAY_SET;
-	  break;
+          if (pos + 3 > len) {
+            return Qnil;
+          }
+          for(i = 0; wday == 0 && i < 7; i++) {
+            if(strncasecmp(str + pos, rhrd__abbr_day_names[i], 3) == 0) {
+              wday = i;
+            }
+          }
+          if (i >= 7) {
+            return Qnil;
+          }
+          scan_len = 3;
+          state |= RHRR_WDAY_SET;
+          break;
         case 'A':
-	  for(i = 0; wday == 0 && i < 7; i++) {
-	    scan_len = strlen(rhrd__day_names[i]);
-	    if (pos + scan_len <= len) {
-	      if(strncasecmp(str + pos, rhrd__day_names[i], scan_len) == 0) {
-	        wday = i;
-	      }
-	    }
-	  }
-	  if (i >= 7) {
-	    return Qnil;
-	  }
-	  state |= RHRR_WDAY_SET;
-	  break;
+          for(i = 0; wday == 0 && i < 7; i++) {
+            scan_len = strlen(rhrd__day_names[i]);
+            if (pos + scan_len <= len) {
+              if(strncasecmp(str + pos, rhrd__day_names[i], scan_len) == 0) {
+                wday = i;
+              }
+            }
+          }
+          if (i >= 7) {
+            return Qnil;
+          }
+          state |= RHRR_WDAY_SET;
+          break;
         case 'y':
           if (sscanf(str + pos, "%2ld%n", &year, &scan_len) != 1) {
-	    return Qnil;
-	  }
+            return Qnil;
+          }
           year += year < 70 ? 2000 : 1900;
-	  state |= RHRR_YEAR_SET;
-	  break;
+          state |= RHRR_YEAR_SET;
+          break;
         case 'Y':
           if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
-	    return Qnil;
-	  }
-	  state |= RHRR_YEAR_SET;
-	  break;
+            return Qnil;
+          }
+          state |= RHRR_YEAR_SET;
+          break;
         default:
           pos++;
-	  break;
+          break;
       }
       pos += scan_len;
       mod = 0;
