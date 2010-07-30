@@ -2,5 +2,6 @@
 /ext/Makefile
 /ext/home_run_date.*o
 /ext/home_run_parser.c
+/ext/home_run_parser.rl
 *.core
 rubyspec
