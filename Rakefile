@@ -14,6 +14,8 @@ end
 
 desc "Build the ragel parser"
 task :parser do
+  require 'erb'
+  File.open('ext/home_run_parser.rl', 'wb'){|f| f.write(ERB.new(File.read('ext/home_run_parser.rl.erb')).result(binding))}
   sh %{cd ext && ragel home_run_parser.rl}
 end
 
