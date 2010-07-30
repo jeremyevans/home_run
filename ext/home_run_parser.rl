@@ -240,13 +240,13 @@ long rhrd__weekday_num(char * str) {
   le_day = day >tag_le_day;
   le_month = month >tag_le_month;
   le_year = bc_ad? . space* . ('-'? . (digit{2} %set_le_year2) :>> (digit{2} %unset_le_year2)? . (space* . bc_ad %unset_le_year2)?) >tag_le_year $^le_year_error;
-  le_date = (le_day . ([\-.] %set_le_inc_pri | [ /]) . le_month . (le_sep . le_year)?) %set_le_date;
+  le_date = (le_day . ([\-] %set_le_inc_pri | [ /.]) . le_month . (le_sep . le_year)?) %set_le_date;
 
   be_sep = ([ /\-.] | '. ')?;
   be_day = day >tag_be_day $^be_day_error;
   be_month = month >tag_be_month;
   be_year = ('-'? . (digit{2} %set_be_year2) :>> (digit{2} %unset_be_year2)?) >tag_be_year;
-  be_date = (be_year . ('/' % set_be_dec_pri | [ \-.] | '. ') . be_month . (be_sep . be_day)?) %set_be_date;
+  be_date = (be_year . ([/.] % set_be_dec_pri | [ \-] | '. ') . be_month . (be_sep . be_day)?) %set_be_date;
 
   me_sep = [.,/\- ] . space*;
   me_day = day >tag_me_day;
