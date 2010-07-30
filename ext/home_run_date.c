@@ -483,6 +483,7 @@ long rhrd__unix_to_jd(long t) {
 
 void rhrd__today(rhrd_t * d) {
   d->jd = rhrd__unix_to_jd(time(NULL));
+  d->flags |= RHR_HAVE_JD;
   RHR_CHECK_JD(d);
 }
 
@@ -621,6 +622,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long state = 0;
   long mod = 0;
   long pos = 0;
+  long i;
   long fmt_pos;
   int scan_len;
   rhrd_t d;
@@ -641,21 +643,53 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
 
   for (fmt_pos = 0; fmt_pos < fmt_len; fmt_pos++) {
     if (pos >= len) {
-      rb_raise(rb_eArgError, "invalid date");
+#ifdef DEBUG
+      printf("format longer than input\n");
+#endif
+      return Qnil;
     }
     if (mod) {
       scan_len = 0;
       switch (fmt_str[fmt_pos]) {
+        case 'a':
+	  if (pos + 3 > len) {
+	    return Qnil;
+	  }
+	  for(i = 0; wday == 0 && i < 7; i++) {
+	    if(strncasecmp(str + pos, rhrd__abbr_day_names[i], 3) == 0) {
+	      wday = i;
+	    }
+	  }
+	  if (i >= 7) {
+	    return Qnil;
+	  }
+	  scan_len = 3;
+	  state |= RHRR_WDAY_SET;
+	  break;
+        case 'A':
+	  for(i = 0; wday == 0 && i < 7; i++) {
+	    scan_len = strlen(rhrd__day_names[i]);
+	    if (pos + scan_len <= len) {
+	      if(strncasecmp(str + pos, rhrd__day_names[i], scan_len) == 0) {
+	        wday = i;
+	      }
+	    }
+	  }
+	  if (i >= 7) {
+	    return Qnil;
+	  }
+	  state |= RHRR_WDAY_SET;
+	  break;
         case 'y':
           if (sscanf(str + pos, "%2ld%n", &year, &scan_len) != 1) {
-            rb_raise(rb_eArgError, "invalid date");
+	    return Qnil;
 	  }
           year += year < 70 ? 2000 : 1900;
 	  state |= RHRR_YEAR_SET;
 	  break;
         case 'Y':
           if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
-            rb_raise(rb_eArgError, "invalid date");
+	    return Qnil;
 	  }
 	  state |= RHRR_YEAR_SET;
 	  break;
@@ -871,7 +905,11 @@ static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
-  return rhrd__from_hash(rhrd_s__strptime(argc, argv, klass));
+  rd = rhrd_s__strptime(argc, argv, klass);
+  if (RTEST(rd)) {
+    return rhrd__from_hash(rd);
+  }
+  rb_raise(rb_eArgError, "invalid date");
 }
 
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
@@ -1938,7 +1976,7 @@ void Init_home_run_date(void) {
   /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
   rb_define_method(rhrd_s_class, "_parse", rhrd_s__parse, -1);
-  rb_define_method(rhrd_s_class, "_strptime", rhrd_s__parse, -1);
+  rb_define_method(rhrd_s_class, "_strptime", rhrd_s__strptime, -1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
   rb_define_method(rhrd_s_class, "gregorian_leap?", rhrd_s_gregorian_leap_q, 1);
