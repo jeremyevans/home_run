@@ -657,19 +657,20 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
       scan_len = 0;
       switch (fmt_str[fmt_pos]) {
         case 'a':
-          if (pos + 3 > len) {
-            return Qnil;
-          }
-          for(i = 0; wday == 0 && i < 7; i++) {
-            if(strncasecmp(str + pos, rhrd__abbr_day_names[i], 3) == 0) {
-              wday = i;
-            }
-          }
-          if (i >= 7) {
-            return Qnil;
-          }
-          scan_len = 3;
+#define RHR_PARSE_a if (pos + 3 > len) {\
+            return Qnil;\
+          }\
+          for(i = 0; wday == 0 && i < 7; i++) {\
+            if(strncasecmp(str + pos, rhrd__abbr_day_names[i], 3) == 0) {\
+              wday = i;\
+            }\
+          }\
+          if (i >= 7) {\
+            return Qnil;\
+          }\
+          scan_len = 3;\
           state |= RHRR_WDAY_SET;
+          RHR_PARSE_a
           break;
         case 'A':
           for(i = 0; wday == 0 && i < 7; i++) {
@@ -687,19 +688,20 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           break;
         case 'h':
         case 'b':
-          if (pos + 3 > len) {
-            return Qnil;
-          }
-          for(i = 1; month == 0 && i < 13; i++) {
-            if(strncasecmp(str + pos, rhrd__abbr_month_names[i], 3) == 0) {
-              month = i;
-            }
-          }
-          if (i >= 13) {
-            return Qnil;
-          }
-          scan_len = 3;
+#define RHR_PARSE_b if (pos + 3 > len) {\
+            return Qnil;\
+          }\
+          for(i = 1; month == 0 && i < 13; i++) {\
+            if(strncasecmp(str + pos, rhrd__abbr_month_names[i], 3) == 0) {\
+              month = i;\
+            }\
+          }\
+          if (i >= 13) {\
+            return Qnil;\
+          }\
+          scan_len = 3;\
           state |= RHRR_MONTH_SET;
+          RHR_PARSE_b
           break;
         case 'B':
           for(i = 1; month == 0 && i < 13; i++) {
@@ -734,13 +736,14 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           break;
         case 'k':
         case 'H':
-          if (sscanf(str + pos, "%02ld%n", &hour, &scan_len) != 1) {
-            return Qnil;
-          }
-          if (hour < 0 || hour > 24) {
-            return Qnil;
-          }
+#define RHR_PARSE_H if (sscanf(str + pos, "%02ld%n", &hour, &scan_len) != 1) {\
+            return Qnil;\
+          }\
+          if (hour < 0 || hour > 24) {\
+            return Qnil;\
+          }\
           state |= RHRR_HOUR_SET;
+          RHR_PARSE_H
           break;
         case 'l':
         case 'I':
@@ -772,13 +775,14 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           RHR_PARSE_m
           break;
         case 'M':
-          if (sscanf(str + pos, "%02ld%n", &minute, &scan_len) != 1) {
-            return Qnil;
-          }
-          if (minute < 0 || minute > 59) {
-            return Qnil;
-          }
+#define RHR_PARSE_M if (sscanf(str + pos, "%02ld%n", &minute, &scan_len) != 1) {\
+            return Qnil;\
+          }\
+          if (minute < 0 || minute > 59) {\
+            return Qnil;\
+          }\
           state |= RHRR_MINUTE_SET;
+          RHR_PARSE_M
           break;
         case 'n':
           if (str[pos] != '\n') {
@@ -787,13 +791,14 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           pos++;
           break;
         case 'S':
-          if (sscanf(str + pos, "%02ld%n", &second, &scan_len) != 1) {
-            return Qnil;
-          }
-          if (second < 0 || second > 59) {
-            return Qnil;
-          }
+#define RHR_PARSE_S if (sscanf(str + pos, "%02ld%n", &second, &scan_len) != 1) {\
+            return Qnil;\
+          }\
+          if (second < 0 || second > 59) {\
+            return Qnil;\
+          }\
           state |= RHRR_SECOND_SET;
+          RHR_PARSE_S
           break;
         case 't':
           if (str[pos] != '\t') {
@@ -812,10 +817,11 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           RHR_PARSE_y
           break;
         case 'Y':
-          if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
-            return Qnil;
-          }
+#define RHR_PARSE_Y if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {\
+            return Qnil;\
+          }\
           state |= RHRR_YEAR_SET + RHRR_CENTURY_SET;
+          RHR_PARSE_Y
           break;
         /* Composite formats */
 #define RHR_PARSE_sep(x) pos += scan_len;\
@@ -824,6 +830,21 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
             return Qnil;\
           }\
           pos++;
+        case 'c':
+          RHR_PARSE_a
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_b
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_d
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_H
+          RHR_PARSE_sep(':')
+          RHR_PARSE_M
+          RHR_PARSE_sep(':')
+          RHR_PARSE_S
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_Y
+          break;
         case 'D':
           RHR_PARSE_m
           RHR_PARSE_sep('/')
