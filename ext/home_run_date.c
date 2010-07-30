@@ -557,6 +557,17 @@ VALUE rhrd__from_hash(VALUE hash) {
     year = NUM2LONG(ryear);
     if (RTEST(ryday)) {
       yday = NUM2LONG(ryday);
+    } else if (RTEST(rwday) && !(RTEST(rmonth) || RTEST(rday))) {
+      d->jd = rhrd__yday1_jd(year);
+      d->flags |= RHR_HAVE_JD;
+      rhrd__fill_commercial(d);
+      if(!rhrd__valid_commercial(d, d->year, 1, NUM2LONG(rwday))) {
+        RHR_CHECK_JD(d)
+        rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
+      }
+      RHR_CHECK_JD(d)
+      d->flags &= ~RHR_HAVE_CIVIL;
+      return rd;
     } else {
       month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
       day = RTEST(rday) ? NUM2LONG(rday) : 1;
@@ -845,6 +856,15 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
             return Qnil;
           }
           pos++;
+          break;
+        case 'w':
+          if (sscanf(str + pos, "%02ld%n", &wday, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (wday < 0 || wday > 6) {
+            return Qnil;
+          }
+          state |= RHRR_WDAY_SET;
           break;
         case 'y':
 #define RHR_PARSE_y if (sscanf(str + pos, "%02ld%n", &year, &scan_len) != 1) {\
