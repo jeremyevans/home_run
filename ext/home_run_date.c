@@ -528,6 +528,62 @@ long rhrd__jd_to_weeknum(long jd, int f) {
   return (jd - (yday1_jd - (rhrd__mod(yday1_jd - f + 1, 7) + 7))) / 7;
 }
 
+VALUE rhrd__from_hash(VALUE hash) {
+  long year = 0;
+  long month = 0;
+  long day = 0;
+  long yday = 0;
+  long wday = 0;
+  rhrd_t *d;
+  VALUE ryear, rmonth, rday, ryday, rwday;
+  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+
+  ryear = rb_hash_aref(hash, rhrd_sym_year);
+  rmonth = rb_hash_aref(hash, rhrd_sym_mon);
+  rday = rb_hash_aref(hash, rhrd_sym_mday);
+  ryday = rb_hash_aref(hash, rhrd_sym_yday);
+  rwday = rb_hash_aref(hash, rhrd_sym_wday);
+  if (RTEST(ryear)) {
+    year = NUM2LONG(ryear);
+    if (RTEST(ryday)) {
+      yday = NUM2LONG(ryday);
+    } else {
+      month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
+      day = RTEST(rday) ? NUM2LONG(rday) : 1;
+    }
+  } else if (RTEST(rmonth)) {
+    year = rhrd__current_year();
+    month = NUM2LONG(rmonth);
+    day = RTEST(rday) ? NUM2LONG(rday) : 1;
+  } else if (RTEST(rday)) {
+    year = rhrd__current_year();
+    month = rhrd__current_month();
+    day = NUM2LONG(rday);
+  } else if (RTEST(ryday)) {
+    year = rhrd__current_year();
+    yday = NUM2LONG(ryday);
+  } else if (RTEST(rwday)) {
+    wday = NUM2LONG(rwday);
+    rhrd__today(d);
+    rhrd__fill_commercial(d);
+    if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
+      RHR_CHECK_JD(d)
+      rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
+    }
+    RHR_CHECK_JD(d)
+    d->flags &= ~RHR_HAVE_CIVIL;
+    return rd;
+  }
+  if (yday && rhrd__valid_ordinal(d, year, yday)) {
+    return rd;
+  } else if (!rhrd__valid_civil(d, year, month, day)) {
+    RHR_CHECK_CIVIL(d)
+    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
+  }
+
+  return rd;
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -550,6 +606,89 @@ static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
   }
+}
+
+static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
+  char * str;
+  char * fmt_str = "%F";
+  long len;
+  long fmt_len = 2;
+  long year = 0;
+  long month = 0;
+  long day = 0;
+  long yday = 0;
+  long wday = 0;
+  long state = 0;
+  long mod = 0;
+  long pos = 0;
+  long fmt_pos;
+  int scan_len;
+  rhrd_t d;
+  VALUE hash;
+
+  switch(argc) {
+    case 2:
+      fmt_str = RSTRING_PTR(argv[1]);
+      fmt_len = RSTRING_LEN(argv[1]);
+    case 1:
+      str = RSTRING_PTR(argv[0]);
+      len = RSTRING_LEN(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+
+  for (fmt_pos = 0; fmt_pos < fmt_len; fmt_pos++) {
+    if (pos >= len) {
+      rb_raise(rb_eArgError, "invalid date");
+    }
+    if (mod) {
+      scan_len = 0;
+      switch (fmt_str[fmt_pos]) {
+        case 'y':
+          if (sscanf(str + pos, "%2ld%n", &year, &scan_len) != 1) {
+            rb_raise(rb_eArgError, "invalid date");
+	  }
+          year += year < 70 ? 2000 : 1900;
+	  state |= RHRR_YEAR_SET;
+	  break;
+        case 'Y':
+          if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
+            rb_raise(rb_eArgError, "invalid date");
+	  }
+	  state |= RHRR_YEAR_SET;
+	  break;
+        default:
+          pos++;
+	  break;
+      }
+      pos += scan_len;
+      mod = 0;
+    } else if (fmt_str[fmt_pos] == '%') {
+      mod = 1;
+    } else {
+      pos++;
+    }
+  }
+
+  hash = rb_hash_new();
+  if(state & RHRR_YEAR_SET) {
+    rb_hash_aset(hash, rhrd_sym_year, INT2NUM(year));
+  } 
+  if(state & RHRR_MONTH_SET) {
+    rb_hash_aset(hash, rhrd_sym_mon, INT2NUM(month));
+  } 
+  if(state & RHRR_DAY_SET) {
+    rb_hash_aset(hash, rhrd_sym_mday, INT2NUM(day));
+  } 
+  if(state & RHRR_YDAY_SET) {
+    rb_hash_aset(hash, rhrd_sym_yday, INT2NUM(yday));
+  } 
+  if(state & RHRR_WDAY_SET) {
+    rb_hash_aset(hash, rhrd_sym_wday, INT2NUM(wday));
+  } 
+  return hash;
 }
 
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -664,9 +803,9 @@ static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
 }
 
 static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
-  rhrd_t *d;
   long year = RHR_DEFAULT_ORDINAL_YEAR;
   long day = RHR_DEFAULT_ORDINAL_DAY;
+  rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
 
   switch(argc) {
@@ -690,179 +829,49 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
 }
 
 static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
-  char * str;
-  long len;
-  long year = 0;
-  long month = 0;
-  long day = 0;
-  long yday = 0;
-  long wday = 0;
   rhrd_t *d;
-  VALUE hash, ryear, rmonth, rday, ryday, rwday;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd;
 
   switch(argc) {
     case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
       d->jd = RHR_DEFAULT_JD;
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
     case 2:
     case 3:
-      str = RSTRING_PTR(argv[0]);
-      len = RSTRING_LEN(argv[0]);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
       break;
   }
 
-  hash = rhrd__parse(str, len);
-  ryear = rb_hash_aref(hash, rhrd_sym_year);
-  rmonth = rb_hash_aref(hash, rhrd_sym_mon);
-  rday = rb_hash_aref(hash, rhrd_sym_mday);
-  ryday = rb_hash_aref(hash, rhrd_sym_yday);
-  rwday = rb_hash_aref(hash, rhrd_sym_wday);
-  if (RTEST(ryear)) {
-    year = NUM2LONG(ryear);
-    if (RTEST(ryday)) {
-      yday = NUM2LONG(ryday);
-    } else {
-      month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
-      day = RTEST(rday) ? NUM2LONG(rday) : 1;
-    }
-  } else if (RTEST(rmonth)) {
-    year = rhrd__current_year();
-    month = NUM2LONG(rmonth);
-    day = RTEST(rday) ? NUM2LONG(rday) : 1;
-  } else if (RTEST(rday)) {
-    year = rhrd__current_year();
-    month = rhrd__current_month();
-    day = NUM2LONG(rday);
-  } else if (RTEST(ryday)) {
-    year = rhrd__current_year();
-    yday = NUM2LONG(ryday);
-  } else if (RTEST(rwday)) {
-    wday = NUM2LONG(rwday);
-    rhrd__today(d);
-    rhrd__fill_commercial(d);
-    if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
-      RHR_CHECK_JD(d)
-      rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
-    }
-    RHR_CHECK_JD(d)
-    d->flags &= ~RHR_HAVE_CIVIL;
-    return rd;
-  }
-  if (yday && rhrd__valid_ordinal(d, year, yday)) {
-    return rd;
-  } else if (!rhrd__valid_civil(d, year, month, day)) {
-    RHR_CHECK_CIVIL(d)
-    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
-  }
-
-  return rd;
+  return rhrd__from_hash(rhrd__parse(RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0])));
 }
 
 static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
-  char * str;
-  char * fmt_str = "%F";
-  long len;
-  long fmt_len;
-  long year = 0;
-  long month = 0;
-  long day = 0;
-  long yday = 0;
-  long wday = 0;
-  long flags = 0;
-  long mod = 0;
-  long pos = 0;
-  long fmt_pos;
-  int scan_len;
   rhrd_t *d;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd;
 
   switch(argc) {
     case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
       d->jd = RHR_DEFAULT_JD;
       d->flags = RHR_HAVE_JD;
       return rd;
-    case 2:
-    case 3:
-      fmt_str = RSTRING_PTR(argv[1]);
-      fmt_len = RSTRING_LEN(argv[1]);
     case 1:
-      str = RSTRING_PTR(argv[0]);
-      len = RSTRING_LEN(argv[0]);
+    case 2:
+      break;
+    case 3:
+      argc = 2;
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
       break;
   }
-  for (fmt_pos = 0; fmt_pos < fmt_len; fmt_pos++) {
-    if (pos >= len) {
-      rb_raise(rb_eArgError, "invalid date");
-    }
-    if (mod) {
-      scan_len = 0;
-      switch (fmt_str[fmt_pos]) {
-        case 'Y':
-          if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
-            rb_raise(rb_eArgError, "invalid date");
-	  }
-	  flags |= RHRR_YEAR_SET;
-	  pos += scan_len;
-	  break;
-        default:
-          pos++;
-	  break;
-      }
-      mod = 0;
-    } else if (fmt_str[fmt_pos] == '%') {
-      mod = 1;
-    } else {
-      pos++;
-    }
-  }
 
-  if (flags & RHRR_YEAR_SET) {
-    if (!(flags & RHRR_YDAY_SET)) {
-      if (!(flags & RHRR_MONTH_SET)) {
-        month = 1;
-      }
-      if (!(flags & RHRR_DAY_SET)) {
-        day = 1;
-      }
-    }
-  } else if (flags & RHRR_MONTH_SET) {
-    year = rhrd__current_year();
-    if (!(flags & RHRR_DAY_SET)) {
-      day = 1;
-    }
-  } else if (flags & RHRR_DAY_SET) {
-    year = rhrd__current_year();
-    month = rhrd__current_month();
-  } else if (flags & RHRR_YDAY_SET) {
-    year = rhrd__current_year();
-  } else if (flags & RHRR_WDAY_SET) {
-    rhrd__today(d);
-    rhrd__fill_commercial(d);
-    if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
-      RHR_CHECK_JD(d)
-      rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
-    }
-    RHR_CHECK_JD(d)
-    d->flags &= ~RHR_HAVE_CIVIL;
-    return rd;
-  }
-  if ((flags & RHRR_YDAY_SET) && rhrd__valid_ordinal(d, year, yday)) {
-    return rd;
-  } else if (!rhrd__valid_civil(d, year, month, day)) {
-    RHR_CHECK_CIVIL(d)
-    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
-  }
-
-  return rd;
+  return rhrd__from_hash(rhrd_s__strptime(argc, argv, klass));
 }
 
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
@@ -1929,6 +1938,7 @@ void Init_home_run_date(void) {
   /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
   rb_define_method(rhrd_s_class, "_parse", rhrd_s__parse, -1);
+  rb_define_method(rhrd_s_class, "_strptime", rhrd_s__parse, -1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);
   rb_define_method(rhrd_s_class, "gregorian_leap?", rhrd_s_gregorian_leap_q, 1);
