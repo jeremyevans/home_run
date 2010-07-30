@@ -680,6 +680,36 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           }
           state |= RHRR_WDAY_SET;
           break;
+        case 'h':
+        case 'b':
+          if (pos + 3 > len) {
+            return Qnil;
+          }
+          for(i = 1; month == 0 && i < 13; i++) {
+            if(strncasecmp(str + pos, rhrd__abbr_month_names[i], 3) == 0) {
+              month = i;
+            }
+          }
+          if (i >= 13) {
+            return Qnil;
+          }
+          scan_len = 3;
+          state |= RHRR_MONTH_SET;
+          break;
+        case 'B':
+          for(i = 1; month == 0 && i < 13; i++) {
+            scan_len = strlen(rhrd__month_names[i]);
+            if (pos + scan_len <= len) {
+              if(strncasecmp(str + pos, rhrd__month_names[i], scan_len) == 0) {
+                month = i;
+              }
+            }
+          }
+          if (i >= 13) {
+            return Qnil;
+          }
+          state |= RHRR_MONTH_SET;
+          break;
         case 'y':
           if (sscanf(str + pos, "%2ld%n", &year, &scan_len) != 1) {
             return Qnil;
