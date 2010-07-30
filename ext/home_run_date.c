@@ -624,6 +624,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  long meridian = 0;
   long state = 0;
   long mod = 0;
   long pos = 0;
@@ -747,13 +748,14 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           break;
         case 'l':
         case 'I':
-          if (sscanf(str + pos, "%02ld%n", &hour, &scan_len) != 1) {
-            return Qnil;
-          }
-          if (hour < 1 || hour > 12) {
-            return Qnil;
-          }
+#define RHR_PARSE_I if (sscanf(str + pos, "%02ld%n", &hour, &scan_len) != 1) {\
+            return Qnil;\
+          }\
+          if (hour < 1 || hour > 12) {\
+            return Qnil;\
+          }\
           state |= RHRR_HOUR_SET;
+          RHR_PARSE_I
           break;
         case 'j':
           if (sscanf(str + pos, "%03ld%n", &yday, &scan_len) != 1) {
@@ -789,6 +791,29 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
             return Qnil;
           }
           pos++;
+          break;
+        case 'p':
+#define RHR_PARSE_p if (!(str[pos] == 'a' || str[pos] == 'A' ||\
+                str[pos] == 'p' || str[pos] == 'P')) {\
+            return Qnil;\
+          } else {\
+            meridian = 1;\
+          }\
+          if (pos + 2 <= len) {\
+            if (!(str[pos + 1] == 'M' || str[pos + 1] == 'm')) {\
+              if (pos + 4 <= len) {\
+                if (!((str[pos + 2] == 'M' || str[pos + 2] == 'm') &&\
+                      str[pos + 1] == '.' && str[pos + 3] == '.')) {\
+                  return Qnil;\
+                }\
+              } else {\
+                return Qnil;\
+              }\
+            }\
+          } else {\
+            return Qnil;\
+          }
+          RHR_PARSE_p
           break;
         case 'S':
 #define RHR_PARSE_S if (sscanf(str + pos, "%02ld%n", &second, &scan_len) != 1) {\
@@ -845,12 +870,49 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           RHR_PARSE_sep(' ')
           RHR_PARSE_Y
           break;
+        case 'x':
         case 'D':
           RHR_PARSE_m
           RHR_PARSE_sep('/')
           RHR_PARSE_d
           RHR_PARSE_sep('/')
           RHR_PARSE_y
+          break;
+        case 'F':
+          RHR_PARSE_Y
+          RHR_PARSE_sep('-')
+          RHR_PARSE_m
+          RHR_PARSE_sep('-')
+          RHR_PARSE_d
+          break;
+        case 'r':
+          RHR_PARSE_I
+          RHR_PARSE_sep(':')
+          RHR_PARSE_M
+          RHR_PARSE_sep(':')
+          RHR_PARSE_S
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_p
+          break;
+        case 'R':
+          RHR_PARSE_H
+          RHR_PARSE_sep(':')
+          RHR_PARSE_M
+          break;
+        case 'X':
+        case 'T':
+          RHR_PARSE_H
+          RHR_PARSE_sep(':')
+          RHR_PARSE_M
+          RHR_PARSE_sep(':')
+          RHR_PARSE_S
+          break;
+        case 'v':
+          RHR_PARSE_d
+          RHR_PARSE_sep('-')
+          RHR_PARSE_b
+          RHR_PARSE_sep('-')
+          RHR_PARSE_Y
           break;
         default:
           if (str[pos] != fmt_str[fmt_pos]) {
