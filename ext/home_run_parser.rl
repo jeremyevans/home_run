@@ -1,13 +1,4 @@
 
-#define RHRR_YEAR_SET 0x1
-#define RHRR_MONTH_SET 0x1 << 1
-#define RHRR_DAY_SET 0x1 << 2
-#define RHRR_YDAY_SET 0x1 << 3
-#define RHRR_HOUR_SET 0x1 << 4
-#define RHRR_MINUTE_SET 0x1 << 5
-#define RHRR_SECOND_SET 0x1 << 6
-#define RHRR_WDAY_SET 0x1 << 7
-
 #define RHRR_LE_DATE_PRIORITY 40
 #define RHRR_BE_DATE_PRIORITY 60
 #define RHRR_ME_DATE_PRIORITY 50

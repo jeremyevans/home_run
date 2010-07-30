@@ -56,8 +56,17 @@ so that no calculations can overflow.
 #define RHR_DAY_MIN 8
 #endif
 
-#define RHR_HAVE_JD 0x1
-#define RHR_HAVE_CIVIL 0x2
+#define RHR_HAVE_JD 1
+#define RHR_HAVE_CIVIL 2
+
+#define RHRR_YEAR_SET 1
+#define RHRR_MONTH_SET 2
+#define RHRR_DAY_SET 4
+#define RHRR_YDAY_SET 8
+#define RHRR_HOUR_SET 16
+#define RHRR_MINUTE_SET 32
+#define RHRR_SECOND_SET 64
+#define RHRR_WDAY_SET 128
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -746,6 +755,107 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
     return rd;
   }
   if (yday && rhrd__valid_ordinal(d, year, yday)) {
+    return rd;
+  } else if (!rhrd__valid_civil(d, year, month, day)) {
+    RHR_CHECK_CIVIL(d)
+    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
+  }
+
+  return rd;
+}
+
+static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
+  char * str;
+  char * fmt_str = "%F";
+  long len;
+  long fmt_len;
+  long year = 0;
+  long month = 0;
+  long day = 0;
+  long yday = 0;
+  long wday = 0;
+  long flags = 0;
+  long mod = 0;
+  long pos = 0;
+  long fmt_pos;
+  int scan_len;
+  rhrd_t *d;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->jd = RHR_DEFAULT_JD;
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 2:
+    case 3:
+      fmt_str = RSTRING_PTR(argv[1]);
+      fmt_len = RSTRING_LEN(argv[1]);
+    case 1:
+      str = RSTRING_PTR(argv[0]);
+      len = RSTRING_LEN(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
+      break;
+  }
+  for (fmt_pos = 0; fmt_pos < fmt_len; fmt_pos++) {
+    if (pos >= len) {
+      rb_raise(rb_eArgError, "invalid date");
+    }
+    if (mod) {
+      scan_len = 0;
+      switch (fmt_str[fmt_pos]) {
+        case 'Y':
+          if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
+            rb_raise(rb_eArgError, "invalid date");
+	  }
+	  flags |= RHRR_YEAR_SET;
+	  pos += scan_len;
+	  break;
+        default:
+          pos++;
+	  break;
+      }
+      mod = 0;
+    } else if (fmt_str[fmt_pos] == '%') {
+      mod = 1;
+    } else {
+      pos++;
+    }
+  }
+
+  if (flags & RHRR_YEAR_SET) {
+    if (!(flags & RHRR_YDAY_SET)) {
+      if (!(flags & RHRR_MONTH_SET)) {
+        month = 1;
+      }
+      if (!(flags & RHRR_DAY_SET)) {
+        day = 1;
+      }
+    }
+  } else if (flags & RHRR_MONTH_SET) {
+    year = rhrd__current_year();
+    if (!(flags & RHRR_DAY_SET)) {
+      day = 1;
+    }
+  } else if (flags & RHRR_DAY_SET) {
+    year = rhrd__current_year();
+    month = rhrd__current_month();
+  } else if (flags & RHRR_YDAY_SET) {
+    year = rhrd__current_year();
+  } else if (flags & RHRR_WDAY_SET) {
+    rhrd__today(d);
+    rhrd__fill_commercial(d);
+    if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
+      RHR_CHECK_JD(d)
+      rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
+    }
+    RHR_CHECK_JD(d)
+    d->flags &= ~RHR_HAVE_CIVIL;
+    return rd;
+  }
+  if ((flags & RHRR_YDAY_SET) && rhrd__valid_ordinal(d, year, yday)) {
     return rd;
   } else if (!rhrd__valid_civil(d, year, month, day)) {
     RHR_CHECK_CIVIL(d)
@@ -1827,6 +1937,7 @@ void Init_home_run_date(void) {
   rb_define_method(rhrd_s_class, "new!", rhrd_s_new_b, -1);
   rb_define_method(rhrd_s_class, "ordinal", rhrd_s_ordinal, -1);
   rb_define_method(rhrd_s_class, "parse", rhrd_s_parse, -1);
+  rb_define_method(rhrd_s_class, "strptime", rhrd_s_strptime, -1);
   rb_define_method(rhrd_s_class, "today", rhrd_s_today, -1);
   rb_define_method(rhrd_s_class, "valid_civil?", rhrd_s_valid_civil_q, -1);
   rb_define_method(rhrd_s_class, "valid_commercial?", rhrd_s_valid_commercial_q, -1);
