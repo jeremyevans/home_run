@@ -23,8 +23,8 @@ end
 
 n = (ARGV.first || 100000).to_i
 puts "label,stdlib,home_run,times faster"
-compare("._parse '2010-12-13'"){|dc| n.times{dc._parse('2010-12-13')}}
-compare("._parse 'jan 5 2010'"){|dc| n.times{dc._parse('jan 5 2010')}}
+compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
+compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 00:00:00 2007', '%c')}}
 compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1)}}
 compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1)}}
 compare(".gregorian_leap?"){|dc| n.times{dc.gregorian_leap?(2000)}}
@@ -32,8 +32,8 @@ compare(".jd"){|dc| n.times{dc.jd(2010)}}
 compare(".julian_leap?"){|dc| n.times{dc.julian_leap?(2000)}}
 compare(".new!"){|dc| n.times{dc.new!(2012)}}
 compare(".ordinal"){|dc| n.times{dc.ordinal(2012, 100)}}
-compare(".parse '2010-12-13'"){|dc| n.times{dc.parse('2010-12-13')}}
-compare(".parse 'jan 5 2010'"){|dc| n.times{dc.parse('jan 5 2010')}}
+compare(".parse"){|dc| n.times{dc.parse('2010-12-13')}}
+compare(".strptime'"){|dc| n.times{dc.strptime('fri jan 5 00:00:00 2007', '%c')}}
 compare(".today"){|dc| n.times{dc.today}}
 compare(".valid_date?"){|dc| n.times{dc.valid_date?(2010, 1, 1)}}
 
