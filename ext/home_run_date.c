@@ -723,13 +723,14 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           break;
         case 'e':
         case 'd':
-          if (sscanf(str + pos, "%02ld%n", &day, &scan_len) != 1) {
-            return Qnil;
-          }
-          if (day < 1 || day > 31) {
-            return Qnil;
-          }
+#define RHR_PARSE_d if (sscanf(str + pos, "%02ld%n", &day, &scan_len) != 1) {\
+            return Qnil;\
+          }\
+          if (day < 1 || day > 31) {\
+            return Qnil;\
+          }\
           state |= RHRR_DAY_SET;
+          RHR_PARSE_d
           break;
         case 'k':
         case 'H':
@@ -761,13 +762,14 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           state |= RHRR_YDAY_SET;
           break;
         case 'm':
-          if (sscanf(str + pos, "%02ld%n", &month, &scan_len) != 1) {
-            return Qnil;
-          }
-          if (month < 1 || month > 12) {
-            return Qnil;
-          }
+#define RHR_PARSE_m if (sscanf(str + pos, "%02ld%n", &month, &scan_len) != 1) {\
+            return Qnil;\
+          }\
+          if (month < 1 || month > 12) {\
+            return Qnil;\
+          }\
           state |= RHRR_MONTH_SET;
+          RHR_PARSE_m
           break;
         case 'M':
           if (sscanf(str + pos, "%02ld%n", &minute, &scan_len) != 1) {
@@ -800,19 +802,34 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           pos++;
           break;
         case 'y':
-          if (sscanf(str + pos, "%02ld%n", &year, &scan_len) != 1) {
-            return Qnil;
-          }
-          if (!(state & RHRR_CENTURY_SET)) {
-            century = year < 70 ? 20 : 19;
-          }
+#define RHR_PARSE_y if (sscanf(str + pos, "%02ld%n", &year, &scan_len) != 1) {\
+            return Qnil;\
+          }\
+          if (!(state & RHRR_CENTURY_SET)) {\
+            century = year < 70 ? 20 : 19;\
+          }\
           state |= RHRR_YEAR_SET | RHRR_CENTURY_SET;
+          RHR_PARSE_y
           break;
         case 'Y':
           if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {
             return Qnil;
           }
           state |= RHRR_YEAR_SET + RHRR_CENTURY_SET;
+          break;
+        /* Composite formats */
+#define RHR_PARSE_sep(x) pos += scan_len;\
+          scan_len = 0;\
+          if (str[pos] != x) {\
+            return Qnil;\
+          }\
+          pos++;
+        case 'D':
+          RHR_PARSE_m
+          RHR_PARSE_sep('/')
+          RHR_PARSE_d
+          RHR_PARSE_sep('/')
+          RHR_PARSE_y
           break;
         default:
           if (str[pos] != fmt_str[fmt_pos]) {
