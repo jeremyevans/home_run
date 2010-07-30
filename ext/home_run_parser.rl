@@ -22,7 +22,7 @@ long rhrd__month_num(char * str) {
 long rhrd__weekday_num(char * str) {
   int i;
 
-  for(i = 0; i < 6; i++) {
+  for(i = 0; i < 7; i++) {
     if(strncasecmp(str, rhrd__abbr_day_names[i], 3) == 0) {
       return i;
     }
