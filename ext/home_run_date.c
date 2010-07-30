@@ -96,29 +96,37 @@ const char * rhrd__month_names[13] = {"", "January", "February", "March", "April
 const char * rhrd__abbr_month_names[13] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 const char * rhrd__day_names[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 const char * rhrd__abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+const char rhrd__zone_re_str[] = "\\A(?:gmt|utc?)?[-+]\\d+(?:[,.:]\\d+(?::\\d+)?)?|[[:alpha:].\\s]+(?:standard|daylight)\\s+time\\b|[[:alpha:]]+(?:\\s+dst)?\\b";
 VALUE rhrd_class;
 VALUE rhrd_s_class;
 VALUE rhrd_monthnames;
 VALUE rhrd_abbr_monthnames;
 VALUE rhrd_daynames;
 VALUE rhrd_abbr_daynames;
+VALUE rhrd_zone_re;
 
+ID rhrd_id_op_array;
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
 ID rhrd_id_hash;
+ID rhrd_id_length;
 ID rhrd_id_local;
+ID rhrd_id_match;
 ID rhrd_id_mday;
 ID rhrd_id_mon;
 ID rhrd_id_now;
+ID rhrd_id_slice;
 ID rhrd_id_wday;
 ID rhrd_id_yday;
 ID rhrd_id_year;
+ID rhrd_id_zone;
 
 VALUE rhrd_sym_mday;
 VALUE rhrd_sym_mon;
 VALUE rhrd_sym_wday;
-VALUE rhrd_sym_year;
 VALUE rhrd_sym_yday;
+VALUE rhrd_sym_year;
+VALUE rhrd_sym_zone;
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrd_to_s(VALUE self);
@@ -632,6 +640,8 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long fmt_pos;
   int scan_len;
   rhrd_t d;
+  VALUE rstr;
+  VALUE zone = Qnil;
   VALUE hash;
 
   switch(argc) {
@@ -639,8 +649,9 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
       fmt_str = RSTRING_PTR(argv[1]);
       fmt_len = RSTRING_LEN(argv[1]);
     case 1:
-      str = RSTRING_PTR(argv[0]);
-      len = RSTRING_LEN(argv[0]);
+      rstr = argv[0];
+      str = RSTRING_PTR(rstr);
+      len = RSTRING_LEN(rstr);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
@@ -661,9 +672,10 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
 #define RHR_PARSE_a if (pos + 3 > len) {\
             return Qnil;\
           }\
-          for(i = 0; wday == 0 && i < 7; i++) {\
+          for(i = 0; i < 7; i++) {\
             if(strncasecmp(str + pos, rhrd__abbr_day_names[i], 3) == 0) {\
               wday = i;\
+              break;\
             }\
           }\
           if (i >= 7) {\
@@ -674,11 +686,12 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           RHR_PARSE_a
           break;
         case 'A':
-          for(i = 0; wday == 0 && i < 7; i++) {
+          for(i = 0; i < 7; i++) {
             scan_len = strlen(rhrd__day_names[i]);
             if (pos + scan_len <= len) {
               if(strncasecmp(str + pos, rhrd__day_names[i], scan_len) == 0) {
                 wday = i;
+                break;
               }
             }
           }
@@ -692,9 +705,10 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
 #define RHR_PARSE_b if (pos + 3 > len) {\
             return Qnil;\
           }\
-          for(i = 1; month == 0 && i < 13; i++) {\
+          for(i = 1; i < 13; i++) {\
             if(strncasecmp(str + pos, rhrd__abbr_month_names[i], 3) == 0) {\
               month = i;\
+              break;\
             }\
           }\
           if (i >= 13) {\
@@ -705,11 +719,12 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           RHR_PARSE_b
           break;
         case 'B':
-          for(i = 1; month == 0 && i < 13; i++) {
+          for(i = 1; i < 13; i++) {
             scan_len = strlen(rhrd__month_names[i]);
             if (pos + scan_len <= len) {
               if(strncasecmp(str + pos, rhrd__month_names[i], scan_len) == 0) {
                 month = i;
+                break;
               }
             }
           }
@@ -848,6 +863,17 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           state |= RHRR_YEAR_SET + RHRR_CENTURY_SET;
           RHR_PARSE_Y
           break;
+        case 'z':
+        case 'Z':
+#define RHR_PARSE_Z zone = rb_funcall(rhrd_zone_re, rhrd_id_match, 1, rb_funcall(rstr, rhrd_id_slice, 2, INT2NUM(pos), INT2NUM(len)));\
+          if (RTEST(zone)) {\
+            zone = rb_funcall(zone, rhrd_id_op_array, 1, INT2NUM(0));\
+            scan_len = NUM2LONG(rb_funcall(zone, rhrd_id_length, 0));\
+          } else {\
+            return Qnil;\
+          }
+          RHR_PARSE_Z
+          break;
         /* Composite formats */
 #define RHR_PARSE_sep(x) pos += scan_len;\
           scan_len = 0;\
@@ -914,6 +940,23 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           RHR_PARSE_sep('-')
           RHR_PARSE_Y
           break;
+        case '+':
+          RHR_PARSE_a
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_b
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_d
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_H
+          RHR_PARSE_sep(':')
+          RHR_PARSE_M
+          RHR_PARSE_sep(':')
+          RHR_PARSE_S
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_Z
+          RHR_PARSE_sep(' ')
+          RHR_PARSE_Y
+          break;
         default:
           if (str[pos] != fmt_str[fmt_pos]) {
             return Qnil;
@@ -948,6 +991,9 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   } 
   if(state & RHRR_WDAY_SET) {
     rb_hash_aset(hash, rhrd_sym_wday, INT2NUM(wday));
+  } 
+  if(RTEST(zone)) {
+    rb_hash_aset(hash, rhrd_sym_zone, zone);
   } 
   return hash;
 }
@@ -2175,22 +2221,28 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
 void Init_home_run_date(void) {
   int i;
 
+  rhrd_id_op_array = rb_intern("[]");
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
   rhrd_id_hash = rb_intern("hash");
+  rhrd_id_length = rb_intern("length");
   rhrd_id_local = rb_intern("local");
+  rhrd_id_match = rb_intern("match");
   rhrd_id_mday = rb_intern("mday");
   rhrd_id_mon = rb_intern("mon");
   rhrd_id_now = rb_intern("now");
+  rhrd_id_slice = rb_intern("slice");
   rhrd_id_wday = rb_intern("wday");
   rhrd_id_yday = rb_intern("yday");
   rhrd_id_year = rb_intern("year");
+  rhrd_id_zone = rb_intern("zone");
 
   rhrd_sym_mday = ID2SYM(rhrd_id_mday);
   rhrd_sym_mon = ID2SYM(rhrd_id_mon);
   rhrd_sym_wday = ID2SYM(rhrd_id_wday);
-  rhrd_sym_year = ID2SYM(rhrd_id_year);
   rhrd_sym_yday = ID2SYM(rhrd_id_yday);
+  rhrd_sym_year = ID2SYM(rhrd_id_year);
+  rhrd_sym_zone = ID2SYM(rhrd_id_zone);
 
   rhrd_class = rb_define_class("Date", rb_cObject);
   rhrd_s_class = rb_singleton_class(rhrd_class);
@@ -2287,6 +2339,10 @@ void Init_home_run_date(void) {
     rb_ary_push(rhrd_daynames, rb_str_new2(rhrd__day_names[i]));
     rb_ary_push(rhrd_abbr_daynames, rb_str_new2(rhrd__abbr_day_names[i]));
   }
+
+  /* 1 is option ignore case */
+  rhrd_zone_re = rb_reg_new(rhrd__zone_re_str, strlen(rhrd__zone_re_str), 1);
+  rb_define_const(rhrd_class, "ZONE_RE", rhrd_zone_re);
 
   rb_define_const(rhrd_class, "MONTHNAMES", rhrd_monthnames);
   rb_define_const(rhrd_class, "ABBR_MONTHNAMES", rhrd_abbr_monthnames);
