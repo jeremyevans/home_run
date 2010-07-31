@@ -73,6 +73,8 @@ so that no calculations can overflow.
 #define RHRR_CWDAY_SET 0x800
 #define RHRR_SEC_FRACTION_SET 0x1000
 #define RHRR_UNIX_SET 0x2000
+#define RHRR_WNUM0_SET 0x4000
+#define RHRR_WNUM1_SET 0x8000
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -131,6 +133,8 @@ VALUE rhrd_sym_sec;
 VALUE rhrd_sym_sec_fraction;
 VALUE rhrd_sym_seconds;
 VALUE rhrd_sym_wday;
+VALUE rhrd_sym_wnum0;
+VALUE rhrd_sym_wnum1;
 VALUE rhrd_sym_yday;
 VALUE rhrd_sym_year;
 VALUE rhrd_sym_zone;
@@ -555,8 +559,16 @@ VALUE rhrd__from_hash(VALUE hash) {
   long cweek = 0;
   long cwday = 0;
   rhrd_t *d;
-  VALUE ryear, rmonth, rday, ryday, rwday, rcwyear, rcweek, rcwday;
+  VALUE ryear, rmonth, rday, ryday, rwday, rcwyear, rcweek, rcwday, runix;
   VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+
+  runix = rb_hash_aref(hash, rhrd_sym_seconds);
+  if (RTEST(runix)) {
+    d->jd = rhrd__unix_to_jd(NUM2LONG(runix));
+    d->flags |= RHR_HAVE_JD;
+    RHR_CHECK_JD(d)
+    return rd;
+  }
 
   ryear = rb_hash_aref(hash, rhrd_sym_year);
   rmonth = rb_hash_aref(hash, rhrd_sym_mon);
@@ -681,6 +693,8 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long state = 0;
   long mod = 0;
   long pos = 0;
+  long wnum0 = 0;
+  long wnum1 = 0;
   long i;
   long fmt_pos;
   int scan_len;
@@ -942,6 +956,15 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           }
           state |= RHRR_CWDAY_SET;
           break;
+        case 'U':
+          if (sscanf(str + pos, "%02ld%n", &wnum0, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (wnum0 < 0 || wnum0 > 53) {
+            return Qnil;
+          }
+          state |= RHRR_WNUM0_SET;
+          break;
         case 'V':
           if (sscanf(str + pos, "%02ld%n", &cweek, &scan_len) != 1) {
             return Qnil;
@@ -959,6 +982,15 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
             return Qnil;
           }
           state |= RHRR_WDAY_SET;
+          break;
+        case 'W':
+          if (sscanf(str + pos, "%02ld%n", &wnum1, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (wnum1 < 0 || wnum1 > 53) {
+            return Qnil;
+          }
+          state |= RHRR_WNUM1_SET;
           break;
         case 'y':
 #define RHR_PARSE_y if (sscanf(str + pos, "%02ld%n", &year, &scan_len) != 1) {\
@@ -1135,6 +1167,12 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   } 
   if(RTEST(zone)) {
     rb_hash_aset(hash, rhrd_sym_zone, zone);
+  } 
+  if(state & RHRR_WNUM0_SET) {
+    rb_hash_aset(hash, rhrd_sym_wnum0, INT2NUM(wnum0));
+  } 
+  if(state & RHRR_WNUM1_SET) {
+    rb_hash_aset(hash, rhrd_sym_wnum1, INT2NUM(wnum1));
   } 
   return hash;
 }
@@ -2383,6 +2421,8 @@ void Init_home_run_date(void) {
   rhrd_sym_sec_fraction = ID2SYM(rb_intern("sec_fraction"));
   rhrd_sym_seconds = ID2SYM(rb_intern("seconds"));
   rhrd_sym_wday = ID2SYM(rb_intern("wday"));
+  rhrd_sym_wnum0 = ID2SYM(rb_intern("wnum0"));
+  rhrd_sym_wnum1 = ID2SYM(rb_intern("wnum1"));
   rhrd_sym_yday = ID2SYM(rb_intern("yday"));
   rhrd_sym_year = ID2SYM(rb_intern("year"));
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
