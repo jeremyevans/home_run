@@ -59,18 +59,20 @@ so that no calculations can overflow.
 #define RHR_HAVE_JD 1
 #define RHR_HAVE_CIVIL 2
 
-#define RHRR_YEAR_SET 1
-#define RHRR_MONTH_SET 2
-#define RHRR_DAY_SET 4
-#define RHRR_YDAY_SET 8
-#define RHRR_HOUR_SET 16
-#define RHRR_MINUTE_SET 32
-#define RHRR_SECOND_SET 64
-#define RHRR_WDAY_SET 128
-#define RHRR_CENTURY_SET 256
-#define RHRR_CWYEAR_SET 512
-#define RHRR_CWEEK_SET 1024
-#define RHRR_CWDAY_SET 2048
+#define RHRR_YEAR_SET 0x1
+#define RHRR_MONTH_SET 0x2
+#define RHRR_DAY_SET 0x4
+#define RHRR_YDAY_SET 0x8
+#define RHRR_HOUR_SET 0x10
+#define RHRR_MINUTE_SET 0x20
+#define RHRR_SECOND_SET 0x40
+#define RHRR_WDAY_SET 0x80
+#define RHRR_CENTURY_SET 0x100
+#define RHRR_CWYEAR_SET 0x200
+#define RHRR_CWEEK_SET 0x400
+#define RHRR_CWDAY_SET 0x800
+#define RHRR_SEC_FRACTION_SET 0x1000
+#define RHRR_UNIX_SET 0x2000
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -115,12 +117,17 @@ ID rhrd_id_cwday;
 ID rhrd_id_cweek;
 ID rhrd_id_cwyear;
 ID rhrd_id_hash;
+ID rhrd_id_hour;
 ID rhrd_id_length;
 ID rhrd_id_local;
 ID rhrd_id_match;
 ID rhrd_id_mday;
+ID rhrd_id_min;
 ID rhrd_id_mon;
 ID rhrd_id_now;
+ID rhrd_id_sec;
+ID rhrd_id_sec_fraction;
+ID rhrd_id_seconds;
 ID rhrd_id_slice;
 ID rhrd_id_wday;
 ID rhrd_id_yday;
@@ -130,8 +137,13 @@ ID rhrd_id_zone;
 VALUE rhrd_sym_cwday;
 VALUE rhrd_sym_cweek;
 VALUE rhrd_sym_cwyear;
+VALUE rhrd_sym_hour;
 VALUE rhrd_sym_mday;
+VALUE rhrd_sym_min;
 VALUE rhrd_sym_mon;
+VALUE rhrd_sym_sec;
+VALUE rhrd_sym_sec_fraction;
+VALUE rhrd_sym_seconds;
 VALUE rhrd_sym_wday;
 VALUE rhrd_sym_yday;
 VALUE rhrd_sym_year;
@@ -676,6 +688,9 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  long seconds = 0;
+  long sec_fraction_num = 0;
+  double sec_fraction = 0.0;
   long meridian = 0;
   long state = 0;
   long mod = 0;
@@ -840,6 +855,13 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           }
           state |= RHRR_YDAY_SET;
           break;
+        case 'L':
+          if (sscanf(str + pos, "%03ld%n", &sec_fraction_num, &scan_len) != 1) {
+            return Qnil;
+          }
+	  sec_fraction = sec_fraction_num/pow(10, scan_len);
+          state |= RHRR_SEC_FRACTION_SET;
+          break;
         case 'm':
 #define RHR_PARSE_m if (sscanf(str + pos, "%02ld%n", &month, &scan_len) != 1) {\
             return Qnil;\
@@ -866,6 +888,13 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           }
           pos++;
           break;
+        case 'N':
+          if (sscanf(str + pos, "%09ld%n", &sec_fraction_num, &scan_len) != 1) {
+            return Qnil;
+          }
+	  sec_fraction = sec_fraction_num/pow(10, scan_len);
+          state |= RHRR_SEC_FRACTION_SET;
+          break;
         case 'p':
 #define RHR_PARSE_p if (!(str[pos] == 'a' || str[pos] == 'A' ||\
                 str[pos] == 'p' || str[pos] == 'P')) {\
@@ -888,6 +917,19 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
             return Qnil;\
           }
           RHR_PARSE_p
+          break;
+        case 'Q':
+          if (sscanf(str + pos, "%ld%n", &seconds, &scan_len) != 1) {
+            return Qnil;
+          }
+	  seconds /= 1000;
+          state |= RHRR_UNIX_SET;
+          break;
+        case 's':
+          if (sscanf(str + pos, "%ld%n", &seconds, &scan_len) != 1) {
+            return Qnil;
+          }
+          state |= RHRR_UNIX_SET;
           break;
         case 'S':
 #define RHR_PARSE_S if (sscanf(str + pos, "%02ld%n", &second, &scan_len) != 1) {\
@@ -1089,6 +1131,21 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   } 
   if(state & RHRR_CWDAY_SET) {
     rb_hash_aset(hash, rhrd_sym_cwday, INT2NUM(cwday));
+  } 
+  if(state & RHRR_HOUR_SET) {
+    rb_hash_aset(hash, rhrd_sym_hour, INT2NUM(hour));
+  } 
+  if(state & RHRR_MINUTE_SET) {
+    rb_hash_aset(hash, rhrd_sym_min, INT2NUM(minute));
+  } 
+  if(state & RHRR_SECOND_SET) {
+    rb_hash_aset(hash, rhrd_sym_sec, INT2NUM(second));
+  } 
+  if(state & RHRR_SEC_FRACTION_SET) {
+    rb_hash_aset(hash, rhrd_sym_sec_fraction, rb_float_new(sec_fraction));
+  } 
+  if(state & RHRR_UNIX_SET) {
+    rb_hash_aset(hash, rhrd_sym_seconds, INT2NUM(seconds));
   } 
   if(RTEST(zone)) {
     rb_hash_aset(hash, rhrd_sym_zone, zone);
@@ -2326,12 +2383,17 @@ void Init_home_run_date(void) {
   rhrd_id_cweek = rb_intern("cweek");
   rhrd_id_cwyear = rb_intern("cwyear");
   rhrd_id_hash = rb_intern("hash");
+  rhrd_id_hour = rb_intern("hour");
   rhrd_id_length = rb_intern("length");
   rhrd_id_local = rb_intern("local");
   rhrd_id_match = rb_intern("match");
   rhrd_id_mday = rb_intern("mday");
+  rhrd_id_min = rb_intern("min");
   rhrd_id_mon = rb_intern("mon");
   rhrd_id_now = rb_intern("now");
+  rhrd_id_sec = rb_intern("sec");
+  rhrd_id_sec_fraction = rb_intern("sec_fraction");
+  rhrd_id_seconds = rb_intern("seconds");
   rhrd_id_slice = rb_intern("slice");
   rhrd_id_wday = rb_intern("wday");
   rhrd_id_yday = rb_intern("yday");
@@ -2341,8 +2403,13 @@ void Init_home_run_date(void) {
   rhrd_sym_cwday = ID2SYM(rhrd_id_cwday);
   rhrd_sym_cweek = ID2SYM(rhrd_id_cweek);
   rhrd_sym_cwyear = ID2SYM(rhrd_id_cwyear);
+  rhrd_sym_hour = ID2SYM(rhrd_id_hour);
   rhrd_sym_mday = ID2SYM(rhrd_id_mday);
+  rhrd_sym_min = ID2SYM(rhrd_id_min);
   rhrd_sym_mon = ID2SYM(rhrd_id_mon);
+  rhrd_sym_sec = ID2SYM(rhrd_id_sec);
+  rhrd_sym_sec_fraction = ID2SYM(rhrd_id_sec_fraction);
+  rhrd_sym_seconds = ID2SYM(rhrd_id_seconds);
   rhrd_sym_wday = ID2SYM(rhrd_id_wday);
   rhrd_sym_yday = ID2SYM(rhrd_id_yday);
   rhrd_sym_year = ID2SYM(rhrd_id_year);
