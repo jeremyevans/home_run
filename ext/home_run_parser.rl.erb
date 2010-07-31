@@ -76,7 +76,7 @@ long rhrd__weekday_num(char * str) {
       if (t_le_year) {
         year = atol(t_le_year);
         if (le_year2) {
-          year += year < 70 ? 2000 : 1900;
+          year += year < 69 ? 2000 : 1900;
         } else if (le_inc_pri) {
           date_priority += 11;
         }
@@ -99,7 +99,7 @@ long rhrd__weekday_num(char * str) {
       date_priority = RHRR_BE_DATE_PRIORITY;
       year = atol(t_be_year);
       if (be_year2) {
-        year += year < 70 ? 2000 : 1900;
+        year += year < 69 ? 2000 : 1900;
         if (be_dec_pri) {
         date_priority -= 11;
         }
@@ -125,7 +125,7 @@ long rhrd__weekday_num(char * str) {
       if (t_me_year) {
         year = atol(t_me_year);
         if (me_year2) {
-          year += year < 70 ? 2000 : 1900;
+          year += year < 69 ? 2000 : 1900;
         }
         state |= RHRR_YEAR_SET;
       } else {
@@ -170,12 +170,12 @@ long rhrd__weekday_num(char * str) {
           break;
         case 5:
           sscanf(t_num_date, "%2ld%3ld", &year, &yday);
-          year += year < 70 ? 2000 : 1900;
+          year += year < 69 ? 2000 : 1900;
           state |= RHRR_YEAR_SET | RHRR_YDAY_SET;
           break;
         case 6:
           sscanf(t_num_date, "%2ld%2ld%2ld", &year, &month, &day);
-          year += year < 70 ? 2000 : 1900;
+          year += year < 69 ? 2000 : 1900;
           state |= RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET;
           break;
         case 7:

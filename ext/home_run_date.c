@@ -68,6 +68,9 @@ so that no calculations can overflow.
 #define RHRR_SECOND_SET 64
 #define RHRR_WDAY_SET 128
 #define RHRR_CENTURY_SET 256
+#define RHRR_CWYEAR_SET 512
+#define RHRR_CWEEK_SET 1024
+#define RHRR_CWDAY_SET 2048
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -108,6 +111,9 @@ VALUE rhrd_zone_re;
 ID rhrd_id_op_array;
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
+ID rhrd_id_cwday;
+ID rhrd_id_cweek;
+ID rhrd_id_cwyear;
 ID rhrd_id_hash;
 ID rhrd_id_length;
 ID rhrd_id_local;
@@ -121,6 +127,9 @@ ID rhrd_id_yday;
 ID rhrd_id_year;
 ID rhrd_id_zone;
 
+VALUE rhrd_sym_cwday;
+VALUE rhrd_sym_cweek;
+VALUE rhrd_sym_cwyear;
 VALUE rhrd_sym_mday;
 VALUE rhrd_sym_mon;
 VALUE rhrd_sym_wday;
@@ -544,8 +553,11 @@ VALUE rhrd__from_hash(VALUE hash) {
   long day = 0;
   long yday = 0;
   long wday = 0;
+  long cwyear = 0;
+  long cweek = 0;
+  long cwday = 0;
   rhrd_t *d;
-  VALUE ryear, rmonth, rday, ryday, rwday;
+  VALUE ryear, rmonth, rday, ryday, rwday, rcwyear, rcweek, rcwday;
   VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
 
   ryear = rb_hash_aref(hash, rhrd_sym_year);
@@ -553,6 +565,9 @@ VALUE rhrd__from_hash(VALUE hash) {
   rday = rb_hash_aref(hash, rhrd_sym_mday);
   ryday = rb_hash_aref(hash, rhrd_sym_yday);
   rwday = rb_hash_aref(hash, rhrd_sym_wday);
+  rcwyear = rb_hash_aref(hash, rhrd_sym_cwyear);
+  rcweek = rb_hash_aref(hash, rhrd_sym_cweek);
+  rcwday = rb_hash_aref(hash, rhrd_sym_cwday);
   if (RTEST(ryear)) {
     year = NUM2LONG(ryear);
     if (RTEST(ryday)) {
@@ -583,6 +598,18 @@ VALUE rhrd__from_hash(VALUE hash) {
   } else if (RTEST(ryday)) {
     year = rhrd__current_year();
     yday = NUM2LONG(ryday);
+  } else if (RTEST(rcwyear)) {
+    cwyear = NUM2LONG(rcwyear);
+    cweek = RTEST(rcweek) ? NUM2LONG(rcweek) : 1;
+    cwday = RTEST(rcwday) ? NUM2LONG(rcwday) : 1;
+  } else if (RTEST(rcweek)) {
+    cwyear = rhrd__current_year();
+    cweek = NUM2LONG(rcweek);
+    cwday = RTEST(rcwday) ? NUM2LONG(rcwday) : 1;
+  } else if (RTEST(rcwday)) {
+    cwyear = rhrd__current_year();
+    cweek = 1;
+    cwday = NUM2LONG(rcwday);
   } else if (RTEST(rwday)) {
     wday = NUM2LONG(rwday);
     rhrd__today(d);
@@ -596,6 +623,9 @@ VALUE rhrd__from_hash(VALUE hash) {
     return rd;
   }
   if (yday && rhrd__valid_ordinal(d, year, yday)) {
+    return rd;
+  } else if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday)) {
+    RHR_CHECK_JD(d)
     return rd;
   } else if (!rhrd__valid_civil(d, year, month, day)) {
     RHR_CHECK_CIVIL(d)
@@ -639,6 +669,9 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long day = 0;
   long yday = 0;
   long wday = 0;
+  long cwyear = 0;
+  long cweek = 0;
+  long cwday = 0;
   long century = 0;
   long hour = 0;
   long minute = 0;
@@ -761,6 +794,21 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           state |= RHRR_DAY_SET;
           RHR_PARSE_d
           break;
+        case 'g':
+          if (sscanf(str + pos, "%02ld%n", &cwyear, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (!(state & RHRR_CENTURY_SET)) {
+            century = cwyear < 69 ? 20 : 19;
+          }
+          state |= RHRR_CWYEAR_SET | RHRR_CENTURY_SET;
+          break;
+        case 'G':
+          if (sscanf(str + pos, "%ld%n", &cwyear, &scan_len) != 1) {
+            return Qnil;
+          }
+          state |= RHRR_CWYEAR_SET + RHRR_CENTURY_SET;
+          break;
         case 'k':
         case 'H':
 #define RHR_PARSE_H if (sscanf(str + pos, "%02ld%n", &hour, &scan_len) != 1) {\
@@ -857,6 +905,24 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           }
           pos++;
           break;
+        case 'u':
+          if (sscanf(str + pos, "%02ld%n", &cwday, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (cwday < 1 || cwday > 7) {
+            return Qnil;
+          }
+          state |= RHRR_CWDAY_SET;
+          break;
+        case 'V':
+          if (sscanf(str + pos, "%02ld%n", &cweek, &scan_len) != 1) {
+            return Qnil;
+          }
+          if (cweek < 1 || cweek > 53) {
+            return Qnil;
+          }
+          state |= RHRR_CWEEK_SET;
+          break;
         case 'w':
           if (sscanf(str + pos, "%02ld%n", &wday, &scan_len) != 1) {
             return Qnil;
@@ -871,7 +937,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
             return Qnil;\
           }\
           if (!(state & RHRR_CENTURY_SET)) {\
-            century = year < 70 ? 20 : 19;\
+            century = year < 69 ? 20 : 19;\
           }\
           state |= RHRR_YEAR_SET | RHRR_CENTURY_SET;
           RHR_PARSE_y
@@ -995,7 +1061,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
 
   hash = rb_hash_new();
   if(state & RHRR_YEAR_SET) {
-    if (state & RHRR_CENTURY_SET) {
+    if (state & RHRR_CENTURY_SET && year < 100) {
       year += century * 100;
     }
     rb_hash_aset(hash, rhrd_sym_year, INT2NUM(year));
@@ -1011,6 +1077,18 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   } 
   if(state & RHRR_WDAY_SET) {
     rb_hash_aset(hash, rhrd_sym_wday, INT2NUM(wday));
+  } 
+  if(state & RHRR_CWYEAR_SET) {
+    if (state & RHRR_CENTURY_SET && cwyear < 100) {
+      cwyear += century * 100;
+    }
+    rb_hash_aset(hash, rhrd_sym_cwyear, INT2NUM(cwyear));
+  } 
+  if(state & RHRR_CWEEK_SET) {
+    rb_hash_aset(hash, rhrd_sym_cweek, INT2NUM(cweek));
+  } 
+  if(state & RHRR_CWDAY_SET) {
+    rb_hash_aset(hash, rhrd_sym_cwday, INT2NUM(cwday));
   } 
   if(RTEST(zone)) {
     rb_hash_aset(hash, rhrd_sym_zone, zone);
@@ -2244,6 +2322,9 @@ void Init_home_run_date(void) {
   rhrd_id_op_array = rb_intern("[]");
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
+  rhrd_id_cwday = rb_intern("cwday");
+  rhrd_id_cweek = rb_intern("cweek");
+  rhrd_id_cwyear = rb_intern("cwyear");
   rhrd_id_hash = rb_intern("hash");
   rhrd_id_length = rb_intern("length");
   rhrd_id_local = rb_intern("local");
@@ -2257,6 +2338,9 @@ void Init_home_run_date(void) {
   rhrd_id_year = rb_intern("year");
   rhrd_id_zone = rb_intern("zone");
 
+  rhrd_sym_cwday = ID2SYM(rhrd_id_cwday);
+  rhrd_sym_cweek = ID2SYM(rhrd_id_cweek);
+  rhrd_sym_cwyear = ID2SYM(rhrd_id_cwyear);
   rhrd_sym_mday = ID2SYM(rhrd_id_mday);
   rhrd_sym_mon = ID2SYM(rhrd_id_mon);
   rhrd_sym_wday = ID2SYM(rhrd_id_wday);
