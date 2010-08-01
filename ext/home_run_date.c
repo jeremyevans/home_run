@@ -122,6 +122,8 @@ ID rhrd_id_match;
 ID rhrd_id_now;
 ID rhrd_id_slice;
 
+long rhrd__offset;
+
 VALUE rhrd_sym_cwday;
 VALUE rhrd_sym_cweek;
 VALUE rhrd_sym_cwyear;
@@ -502,7 +504,7 @@ long rhrd__unix_to_jd(long t) {
 }
 
 void rhrd__today(rhrd_t * d) {
-  d->jd = rhrd__unix_to_jd(time(NULL));
+  d->jd = rhrd__unix_to_jd(time(NULL) + rhrd__offset);
   d->flags |= RHR_HAVE_JD;
   RHR_CHECK_JD(d);
 }
@@ -549,6 +551,12 @@ long rhrd__jd_to_weeknum(long jd, int f) {
   return (jd - (yday1_jd - (rhrd__mod(yday1_jd - f + 1, 7) + 7))) / 7;
 }
 
+long rhrd__weeknum_to_jd(long year, long week, long wday, int f) {
+  long yday1_jd;
+  yday1_jd = rhrd__yday1_jd(year) + 6;
+  return (yday1_jd - rhrd__mod(yday1_jd - f + 1, 7) - 7) + 7 * week + wday;
+}
+
 VALUE rhrd__from_hash(VALUE hash) {
   long year = 0;
   long month = 0;
@@ -559,7 +567,7 @@ VALUE rhrd__from_hash(VALUE hash) {
   long cweek = 0;
   long cwday = 0;
   rhrd_t *d;
-  VALUE ryear, rmonth, rday, ryday, rwday, rcwyear, rcweek, rcwday, runix;
+  VALUE ryear, rmonth, rday, ryday, rwday, rcwyear, rcweek, rcwday, runix, rwnum0, rwnum1;
   VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
 
   runix = rb_hash_aref(hash, rhrd_sym_seconds);
@@ -578,11 +586,17 @@ VALUE rhrd__from_hash(VALUE hash) {
   rcwyear = rb_hash_aref(hash, rhrd_sym_cwyear);
   rcweek = rb_hash_aref(hash, rhrd_sym_cweek);
   rcwday = rb_hash_aref(hash, rhrd_sym_cwday);
+  rwnum0 = rb_hash_aref(hash, rhrd_sym_wnum0);
+  rwnum1 = rb_hash_aref(hash, rhrd_sym_wnum1);
+
   if (RTEST(ryear)) {
     year = NUM2LONG(ryear);
     if (RTEST(ryday)) {
       yday = NUM2LONG(ryday);
-    } else if (RTEST(rwday) && !(RTEST(rmonth) || RTEST(rday))) {
+    } else if (RTEST(rmonth) && RTEST(rday)) {
+      month = NUM2LONG(rmonth);
+      day = NUM2LONG(rday);
+    } else if (RTEST(rwday)) {
       d->jd = rhrd__yday1_jd(year);
       d->flags |= RHR_HAVE_JD;
       rhrd__fill_commercial(d);
@@ -592,6 +606,10 @@ VALUE rhrd__from_hash(VALUE hash) {
       }
       RHR_CHECK_JD(d)
       d->flags &= ~RHR_HAVE_CIVIL;
+      return rd;
+    } else if (RTEST(rwnum0)) {
+      d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
+      d->flags |= RHR_HAVE_JD;
       return rd;
     } else {
       month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
@@ -698,7 +716,6 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long i;
   long fmt_pos;
   int scan_len;
-  rhrd_t d;
   VALUE rstr;
   VALUE zone = Qnil;
   VALUE hash;
@@ -2427,6 +2444,7 @@ void Init_home_run_date(void) {
   rhrd_sym_year = ID2SYM(rb_intern("year"));
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
 
+  rhrd__offset = NUM2LONG(rb_funcall(rb_funcall(rb_cTime, rhrd_id_now, 0), rb_intern("utc_offset"), 0));
   rhrd_class = rb_define_class("Date", rb_cObject);
   rhrd_s_class = rb_singleton_class(rhrd_class);
 
