@@ -9,14 +9,14 @@ MSPEC=ENV['MSPEC'] || 'mspec'
 desc "Run the rubyspecs with mspec"
 task :default => :spec
 task :spec do
-  sh %{#{MSPEC} -I ext -I lib rubyspec/library/date/*_spec.rb}
+  sh %{#{MSPEC} -I ext rubyspec/library/date/*_spec.rb}
 end
 
 desc "Build the ragel parser"
 task :parser do
   require 'erb'
-  File.open('ext/home_run_parser.rl', 'wb'){|f| f.write(ERB.new(File.read('ext/home_run_parser.rl.erb')).result(binding))}
-  sh %{cd ext && ragel home_run_parser.rl}
+  File.open('ext/date_parser.rl', 'wb'){|f| f.write(ERB.new(File.read('ext/date_parser.rl.erb')).result(binding))}
+  sh %{cd ext && ragel date_parser.rl}
 end
 
 desc "Build the extension"
@@ -32,7 +32,7 @@ end
 
 desc "Start an IRB shell using the extension"
 task :irb do
-  sh %{#{IRB} -I ext -I lib -r date}
+  sh %{#{IRB} -I ext -r date}
 end
 
 desc "Run comparative benchmarks"
@@ -48,7 +48,7 @@ end
 desc "Run memory benchmarks"
 task :mem_bench do
   stdlib = `#{RUBY} bench/mem_bench.rb`.to_i
-  home_run = `#{RUBY} -I ext -I lib bench/mem_bench.rb`.to_i
+  home_run = `#{RUBY} -I ext bench/mem_bench.rb`.to_i
   puts "stdlib: #{stdlib}KB"
   puts "home_run: #{home_run}KB"
   puts "home_run uses #{sprintf('%0.1f', stdlib/home_run.to_f)} times less memory"
@@ -57,7 +57,7 @@ end
 desc "Run garbage creation benchmarks"
 task :garbage_bench do
   stdlib = `#{RUBY} bench/garbage_bench.rb`.to_i
-  home_run = `#{RUBY} -I ext -I lib bench/garbage_bench.rb`.to_i
+  home_run = `#{RUBY} -I ext bench/garbage_bench.rb`.to_i
   puts "stdlib: #{stdlib}KB"
   puts "home_run: #{home_run}KB"
   puts "home_run creates #{sprintf('%0.1f', stdlib/home_run.to_f)} times less garbage"
@@ -65,9 +65,9 @@ end
 
 def date_methods
   [`#{RUBY} -r date -e 'puts class << Date; instance_methods(false); end'`.split,
-  `#{RUBY} -I ext -I lib -r date -e 'puts class << Date; instance_methods(false); end'`.split,
+  `#{RUBY} -I ext -r date -e 'puts class << Date; instance_methods(false); end'`.split,
   `#{RUBY} -r date -e 'puts Date.instance_methods(false)'`.split,
-  `#{RUBY} -I ext -I lib -r date -e 'puts Date.instance_methods(false)'`.split]
+  `#{RUBY} -I ext -r date -e 'puts Date.instance_methods(false)'`.split]
 end
 
 desc "Print all methods that still need to be implemented"

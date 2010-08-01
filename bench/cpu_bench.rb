@@ -2,7 +2,8 @@ require 'date'
 require 'benchmark'
 SD = Date
 $:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext'))
-load 'lib/date.rb'
+Object.send(:remove_const, :Date)
+require 'ext/date.so'
 HRD = Date
 
 def compare(label, &block)

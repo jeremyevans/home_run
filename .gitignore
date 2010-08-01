@@ -1,7 +1,7 @@
 *.rbc
 /ext/Makefile
-/ext/home_run_date.*o
-/ext/home_run_parser.c
-/ext/home_run_parser.rl
+/ext/date.*o
+/ext/date_parser.c
+/ext/date_parser.rl
 *.core
 rubyspec

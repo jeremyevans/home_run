@@ -144,7 +144,7 @@ VALUE rhrd_sym_zone;
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrd_to_s(VALUE self);
 
-#include "home_run_parser.c"
+#include "date_parser.c"
 
 /* C Helper Methods */
 
@@ -2426,7 +2426,7 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
 
 /* Ruby Library Initialization */
 
-void Init_home_run_date(void) {
+void Init_date(void) {
   int i;
 
   rhrd_id_op_array = rb_intern("[]");
