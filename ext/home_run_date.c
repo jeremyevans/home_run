@@ -611,6 +611,10 @@ VALUE rhrd__from_hash(VALUE hash) {
       d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
       d->flags |= RHR_HAVE_JD;
       return rd;
+    } else if (RTEST(rwnum1)) {
+      d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum1), RTEST(rwday) ? rhrd__mod(NUM2LONG(rwday) - 1, 7) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday) - 1, 7) : 0), 1);
+      d->flags |= RHR_HAVE_JD;
+      return rd;
     } else {
       month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
       day = RTEST(rday) ? NUM2LONG(rday) : 1;
@@ -626,6 +630,14 @@ VALUE rhrd__from_hash(VALUE hash) {
   } else if (RTEST(ryday)) {
     year = rhrd__current_year();
     yday = NUM2LONG(ryday);
+  } else if (RTEST(rwnum0)) {
+    d->jd = rhrd__weeknum_to_jd(rhrd__current_year(), NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
+    d->flags |= RHR_HAVE_JD;
+    return rd;
+  } else if (RTEST(rwnum1)) {
+    d->jd = rhrd__weeknum_to_jd(rhrd__current_year(), NUM2LONG(rwnum1), RTEST(rwday) ? rhrd__mod(NUM2LONG(rwday) - 1, 7) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday) - 1, 7) : 0), 1);
+    d->flags |= RHR_HAVE_JD;
+    return rd;
   } else if (RTEST(rcwyear)) {
     cwyear = NUM2LONG(rcwyear);
     cweek = RTEST(rcweek) ? NUM2LONG(rcweek) : 1;
