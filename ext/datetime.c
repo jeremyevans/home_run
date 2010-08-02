@@ -210,6 +210,24 @@ static VALUE rhrdt_inspect(VALUE self) {
   return rb_str_resize(s, len);
 }
 
+static VALUE rhrdt_to_s(VALUE self) {
+  VALUE s;
+  rhrdt_t *dt;
+  int len;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_CIVIL(dt)
+  RHRDT_FILL_HMS(dt)
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02li",
+        dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second, dt->offset/60, rhrd__mod(dt->offset, 60));
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#to_s (in snprintf)");
+  }
+
+  return rb_str_resize(s, len);
+}
+
 
 /* Library initialization */
 
@@ -221,4 +239,5 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
 
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
+  rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
 }
