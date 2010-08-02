@@ -37,6 +37,15 @@ int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
   return 1;
 }
 
+int rhrdt__valid_offset(rhrdt_t *dt, double offset) {
+  if (offset < -0.6 || offset > 0.6) {
+    return 0;
+  }
+
+  dt->offset = round(offset * 1440);
+  return 1;
+}
+
 int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   if (h < 0) {
     h += 24;
@@ -50,14 +59,13 @@ int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   if (h < 0 || m < 0 || s < 0 || h > 24 || m > 59 || s > 59 || (h == 24 && m != 0 && s != 0)) {
     return 0;
   }
-  if (offset < -0.6 || offset > 0.6) {
+  if(!rhrdt__valid_offset(dt, offset)) {
     return 0;
   }
 
   dt->hour = h;
   dt->minute = m;
   dt->second = s;
-  dt->offset = round(offset * 1440);
   dt->flags |= RHR_HAVE_HMS;
   return 1;
 }
@@ -87,13 +95,13 @@ void rhrdt__jd_to_civil(rhrdt_t *date) {
 }
 
 void rhrdt__fraction_to_hms(rhrdt_t *d) {
-  double f;
+  double f, f1;
   f = d->fraction * 24;
-  d->hour = f;
-  f -= d->hour;
-  d->minute = f * 60;
-  f -= d->minute;
-  d->second = f * 60;
+  d->hour = floor(f);
+  f = (f - d->hour) * 60;
+  d->minute = floor(f);
+  f = (f - d->minute) * 60;
+  d->second = floor(f);
   d->flags |= RHR_HAVE_HMS;
 }
 
@@ -309,6 +317,36 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
+  double offset = 0;
+  rhrdt_t *dt;
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+
+  switch(argc) {
+    case 0:
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      return rdt; 
+    case 2:
+    case 3:
+      offset = NUM2DBL(argv[1]);
+      if (!rhrdt__valid_offset(dt, offset)) {
+        rb_raise(rb_eArgError, "invalid offset (%f)", offset);
+      }
+    case 1:
+      offset += NUM2DBL(argv[0]) + 0.5;
+      dt->jd = offset;
+      dt->fraction = offset - dt->jd;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION;
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      break;
+  }
+
+  RHR_CHECK_JD(dt)
+  return rdt;
+}
+
 static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   long year = RHR_DEFAULT_ORDINAL_YEAR;
   long day = RHR_DEFAULT_ORDINAL_DAY;
@@ -335,7 +373,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
       year = NUM2LONG(argv[0]);
       break;
     case 0:
-      dt->flags = RHR_HAVE_JD;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
       return rdt;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 7", argc);
@@ -400,7 +438,10 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
   rb_define_method(rhrdt_s_class, "commercial", rhrdt_s_commercial, -1);
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
+  rb_define_method(rhrdt_s_class, "new!", rhrdt_s_new_b, -1);
   rb_define_method(rhrdt_s_class, "ordinal", rhrdt_s_ordinal, -1);
+
+  rb_define_alias(rhrdt_s_class, "new", "civil");
 
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
