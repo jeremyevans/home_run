@@ -76,17 +76,17 @@ task :garbage_bench do
 end
 
 def date_methods
-  [`#{RUBY} -r date -e 'puts class << Date; instance_methods(false); end'`.split,
-  `#{RUBY} -I ext -r date -e 'puts class << Date; instance_methods(false); end'`.split,
+  [`#{RUBY} -r date -e 'puts Date.singleton_methods(false)'`.split,
+  `#{RUBY} -I ext -r date -e 'puts Date.singleton_methods(false)'`.split,
   `#{RUBY} -r date -e 'puts Date.instance_methods(false)'`.split,
   `#{RUBY} -I ext -r date -e 'puts Date.instance_methods(false)'`.split]
 end
 
 def datetime_methods
-  [`#{RUBY} -r date -e 'puts DateTime.methods - Class.methods'`.split,
-  `#{RUBY} -I ext -r date -e 'puts class << DateTime; instance_methods(false); end - Class.methods'`.split,
-  `#{RUBY} -r date -e 'puts DateTime.instance_methods - Object.instance_methods'`.split,
-  `#{RUBY} -I ext -r date -e 'puts DateTime.instance_methods(true) - Object.instance_methods'`.split]
+  [`#{RUBY} -r date -e 'puts (DateTime.singleton_methods(false) + Date.singleton_methods(false)).uniq'`.split,
+  `#{RUBY} -I ext -r date -e 'puts DateTime.singleton_methods(false)'`.split,
+  `#{RUBY} -r date -e 'puts (DateTime.instance_methods(false) + Date.instance_methods(false)).uniq'`.split,
+  `#{RUBY} -I ext -r date -e 'puts DateTime.instance_methods(false)'`.split]
 end
 
 desc "Print all methods that still need to be implemented"
@@ -96,7 +96,7 @@ task :todo do
   puts "Date Instance Methods: #{(sim-hrim).sort.join(', ')}"
   puts ""
   scm, hrcm, sim, hrim = datetime_methods
-  puts "DateTime Class Methods: #{(scm-hrcm).sort.join(', ')}"
+  puts "DateTime Class Methods: #{(scm-hrcm).sort.reject{|m| m.to_s =~ /to_jd|jd_to|day_fraction|valid_|exist|leap|julian|gregorian|\A[no]s\?\z/}.join(', ')}"
   puts "DateTime Instance Methods: #{(sim-hrim).sort.join(', ')}"
 end
 
