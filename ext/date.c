@@ -239,7 +239,7 @@ int rhrd__leap_year(long year) {
   }
 }
 
-int rhrd__check_valid_civil(long year, long month, long day) {
+int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
   if (month < 0 && month >= -12) {
     month += 13;
   }
@@ -273,14 +273,6 @@ int rhrd__check_valid_civil(long year, long month, long day) {
   if(!rhrd__valid_civil_limits(year, month, day)) {
     return 0;
   } 
-
-  return 1;
-}
-
-int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
-  if(!rhrd__check_valid_civil(year, month, day)) {
-    return 0;
-  }
 
   d->year = year;
   d->month = (unsigned char)month;

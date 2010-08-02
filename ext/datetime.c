@@ -26,9 +26,39 @@ VALUE rhrdt_s_class;
 /* Helper methods */
 
 int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
-  if(!rhrd__check_valid_civil(year, month, day)) {
+  if (month < 0 && month >= -12) {
+    month += 13;
+  }
+  if (month < 1 || month > 12) {
     return 0;
   }
+
+  if (day < 0) {
+    if (month == 2) {
+      day += rhrd__leap_year(year) ? 30 : 29;
+    } else {
+      day += rhrd_days_in_month[month] + 1;
+    }
+  }
+  if (day < 1 || day > 28) {
+    if (day > 31 || day <= 0) {
+      return 0;
+    } else if (month == 2) {
+      if (rhrd__leap_year(year)) {
+        if (day > 29) {
+          return 0;
+        }
+      } else if (day > 28) {
+        return 0;
+      }
+    } else if (day > rhrd_days_in_month[month]) {
+      return 0;
+    }
+  }
+
+  if(!rhrd__valid_civil_limits(year, month, day)) {
+    return 0;
+  } 
 
   dt->year = year;
   dt->month = (unsigned char)month;
