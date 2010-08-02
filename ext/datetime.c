@@ -17,7 +17,8 @@ typedef struct rhrdt_s {
 
 #define RHRDT_FILL_JD(d) if (((d)->flags & RHR_HAVE_JD) == 0) { rhrdt__civil_to_jd(d); }
 #define RHRDT_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrdt__jd_to_civil(d); }
-#define RHRDT_FILL_HMS(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrdt__fraction_to_hms(d); }
+#define RHRDT_FILL_HMS(d) if (((d)->flags & RHR_HAVE_HMS) == 0) { rhrdt__fraction_to_hms(d); }
+#define RHRDT_FILL_FRACTION(d) if (((d)->flags & RHR_HAVE_FRACTION) == 0) { rhrdt__hms_to_fraction(d); }
 
 VALUE rhrdt_class;
 VALUE rhrdt_s_class;
@@ -58,6 +59,46 @@ int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   dt->second = s;
   dt->offset = round(offset * 1440);
   return 1;
+}
+
+void rhrdt__civil_to_jd(rhrdt_t *d) {
+  d->jd = rhrd__ymd_to_jd(d->year, d->month, d->day);
+  d->flags |= RHR_HAVE_JD;
+}
+
+void rhrdt__jd_to_civil(rhrdt_t *date) {
+  long x, a, b, c, d, e;
+  x = (long)floor((date->jd - 1867216.25) / 36524.25);
+  a = date->jd + 1 + x - (long)floor(x / 4.0);
+  b = a + 1524;
+  c = (long)floor((b - 122.1) / 365.25);
+  d = (long)floor(365.25 * c);
+  e = (long)floor((b - d) / 30.6001);
+  date->day = b - d - (long)floor(30.6001 * e);
+  if (e <= 13) {
+    date->month = e - 1;
+    date->year = c - 4716;
+  } else {
+    date->month = e - 13;
+    date->year = c - 4715;
+  }
+  date->flags |= RHR_HAVE_CIVIL;
+}
+
+void rhrdt__fraction_to_hms(rhrdt_t *d) {
+  double f;
+  f = d->fraction * 24;
+  d->hour = f;
+  f -= d->hour;
+  d->minute = f * 60;
+  f -= d->minute;
+  d->second = f * 60;
+  d->flags |= RHR_HAVE_HMS;
+}
+
+void rhrdt__hms_to_fraction(rhrdt_t *d) {
+  d->fraction = d->hour/24.0 + d->minute/1440.0 + d->second/86400.0;
+  d->flags |= RHR_HAVE_FRACTION;
 }
 
 /* Class methods */
@@ -116,10 +157,8 @@ static VALUE rhrdt_inspect(VALUE self) {
   rhrdt_t *dt;
   int len;
   Data_Get_Struct(self, rhrdt_t, dt);
-  /*
-  RHR_FILL_CIVIL(dt)
-  RHR_FILL_HMS(dt)
-  */
+  RHRDT_FILL_CIVIL(dt)
+  RHRDT_FILL_HMS(dt)
 
   s = rb_str_buf_new(128);
   len = snprintf(RSTRING_PTR(s), 128, "#<DateTime %04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02li>",

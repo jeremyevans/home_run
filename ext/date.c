@@ -226,9 +226,6 @@ void rhrd__jd_to_civil(rhrd_t *date) {
     date->year = c - 4715;
   }
   date->flags |= RHR_HAVE_CIVIL;
-#ifdef DEBUG
-  printf("x: %li, a: %li, b: %li, c: %li, d: %li, e: %li, day: %hhi, month: %hhi; year: %li\n", x, a, b, c, d, e, date->day, date->month, date->year);
-#endif
 }
 
 int rhrd__leap_year(long year) {

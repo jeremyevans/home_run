@@ -82,19 +82,32 @@ def date_methods
   `#{RUBY} -I ext -r date -e 'puts Date.instance_methods(false)'`.split]
 end
 
+def datetime_methods
+  [`#{RUBY} -r date -e 'puts DateTime.methods - Class.methods'`.split,
+  `#{RUBY} -I ext -r date -e 'puts class << DateTime; instance_methods(false); end - Class.methods'`.split,
+  `#{RUBY} -r date -e 'puts DateTime.instance_methods - Object.instance_methods'`.split,
+  `#{RUBY} -I ext -r date -e 'puts DateTime.instance_methods(true) - Object.instance_methods'`.split]
+end
+
 desc "Print all methods that still need to be implemented"
 task :todo do
   scm, hrcm, sim, hrim = date_methods
-  puts "Class Methods: #{(scm-hrcm).sort.join(', ')}"
+  puts "Date Class Methods: #{(scm-hrcm).sort.join(', ')}"
+  puts "Date Instance Methods: #{(sim-hrim).sort.join(', ')}"
   puts ""
-  puts "Instance Methods: #{(sim-hrim).sort.join(', ')}"
+  scm, hrcm, sim, hrim = datetime_methods
+  puts "DateTime Class Methods: #{(scm-hrcm).sort.join(', ')}"
+  puts "DateTime Instance Methods: #{(sim-hrim).sort.join(', ')}"
 end
 
 desc "Print methods that are implemented but shouldn't be"
 task :toofar do
   scm, hrcm, sim, hrim = date_methods
-  puts "Class Methods: #{(hrcm-scm).sort.join(', ')}"
+  puts "Date Class Methods: #{(hrcm-scm).sort.join(', ')}"
+  puts "Date Instance Methods: #{(hrim-sim).sort.join(', ')}"
   puts ""
-  puts "Instance Methods: #{(hrim-sim).sort.join(', ')}"
+  scm, hrcm, sim, hrim = datetime_methods
+  puts "DateTime Class Methods: #{(hrcm-scm).sort.join(', ')}"
+  puts "DateTime Instance Methods: #{(hrim-sim).sort.join(', ')}"
 end
 
