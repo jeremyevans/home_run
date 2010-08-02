@@ -51,6 +51,7 @@ dt_compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".jd"){|dc| n.times{dc.jd(2010, 13, 43, 57)}}
 dt_compare(".new!"){|dc| n.times{dc.new!(201013.3, -8/24.0)}}
+dt_compare(".now"){|dc| n.times{dc.now}}
 dt_compare(".ordinal"){|dc| n.times{dc.ordinal(2010, 1, 13, 43, 57)}}
 dt_compare("#inspect"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.inspect}}
 dt_compare("#to_s"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.to_s}}

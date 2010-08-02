@@ -186,6 +186,18 @@ int rhrdt__valid_ordinal(rhrdt_t *d, long year, long yday) {
   return 1;
 }
 
+void rhrdt__now(rhrdt_t * dt) {
+  long t;
+  long offset;
+  offset = NUM2LONG(rb_funcall(rb_funcall(rb_cTime, rhrd_id_now, 0), rhrd_id_utc_offset, 0));
+  t = time(NULL) + offset;
+  dt->jd = rhrd__unix_to_jd(t);
+  dt->fraction = rhrd__mod(t, 86400)/86400.0;
+  dt->offset = offset/60;
+  dt->flags |= RHR_HAVE_JD | RHR_HAVE_FRACTION;
+  RHR_CHECK_JD(dt);
+}
+
 /* Class methods */
 
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -347,6 +359,23 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+static VALUE rhrdt_s_now(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *dt;
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+
+  switch(argc) {
+    case 0:
+    case 1:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  rhrdt__now(dt);
+  return rdt;
+}
+
 static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   long year = RHR_DEFAULT_ORDINAL_YEAR;
   long day = RHR_DEFAULT_ORDINAL_DAY;
@@ -439,6 +468,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_s_class, "commercial", rhrdt_s_commercial, -1);
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
   rb_define_method(rhrdt_s_class, "new!", rhrdt_s_new_b, -1);
+  rb_define_method(rhrdt_s_class, "now", rhrdt_s_now, -1);
   rb_define_method(rhrdt_s_class, "ordinal", rhrdt_s_ordinal, -1);
 
   rb_define_alias(rhrdt_s_class, "new", "civil");
