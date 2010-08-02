@@ -95,7 +95,7 @@ void rhrdt__jd_to_civil(rhrdt_t *date) {
 }
 
 void rhrdt__fraction_to_hms(rhrdt_t *d) {
-  double f, f1;
+  double f;
   f = d->fraction * 24;
   d->hour = floor(f);
   f = (f - d->hour) * 60;

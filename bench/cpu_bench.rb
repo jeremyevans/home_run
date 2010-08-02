@@ -48,7 +48,12 @@ end
 n = (ARGV.first || 100000).to_i
 puts "label,stdlib,home_run,times faster"
 dt_compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1, 13, 43, 57)}}
+dt_compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1, 13, 43, 57)}}
+dt_compare(".jd"){|dc| n.times{dc.jd(2010, 13, 43, 57)}}
+dt_compare(".new!"){|dc| n.times{dc.new!(201013.3, -8/24.0)}}
+dt_compare(".ordinal"){|dc| n.times{dc.ordinal(2010, 1, 13, 43, 57)}}
 dt_compare("#inspect"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.inspect}}
+dt_compare("#to_s"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.to_s}}
 
 compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
 compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 00:00:00 2007', '%c')}}
