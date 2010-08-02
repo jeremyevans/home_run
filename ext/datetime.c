@@ -15,10 +15,10 @@ typedef struct rhrdt_s {
   unsigned char flags;
 } rhrdt_t;
 
-#define RHRDT_FILL_JD(d) if (((d)->flags & RHR_HAVE_JD) == 0) { rhrdt__civil_to_jd(d); }
-#define RHRDT_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrdt__jd_to_civil(d); }
-#define RHRDT_FILL_HMS(d) if (((d)->flags & RHR_HAVE_HMS) == 0) { rhrdt__fraction_to_hms(d); }
-#define RHRDT_FILL_FRACTION(d) if (((d)->flags & RHR_HAVE_FRACTION) == 0) { rhrdt__hms_to_fraction(d); }
+#define RHRDT_FILL_JD(d) if (!((d)->flags & RHR_HAVE_JD)) { rhrdt__civil_to_jd(d); }
+#define RHRDT_FILL_CIVIL(d) if (!((d)->flags & RHR_HAVE_CIVIL)) { rhrdt__jd_to_civil(d); }
+#define RHRDT_FILL_HMS(d) if (!((d)->flags & RHR_HAVE_HMS)) { rhrdt__fraction_to_hms(d); }
+#define RHRDT_FILL_FRACTION(d) if (!((d)->flags & RHR_HAVE_FRACTION)) { rhrdt__hms_to_fraction(d); }
 
 VALUE rhrdt_class;
 VALUE rhrdt_s_class;
@@ -58,7 +58,7 @@ int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   dt->minute = m;
   dt->second = s;
   dt->offset = round(offset * 1440);
-  dt->flags = RHR_HAVE_HMS;
+  dt->flags |= RHR_HAVE_HMS;
   return 1;
 }
 
@@ -137,6 +137,44 @@ int rhrdt__valid_commercial(rhrdt_t *d, long cwyear, long cweek, long cwday) {
 
   d->jd = n.jd;
   d->flags = RHR_HAVE_JD;
+  return 1;
+}
+
+int rhrdt__valid_ordinal(rhrdt_t *d, long year, long yday) {
+  int leap;
+  long month, day;
+
+  leap = rhrd__leap_year(year);
+  if (yday < 0) {
+    if (leap) {
+      yday += 367;
+    } else {
+      yday += 366;
+    }
+  }
+  if (yday < 1 || yday > (leap ? 366 : 365)) {
+    return 0;
+  }
+  if (leap) {
+    month = rhrd_leap_yday_to_month[yday];
+    if (yday > 60) {
+      day = yday - rhrd_cumulative_days_in_month[month] - 1;
+    } else {
+      day = yday - rhrd_cumulative_days_in_month[month];
+    }
+  } else {
+    month = rhrd_yday_to_month[yday];
+    day = yday - rhrd_cumulative_days_in_month[month];
+  }
+
+  if(!rhrd__valid_civil_limits(year, month, day)) {
+    return 0;
+  } 
+
+  d->year = year;
+  d->month = (unsigned char)month;
+  d->day = (unsigned char)day;
+  d->flags |= RHR_HAVE_CIVIL;
   return 1;
 }
 
@@ -271,6 +309,49 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
+  long year = RHR_DEFAULT_ORDINAL_YEAR;
+  long day = RHR_DEFAULT_ORDINAL_DAY;
+  long hour = 0;
+  long minute = 0;
+  long second = 0;
+  double offset = 0.0;
+  rhrdt_t *dt;
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+
+  switch(argc) {
+    case 7:
+    case 6:
+      offset = NUM2DBL(argv[5]);
+    case 5:
+      second = NUM2LONG(argv[4]);
+    case 4:
+      minute = NUM2LONG(argv[3]);
+    case 3:
+      hour = NUM2LONG(argv[2]);
+    case 2:
+      day = NUM2LONG(argv[1]);
+    case 1:
+      year = NUM2LONG(argv[0]);
+      break;
+    case 0:
+      dt->flags = RHR_HAVE_JD;
+      return rdt;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 7", argc);
+      break;
+  }
+
+  if(!rhrdt__valid_ordinal(dt, year, day)) {
+    RHR_CHECK_JD(dt)
+    rb_raise(rb_eArgError, "invalid date (year: %li, yday: %li)", year, day);
+  }
+  if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
+    rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
+  }
+  return rdt;
+}
+
 /* Instance methods */
 
 static VALUE rhrdt_inspect(VALUE self) {
@@ -319,6 +400,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
   rb_define_method(rhrdt_s_class, "commercial", rhrdt_s_commercial, -1);
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
+  rb_define_method(rhrdt_s_class, "ordinal", rhrdt_s_ordinal, -1);
 
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
