@@ -58,6 +58,7 @@ int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   dt->minute = m;
   dt->second = s;
   dt->offset = round(offset * 1440);
+  dt->flags = RHR_HAVE_HMS;
   return 1;
 }
 
@@ -117,7 +118,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 0:
       dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
-      break;
+      return rdt;
     case 8:
     case 7:
       offset = NUM2DBL(argv[6]);
@@ -143,6 +144,45 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
     RHR_CHECK_CIVIL(dt)
     rb_raise(rb_eArgError, "invalid date (year: %li, month: %li, day: %li)", year, month, day);
   }
+  if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
+    rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
+  }
+
+  return rdt;
+}
+
+static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *dt;
+  long jd = 0;
+  long hour = 0;
+  long minute = 0;
+  long second = 0;
+  double offset = 0.0;
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+
+  switch(argc) {
+    case 0:
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      return rdt;
+    case 6:
+    case 5:
+      offset = NUM2DBL(argv[4]);
+    case 4:
+      second = NUM2LONG(argv[3]);
+    case 3:
+      minute = NUM2LONG(argv[2]);
+    case 2:
+      hour = NUM2LONG(argv[1]);
+    case 1:
+      dt->jd = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 8", argc);
+      break;
+  }
+
+  RHR_CHECK_JD(dt)
+  dt->flags = RHR_HAVE_JD;
   if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
     rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
   }
@@ -178,6 +218,7 @@ void Init_datetime(void) {
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
 
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
+  rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
 
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
 }

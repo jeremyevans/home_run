@@ -1228,9 +1228,8 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
       year = NUM2LONG(argv[0]);
       break;
     case 0:
-      month = RHR_DEFAULT_MONTH;
-      day = RHR_DEFAULT_DAY;
-      break;
+      d->flags = RHR_HAVE_JD;
+      return rd;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 4", argc);
       break;
@@ -1281,8 +1280,8 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      d->jd = RHR_DEFAULT_JD;
-      break;
+      d->flags = RHR_HAVE_JD;
+      return rd;
     case 1:
     case 2:
       d->jd = NUM2LONG(argv[0]);
@@ -1334,12 +1333,14 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
       day = NUM2LONG(argv[1]);
     case 1:
       year = NUM2LONG(argv[0]);
-    case 0:
       if(!rhrd__valid_ordinal(d, year, day)) {
         RHR_CHECK_JD(d)
         rb_raise(rb_eArgError, "invalid date (year: %li, yday: %li)", year, day);
       }
       break;
+    case 0:
+      d->flags = RHR_HAVE_JD;
+      return rd;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
       break;
