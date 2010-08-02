@@ -461,7 +461,7 @@ static VALUE rhrdt_to_s(VALUE self) {
 /* Library initialization */
 
 void Init_datetime(void) {
-  rhrdt_class = rb_define_class("DateTime", rb_cObject);
+  rhrdt_class = rb_define_class("DateTime", rhrd_class);
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
 
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
@@ -475,4 +475,13 @@ void Init_datetime(void) {
 
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
+  
+#ifdef RUBY19
+#else
+  rb_define_alias(rhrdt_s_class, "new0", "new!");
+  rb_define_alias(rhrdt_s_class, "new1", "jd");
+  rb_define_alias(rhrdt_s_class, "new2", "ordinal");
+  rb_define_alias(rhrdt_s_class, "new3", "civil");
+  rb_define_alias(rhrdt_s_class, "neww", "commercial");
+#endif
 }
