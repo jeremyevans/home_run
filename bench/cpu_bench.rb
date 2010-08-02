@@ -55,6 +55,9 @@ dt_compare(".now"){|dc| n.times{dc.now}}
 dt_compare(".ordinal"){|dc| n.times{dc.ordinal(2010, 1, 13, 43, 57)}}
 dt_compare("#inspect"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.inspect}}
 dt_compare("#to_s"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.to_s}}
+dt_compare("#<=> DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2, 3, 4, 5); n.times{d <=> d2}}
+dt_compare("#<=> Date"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = Date.civil(2010, 1, 2); n.times{d <=> d2}}
+dt_compare("#<=> Integer"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2).jd; n.times{d <=> d2}}
 
 compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
 compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 00:00:00 2007', '%c')}}

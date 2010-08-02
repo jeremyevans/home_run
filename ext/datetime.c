@@ -198,6 +198,25 @@ void rhrdt__now(rhrdt_t * dt) {
   RHR_CHECK_JD(dt);
 }
 
+double rhrdt__to_double(rhrdt_t *d) {
+  RHRDT_FILL_JD(d)
+  RHRDT_FILL_FRACTION(d)
+  return d->jd + d->fraction + d->offset/1440;
+}
+
+long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
+  double d, o;
+  d = rhrdt__to_double(dt);
+  o = rhrdt__to_double(odt);
+  /* Consider anything within a millisecond as equal */
+  if (fabs(d - o) < 0.000000011574074) {
+    return 0;
+  } else if (d < o) {
+    return -1;
+  } 
+  return 1;
+}
+
 /* Class methods */
 
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -457,6 +476,41 @@ static VALUE rhrdt_to_s(VALUE self) {
   return rb_str_resize(s, len);
 }
 
+static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
+  rhrdt_t *dt, *odt;
+  rhrd_t *od;
+  double diff;
+  int res;
+  Data_Get_Struct(self, rhrdt_t, dt);
+
+  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    Data_Get_Struct(other, rhrdt_t, odt);
+    return INT2NUM(rhrdt__spaceship(dt, odt));
+  }
+  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(other, rhrd_t, od);
+    RHRDT_FILL_JD(dt)
+    RHR_FILL_JD(od)
+    RHR_SPACE_SHIP(res, dt->jd, od->jd)
+    if (res == 0) {
+      RHRDT_FILL_FRACTION(dt)
+      RHR_SPACE_SHIP(res, dt->fraction, 0)
+    }
+    return INT2NUM(res);
+  }
+  if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+    diff = NUM2DBL(other);
+    RHRDT_FILL_JD(dt)
+    RHR_SPACE_SHIP(res, dt->jd, (long)diff)
+    if (res == 0) {
+      RHRDT_FILL_FRACTION(dt)
+      RHR_SPACE_SHIP(res, dt->fraction, diff - floor(diff))
+    }
+    return INT2NUM(res);
+  }
+  return Qnil;
+}
+
 
 /* Library initialization */
 
@@ -464,6 +518,7 @@ void Init_datetime(void) {
   rhrdt_class = rb_define_class("DateTime", rhrd_class);
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
 
+  rb_undef(rhrdt_s_class, rb_intern("today"));
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
   rb_define_method(rhrdt_s_class, "commercial", rhrdt_s_commercial, -1);
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
@@ -476,6 +531,8 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
   
+  rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
+
 #ifdef RUBY19
 #else
   rb_define_alias(rhrdt_s_class, "new0", "new!");

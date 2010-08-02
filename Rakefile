@@ -75,38 +75,36 @@ task :garbage_bench do
   puts "home_run DateTime creates #{sprintf('%0.1f', stdlib/home_run.to_f)} times less garbage"
 end
 
-def date_methods
-  [`#{RUBY} -r date -e 'puts Date.singleton_methods(false)'`.split,
-  `#{RUBY} -I ext -r date -e 'puts Date.singleton_methods(false)'`.split,
-  `#{RUBY} -r date -e 'puts Date.instance_methods(false)'`.split,
-  `#{RUBY} -I ext -r date -e 'puts Date.instance_methods(false)'`.split]
-end
-
-def datetime_methods
-  [`#{RUBY} -r date -e 'puts (DateTime.singleton_methods(false) + Date.singleton_methods(false)).uniq'`.split,
-  `#{RUBY} -I ext -r date -e 'puts DateTime.singleton_methods(false)'`.split,
-  `#{RUBY} -r date -e 'puts (DateTime.instance_methods(false) + Date.instance_methods(false)).uniq'`.split,
-  `#{RUBY} -I ext -r date -e 'puts DateTime.instance_methods(false)'`.split]
-end
-
 desc "Print all methods that still need to be implemented"
 task :todo do
-  scm, hrcm, sim, hrim = date_methods
+  scm = `#{RUBY} -r date -e 'puts Date.singleton_methods(false)'`.split
+  hrcm = `#{RUBY} -I ext -r date -e 'puts Date.singleton_methods(false)'`.split
+  sim = `#{RUBY} -r date -e 'puts Date.instance_methods(false)'`.split
+  hrim = `#{RUBY} -I ext -r date -e 'puts Date.instance_methods(false)'`.split
   puts "Date Class Methods: #{(scm-hrcm).sort.join(', ')}"
   puts "Date Instance Methods: #{(sim-hrim).sort.join(', ')}"
   puts ""
-  scm, hrcm, sim, hrim = datetime_methods
+  scm = `#{RUBY} -r date -e 'puts (DateTime.singleton_methods(false) + Date.singleton_methods(false)).uniq'`.split
+  hrcm = `#{RUBY} -I ext -r date -e 'puts DateTime.singleton_methods(false)'`.split
+  sim = `#{RUBY} -r date -e 'puts (DateTime.instance_methods(false) + Date.instance_methods(false)).uniq'`.split
+  hrim = `#{RUBY} -I ext -r date -e 'puts DateTime.instance_methods(false)'`.split
   puts "DateTime Class Methods: #{(scm-hrcm).sort.reject{|m| m.to_s =~ /to_jd|jd_to|day_fraction|valid_|exist|leap|julian|gregorian|\A[no]s\?\z/}.join(', ')}"
   puts "DateTime Instance Methods: #{(sim-hrim).sort.join(', ')}"
 end
 
 desc "Print methods that are implemented but shouldn't be"
 task :toofar do
-  scm, hrcm, sim, hrim = date_methods
+  scm = `#{RUBY} -r date -e 'puts Date.methods'`.split
+  hrcm = `#{RUBY} -I ext -r date -e 'puts Date.methods'`.split
+  sim = `#{RUBY} -r date -e 'puts Date.instance_methods'`.split
+  hrim = `#{RUBY} -I ext -r date -e 'puts Date.instance_methods'`.split
   puts "Date Class Methods: #{(hrcm-scm).sort.join(', ')}"
   puts "Date Instance Methods: #{(hrim-sim).sort.join(', ')}"
   puts ""
-  scm, hrcm, sim, hrim = datetime_methods
+  scm = `#{RUBY} -r date -e 'puts DateTime.methods'`.split
+  hrcm = `#{RUBY} -I ext -r date -e 'puts DateTime.methods'`.split
+  sim = `#{RUBY} -r date -e 'puts DateTime.instance_methods'`.split
+  hrim = `#{RUBY} -I ext -r date -e 'puts DateTime.instance_methods'`.split
   puts "DateTime Class Methods: #{(hrcm-scm).sort.join(', ')}"
   puts "DateTime Instance Methods: #{(hrim-sim).sort.join(', ')}"
 end
