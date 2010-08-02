@@ -243,7 +243,7 @@ int rhrd__leap_year(long year) {
   }
 }
 
-int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
+int rhrd__check_valid_civil(long year, long month, long day) {
   if (month < 0 && month >= -12) {
     month += 13;
   }
@@ -277,6 +277,14 @@ int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
   if(!rhrd__valid_civil_limits(year, month, day)) {
     return 0;
   } 
+
+  return 1;
+}
+
+int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
+  if(!rhrd__check_valid_civil(year, month, day)) {
+    return 0;
+  }
 
   d->year = year;
   d->month = (unsigned char)month;
@@ -1233,7 +1241,7 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
 
   if (!rhrd__valid_civil(d, year, month, day)) {
     RHR_CHECK_CIVIL(d)
-    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
+    rb_raise(rb_eArgError, "invalid date (year: %li, month: %li, day: %li)", year, month, day);
   }
   return rd;
 }
@@ -2424,6 +2432,8 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
 
 #endif
 
+#include "datetime.c"
+
 /* Ruby Library Initialization */
 
 void Init_date(void) {
@@ -2620,4 +2630,6 @@ void Init_date(void) {
   rb_define_alias(rhrd_class, "os?", "julian?");
   rb_define_alias(rhrd_class, "sg", "start");
 #endif
+
+  Init_datetime();
 }

@@ -1,10 +1,13 @@
 require 'date'
 require 'benchmark'
 SD = Date
+SDT = DateTime
 $:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext'))
 Object.send(:remove_const, :Date)
+Object.send(:remove_const, :DateTime)
 require 'ext/date.so'
 HRD = Date
+HRDT = DateTime
 
 def compare(label, &block)
   Object.send(:remove_const, :Date)
@@ -19,11 +22,34 @@ def compare(label, &block)
   yield HRD
   home_run = Time.now - t
   
-  puts sprintf('%s,%0.5f,%0.5f,%0.2f', label, stdlib, home_run, stdlib/home_run)
+  puts sprintf('Date%s,%0.5f,%0.5f,%0.2f', label, stdlib, home_run, stdlib/home_run)
+end
+
+def dt_compare(label, &block)
+  Object.send(:remove_const, :Date)
+  Object.send(:remove_const, :DateTime)
+  Object.send(:const_set, :Date, SD)
+  Object.send(:const_set, :DateTime, SDT)
+  t = Time.now
+  yield SDT
+  stdlib = Time.now - t
+
+  Object.send(:remove_const, :Date)
+  Object.send(:remove_const, :DateTime)
+  Object.send(:const_set, :Date, HRD)
+  Object.send(:const_set, :DateTime, HRDT)
+  t = Time.now
+  yield HRDT
+  home_run = Time.now - t
+  
+  puts sprintf('DateTime%s,%0.5f,%0.5f,%0.2f', label, stdlib, home_run, stdlib/home_run)
 end
 
 n = (ARGV.first || 100000).to_i
 puts "label,stdlib,home_run,times faster"
+dt_compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1, 13, 43, 57)}}
+dt_compare("#inspect"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.inspect}}
+
 compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
 compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 00:00:00 2007', '%c')}}
 compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1)}}
