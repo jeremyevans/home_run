@@ -121,8 +121,7 @@ ID rhrd_id_local;
 ID rhrd_id_match;
 ID rhrd_id_now;
 ID rhrd_id_slice;
-
-long rhrd__offset;
+ID rhrd_id_utc_offset;
 
 VALUE rhrd_sym_cwday;
 VALUE rhrd_sym_cweek;
@@ -509,7 +508,7 @@ long rhrd__unix_to_jd(long t) {
 }
 
 void rhrd__today(rhrd_t * d) {
-  d->jd = rhrd__unix_to_jd(time(NULL) + rhrd__offset);
+  d->jd = rhrd__unix_to_jd(time(NULL) + NUM2LONG(rb_funcall(rb_funcall(rb_cTime, rhrd_id_now, 0), rhrd_id_utc_offset, 0)));
   d->flags |= RHR_HAVE_JD;
   RHR_CHECK_JD(d);
 }
@@ -2446,6 +2445,7 @@ void Init_date(void) {
   rhrd_id_match = rb_intern("match");
   rhrd_id_now = rb_intern("now");
   rhrd_id_slice = rb_intern("slice");
+  rhrd_id_utc_offset = rb_intern("utc_offset");
 
   rhrd_sym_cwday = ID2SYM(rb_intern("cwday"));
   rhrd_sym_cweek = ID2SYM(rb_intern("cweek"));
@@ -2464,7 +2464,6 @@ void Init_date(void) {
   rhrd_sym_year = ID2SYM(rb_intern("year"));
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
 
-  rhrd__offset = NUM2LONG(rb_funcall(rb_funcall(rb_cTime, rhrd_id_now, 0), rb_intern("utc_offset"), 0));
   rhrd_class = rb_define_class("Date", rb_cObject);
   rhrd_s_class = rb_singleton_class(rhrd_class);
 
