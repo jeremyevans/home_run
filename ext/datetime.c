@@ -102,6 +102,44 @@ void rhrdt__hms_to_fraction(rhrdt_t *d) {
   d->flags |= RHR_HAVE_FRACTION;
 }
 
+int rhrdt__valid_commercial(rhrdt_t *d, long cwyear, long cweek, long cwday) {
+  rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
+
+  if (cwday < 0) {
+    if (cwday < -8) {
+      return 0;
+    }
+    cwday += 8;
+  }
+  if (cweek < 0) {
+    if (cweek < -53) {
+      return 0;
+    }
+    n.jd = rhrd__commercial_to_jd(cwyear + 1, 1, 1) + cweek * 7;
+    rhrd__fill_commercial(&n);
+    if (n.year != cwyear) {
+      return 0;
+    }
+    cweek = n.month;
+    memset(&n, 0, sizeof(rhrd_t));
+  }
+
+  n.jd = rhrd__commercial_to_jd(cwyear, cweek, cwday);
+  rhrd__fill_commercial(&n);
+  if(cwyear != n.year || cweek != n.month || cwday != n.day) {
+    return 0;
+  }
+
+  if ((n.jd > RHR_JD_MAX) || (n.jd < RHR_JD_MIN)) {
+    return 0;
+  }
+
+  d->jd = n.jd;
+  d->flags = RHR_HAVE_JD;
+  return 1;
+}
+
 /* Class methods */
 
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -151,9 +189,52 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *dt;
+  long cwyear = RHR_DEFAULT_CWYEAR;
+  long cweek = RHR_DEFAULT_CWEEK;
+  long cwday = RHR_DEFAULT_CWDAY;
+  long hour = 0;
+  long minute = 0;
+  long second = 0;
+  double offset = 0.0;
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+
+  switch(argc) {
+    case 8:
+    case 7:
+      offset = NUM2DBL(argv[6]);
+    case 6:
+      second = NUM2LONG(argv[5]);
+    case 5:
+      minute = NUM2LONG(argv[4]);
+    case 4:
+      hour = NUM2LONG(argv[3]);
+    case 3:
+      cwday = NUM2LONG(argv[2]);
+    case 2:
+      cweek = NUM2LONG(argv[1]);
+    case 1:
+      cwyear = NUM2LONG(argv[0]);
+    case 0:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 8", argc);
+      break;
+  }
+  if(!rhrdt__valid_commercial(dt, cwyear, cweek, cwday)) {
+    RHR_CHECK_JD(dt)
+    rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %li, cwday: %li)", cwyear, cweek, cwday);
+  }
+  if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
+    rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
+  }
+
+  return rdt;
+}
+
 static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
-  long jd = 0;
   long hour = 0;
   long minute = 0;
   long second = 0;
@@ -177,7 +258,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
       dt->jd = NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 8", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 6", argc);
       break;
   }
 
@@ -236,6 +317,7 @@ void Init_datetime(void) {
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
 
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
+  rb_define_method(rhrdt_s_class, "commercial", rhrdt_s_commercial, -1);
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
 
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
