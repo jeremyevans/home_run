@@ -1,7 +1,7 @@
 require "rake"
 require "rake/clean"
 
-CLEAN.include %w'Makefile ext/home_run_date.*o **/*.rbc *.core' 
+CLEAN.include %w'Makefile ext/date.*o **/*.rbc *.core' 
 RUBY=ENV['RUBY'] || 'ruby'
 IRB=ENV['IRB'] || 'irb'
 MSPEC=ENV['MSPEC'] || 'mspec'
