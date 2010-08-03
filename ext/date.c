@@ -316,7 +316,7 @@ unsigned char rhrd__days_in_month(long year, unsigned char month) {
   }
 }
 
-static VALUE rhrd__add_days(VALUE self, long n) {
+VALUE rhrd__add_days(VALUE self, long n) {
   rhrd_t *d;
   rhrd_t *newd;
   VALUE new;
@@ -343,7 +343,7 @@ static VALUE rhrd__add_days(VALUE self, long n) {
   return new;
 }
 
-static VALUE rhrd__add_months(VALUE self, long n) {
+VALUE rhrd__add_months(VALUE self, long n) {
   rhrd_t *d;
   rhrd_t *newd;
   VALUE new;

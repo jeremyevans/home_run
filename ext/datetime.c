@@ -210,16 +210,34 @@ void rhrdt__now(rhrdt_t * dt) {
   RHR_CHECK_JD(dt);
 }
 
-double rhrdt__to_double(rhrdt_t *d) {
+double rhrdt__to_double_offset(rhrdt_t *d) {
   RHRDT_FILL_JD(d)
   RHRDT_FILL_FRACTION(d)
   return d->jd + d->fraction + d->offset/1440;
 }
 
+double rhrdt__to_double(rhrdt_t *d) {
+  RHRDT_FILL_JD(d)
+  RHRDT_FILL_FRACTION(d)
+  return d->jd + d->fraction;
+}
+
+VALUE rhrdt__from_double(double d, short offset) {
+  rhrdt_t *dt;
+  VALUE new;
+  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
+  
+  dt->jd = floor(d);
+  dt->fraction = d - dt->jd;
+  dt->offset = offset;
+  dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION;
+  return new;
+}
+
 long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
   double d, o;
-  d = rhrdt__to_double(dt);
-  o = rhrdt__to_double(odt);
+  d = rhrdt__to_double_offset(dt);
+  o = rhrdt__to_double_offset(odt);
   /* Consider anything within a millisecond as equal */
   if (fabs(d - o) < 0.000000011574074) {
     return 0;
@@ -227,6 +245,12 @@ long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
     return -1;
   } 
   return 1;
+}
+
+VALUE rhrdt__add_days(VALUE self, double n) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  return rhrdt__from_double(rhrdt__to_double(dt) + n, dt->offset);
 }
 
 /* Class methods */
@@ -538,6 +562,10 @@ static VALUE rhrdt_year(VALUE self) {
 
 /* Operator methods */ 
 
+static VALUE rhrdt_op_plus(VALUE self, VALUE other) {
+   return rhrdt__add_days(self, NUM2DBL(other));
+}
+
 static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *od;
@@ -600,6 +628,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
   rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
   
+  rb_define_method(rhrdt_class, "+", rhrdt_op_plus, 1);
   rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
 
   rb_define_alias(rhrdt_class, "mday", "day");
