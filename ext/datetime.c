@@ -546,6 +546,28 @@ static VALUE rhrdt__dump(VALUE self, VALUE limit) {
   return rb_marshal_dump(rb_ary_new3(3, INT2NUM(d->jd), rb_float_new(d->fraction), INT2NUM(d->offset)), INT2NUM(NUM2LONG(limit) - 1));
 }
 
+static VALUE rhrdt_asctime(VALUE self) {
+  VALUE s;
+  rhrdt_t *d;
+  int len;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_CIVIL(d)
+  RHRDT_FILL_JD(d)
+  RHRDT_FILL_HMS(d)
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2hhi %02hhi:%02hhi:%02hhi %04li", 
+        rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
+        rhrd__abbr_month_names[d->month],
+        d->day, d->hour, d->minute, d->second,
+        d->year);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#asctime (in snprintf)");
+  }
+
+  return rb_str_resize(s, len);
+}
+
 static VALUE rhrdt_day(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -771,6 +793,7 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_s_class, "new", "civil");
 
   rb_define_method(rhrdt_class, "_dump", rhrdt__dump, 1);
+  rb_define_method(rhrdt_class, "asctime", rhrdt_asctime, 0);
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
@@ -794,6 +817,7 @@ void Init_datetime(void) {
 
   rb_define_alias(rhrdt_class, "ajd", "jd");
   rb_define_alias(rhrdt_class, "amjd", "mjd");
+  rb_define_alias(rhrdt_class, "ctime", "asctime");
   rb_define_alias(rhrdt_class, "mday", "day");
   rb_define_alias(rhrdt_class, "mon", "month");
   rb_define_alias(rhrdt_class, "of", "offset");
