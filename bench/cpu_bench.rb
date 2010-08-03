@@ -58,6 +58,9 @@ dt_compare("#to_s"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.to_s}}
 dt_compare("#<=> DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2, 3, 4, 5); n.times{d <=> d2}}
 dt_compare("#<=> Date"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = Date.civil(2010, 1, 2); n.times{d <=> d2}}
 dt_compare("#<=> Integer"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2).jd; n.times{d <=> d2}}
+dt_compare("#=== Date"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = Date.civil(2010, 1, 2); n.times{d === d2}}
+dt_compare("#=== DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2, 13, 14, 15); n.times{d === d2}}
+dt_compare("#=== Integer"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = 2010; n.times{d === d2}}
 dt_compare("#- Integer"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d - 100}}
 dt_compare("#- Date"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = Date.civil(2010, 1, 2); n.times{d - d2}}
 dt_compare("#- DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 6, 21, 31, 45); n.times{d - d2}}

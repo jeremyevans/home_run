@@ -628,6 +628,30 @@ static VALUE rhrdt_op_minus(VALUE self, VALUE other) {
   rb_raise(rb_eTypeError, "expected numeric or date");
 }
 
+static VALUE rhrdt_op_relationship(VALUE self, VALUE other) {
+  rhrdt_t *dt, *odt;
+  rhrd_t *o;
+  long jd;
+
+  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    Data_Get_Struct(other, rhrdt_t, odt);
+    RHRDT_FILL_JD(odt)
+    jd = odt->jd;
+  } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(other, rhrd_t, o);
+    RHR_FILL_JD(o)
+    jd = o->jd;
+  } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+    jd = NUM2LONG(other);
+  } else {
+    return Qfalse;
+  }
+
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_JD(dt)
+  return dt->jd == jd ? Qtrue : Qfalse;
+}
+
 static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *od;
@@ -694,6 +718,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "<<", rhrdt_op_left_shift, 1);
   rb_define_method(rhrdt_class, "+", rhrdt_op_plus, 1);
   rb_define_method(rhrdt_class, "-", rhrdt_op_minus, 1);
+  rb_define_method(rhrdt_class, "===", rhrdt_op_relationship, 1);
   rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
 
   rb_define_alias(rhrdt_class, "mday", "day");
