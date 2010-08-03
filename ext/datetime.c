@@ -288,6 +288,35 @@ VALUE rhrdt__add_months(VALUE self, long n) {
 
 /* Class methods */
 
+static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
+  rhrdt_t * d;
+  long x;
+  VALUE ary, rd;
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+
+  ary = rb_marshal_load(string);
+  if (!RTEST(rb_obj_is_kind_of(ary, rb_cArray)) || RARRAY_LEN(ary) != 3) {
+    rb_raise(rb_eTypeError, "incompatible marshal file format");
+  }
+
+  d->jd = NUM2LONG(rb_ary_entry(ary, 0));
+  RHR_CHECK_JD(d)
+
+  d->fraction = NUM2DBL(rb_ary_entry(ary, 1));
+  if (d->fraction < 0 || d->fraction >= 1.0) {
+    rb_raise(rb_eArgError, "invalid day fraction: %f", d->fraction);
+  }
+
+  x = NUM2LONG(rb_ary_entry(ary, 2));
+  if (x > 864 || x < -864) {
+    rb_raise(rb_eArgError, "invalid offset: %ld minutes", x);
+  }
+  d->offset = x;
+  
+  d->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION;
+  return rd;
+}
+
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   long year = RHR_DEFAULT_YEAR;
@@ -509,6 +538,14 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
 
 /* Instance methods */
 
+static VALUE rhrdt__dump(VALUE self, VALUE limit) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  RHRDT_FILL_FRACTION(d)
+  return rb_marshal_dump(rb_ary_new3(3, INT2NUM(d->jd), rb_float_new(d->fraction), INT2NUM(d->offset)), INT2NUM(NUM2LONG(limit) - 1));
+}
+
 static VALUE rhrdt_day(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -695,6 +732,7 @@ void Init_datetime(void) {
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
 
   rb_undef(rhrdt_s_class, rb_intern("today"));
+  rb_define_method(rhrdt_s_class, "_load", rhrdt_s__load, 1);
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
   rb_define_method(rhrdt_s_class, "commercial", rhrdt_s_commercial, -1);
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
@@ -704,6 +742,7 @@ void Init_datetime(void) {
 
   rb_define_alias(rhrdt_s_class, "new", "civil");
 
+  rb_define_method(rhrdt_class, "_dump", rhrdt__dump, 1);
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
