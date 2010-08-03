@@ -739,6 +739,10 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
   return rhrdt__from_double(rhrdt__to_double(dt) - dt->offset/1440.0 + offset, offset * 1440.0);
 }
 
+static VALUE rhrdt_next(VALUE self) {
+   return rhrdt__add_days(self, 1);
+}
+
 static VALUE rhrdt_offset(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -924,6 +928,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "mjd", rhrdt_mjd, 0);
   rb_define_method(rhrdt_class, "month", rhrdt_month, 0);
   rb_define_method(rhrdt_class, "new_offset", rhrdt_new_offset, -1);
+  rb_define_method(rhrdt_class, "next", rhrdt_next, 0);
   rb_define_method(rhrdt_class, "offset", rhrdt_offset, 0);
   rb_define_method(rhrdt_class, "sec", rhrdt_sec, 0);
   rb_define_method(rhrdt_class, "sec_fraction", rhrdt_sec_fraction, 0);
@@ -944,6 +949,7 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "mon", "month");
   rb_define_alias(rhrdt_class, "newof", "new_offset");
   rb_define_alias(rhrdt_class, "of", "offset");
+  rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
 #else
