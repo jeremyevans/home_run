@@ -165,6 +165,7 @@ VALUE rhrd_sym_year;
 VALUE rhrd_sym_zone;
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
+static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrd_to_s(VALUE self);
 void rhrdt__civil_to_jd(rhrdt_t *d);
 void rhrdt__jd_to_civil(rhrdt_t *date);
@@ -1705,6 +1706,7 @@ static VALUE rhrd_start(VALUE self) {
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   rhrd_t *d, *n, *newd;
+  rhrdt_t *ndt;
   long step, limit, current;
   VALUE rlimit, new;
   Data_Get_Struct(self, rhrd_t, d);
@@ -1726,6 +1728,10 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   rlimit = argv[0];
   if (RTEST(rb_obj_is_kind_of(rlimit, rb_cNumeric))) {
     limit = NUM2LONG(rlimit);
+  } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrdt_class)))) {
+    Data_Get_Struct(rlimit, rhrdt_t, ndt);
+    RHRDT_FILL_JD(ndt)
+    limit = ndt->jd;
   } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrd_class)))) {
     Data_Get_Struct(rlimit, rhrd_t, n);
     RHR_FILL_JD(n)

@@ -218,7 +218,7 @@ void rhrdt__now(rhrdt_t * dt) {
 double rhrdt__to_double_offset(rhrdt_t *d) {
   RHRDT_FILL_JD(d)
   RHRDT_FILL_FRACTION(d)
-  return d->jd + d->fraction + d->offset/1440;
+  return d->jd + d->fraction + d->offset/1440.0;
 }
 
 double rhrdt__to_double(rhrdt_t *d) {
@@ -620,6 +620,13 @@ static VALUE rhrdt_day_fraction(VALUE self) {
   return rb_float_new(dt->fraction);
 }
 
+static VALUE rhrdt_downto(VALUE self, VALUE other) {
+  VALUE argv[2];
+  argv[0] = other;
+  argv[1] = INT2FIX(-1);
+  return rhrdt_step(2, argv, self);
+}
+
 static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *o;
@@ -773,6 +780,67 @@ static VALUE rhrdt_sec_fraction(VALUE self) {
   return rb_float_new(f);
 }
 
+static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
+  rhrdt_t *d, *ndt;
+  rhrd_t *nd;
+  double step, limit, current;
+  short offset;
+  VALUE rlimit, new;
+  Data_Get_Struct(self, rhrdt_t, d);
+  offset = d->offset;
+
+  rb_need_block();
+  switch(argc) {
+    case 1:
+      step = 1;
+      break;
+    case 2:
+      step = NUM2DBL(argv[1]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
+      break;
+  }
+
+  rlimit = argv[0];
+  if (RTEST(rb_obj_is_kind_of(rlimit, rb_cNumeric))) {
+    limit = NUM2DBL(rlimit);
+  } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrdt_class)))) {
+    Data_Get_Struct(rlimit, rhrdt_t, ndt);
+    RHRDT_FILL_JD(ndt)
+    limit = rhrdt__to_double_offset(ndt);
+  } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrd_class)))) {
+    Data_Get_Struct(rlimit, rhrd_t, nd);
+    RHR_FILL_JD(nd)
+    limit = nd->jd + offset/1440.0;
+  } else {
+    rb_raise(rb_eTypeError, "expected numeric or date");
+  }
+
+  current = rhrdt__to_double_offset(d);
+  if (limit > current) {
+    if (step > 0) {
+      while(limit >= current) {
+        new = rhrdt__from_double(current, offset);
+        current += step;
+        rb_yield(new);
+      }
+    }
+  } else if (limit < current) {
+    if (step < 0) {
+      while(limit <= current) {
+        new = rhrdt__from_double(current, offset);
+        current += step;
+        rb_yield(new);
+      }
+    }
+  } else {
+    rb_yield(self);
+  }
+
+  return self;
+}
+
 static VALUE rhrdt_to_s(VALUE self) {
   VALUE s;
   rhrdt_t *dt;
@@ -789,6 +857,12 @@ static VALUE rhrdt_to_s(VALUE self) {
   }
 
   return rb_str_resize(s, len);
+}
+
+static VALUE rhrdt_upto(VALUE self, VALUE other) {
+  VALUE argv[1];
+  argv[0] = other;
+  return rhrdt_step(1, argv, self);
 }
 
 static VALUE rhrdt_wday(VALUE self) {
@@ -946,6 +1020,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "cwyear", rhrdt_cwyear, 0);
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
   rb_define_method(rhrdt_class, "day_fraction", rhrdt_day_fraction, 0);
+  rb_define_method(rhrdt_class, "downto", rhrdt_downto, 1);
   rb_define_method(rhrdt_class, "eql?", rhrdt_eql_q, 1);
   rb_define_method(rhrdt_class, "hash", rhrdt_hash, 0);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
@@ -961,7 +1036,9 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "offset", rhrdt_offset, 0);
   rb_define_method(rhrdt_class, "sec", rhrdt_sec, 0);
   rb_define_method(rhrdt_class, "sec_fraction", rhrdt_sec_fraction, 0);
+  rb_define_method(rhrdt_class, "step", rhrdt_step, -1);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
+  rb_define_method(rhrdt_class, "upto", rhrdt_upto, 1);
   rb_define_method(rhrdt_class, "wday", rhrdt_wday, 0);
   rb_define_method(rhrdt_class, "yday", rhrdt_yday, 0);
   rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
