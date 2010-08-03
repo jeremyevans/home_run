@@ -452,6 +452,20 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
 
 /* Instance methods */
 
+static VALUE rhrdt_day(VALUE self) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_CIVIL(dt)
+  return INT2NUM(dt->day);
+}
+
+static VALUE rhrdt_hour(VALUE self) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_HMS(dt)
+  return INT2NUM(dt->hour);
+}
+
 static VALUE rhrdt_inspect(VALUE self) {
   VALUE s;
   rhrdt_t *dt;
@@ -468,6 +482,27 @@ static VALUE rhrdt_inspect(VALUE self) {
   }
 
   return rb_str_resize(s, len);
+}
+
+static VALUE rhrdt_min(VALUE self) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_HMS(dt)
+  return INT2NUM(dt->minute);
+}
+
+static VALUE rhrdt_month(VALUE self) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_CIVIL(dt)
+  return INT2NUM(dt->month);
+}
+
+static VALUE rhrdt_sec(VALUE self) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_HMS(dt)
+  return INT2NUM(dt->second);
 }
 
 static VALUE rhrdt_to_s(VALUE self) {
@@ -487,6 +522,15 @@ static VALUE rhrdt_to_s(VALUE self) {
 
   return rb_str_resize(s, len);
 }
+
+static VALUE rhrdt_year(VALUE self) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_CIVIL(dt)
+  return INT2NUM(dt->year);
+}
+
+/* Operator methods */ 
 
 static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
@@ -541,9 +585,18 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_s_class, "new", "civil");
 
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
+  rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
+  rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
+  rb_define_method(rhrdt_class, "min", rhrdt_min, 0);
+  rb_define_method(rhrdt_class, "month", rhrdt_month, 0);
+  rb_define_method(rhrdt_class, "sec", rhrdt_sec, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
+  rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
   
   rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
+
+  rb_define_alias(rhrdt_class, "mday", "day");
+  rb_define_alias(rhrdt_class, "mon", "month");
 
 #ifdef RUBY19
 #else
