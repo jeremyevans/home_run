@@ -620,6 +620,29 @@ static VALUE rhrdt_day_fraction(VALUE self) {
   return rb_float_new(dt->fraction);
 }
 
+static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
+  rhrdt_t *dt, *odt;
+  rhrd_t *o;
+  long diff;
+  Data_Get_Struct(self, rhrdt_t, dt);
+
+  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    Data_Get_Struct(other, rhrdt_t, odt);
+    return rhrdt__spaceship(dt, odt) == 0 ? Qtrue : Qfalse;
+  } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(other, rhrd_t, o);
+    RHRDT_FILL_JD(dt)
+    RHR_FILL_JD(o)
+    RHR_SPACE_SHIP(diff, dt->jd, o->jd)
+    if (diff == 0) {
+      RHRDT_FILL_FRACTION(dt)
+      RHR_SPACE_SHIP(diff, dt->fraction, 0)
+    }
+    return diff == 0 ? Qtrue : Qfalse;
+  }
+  return Qfalse;
+}
+
 static VALUE rhrdt_hour(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -861,6 +884,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "cwyear", rhrdt_cwyear, 0);
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
   rb_define_method(rhrdt_class, "day_fraction", rhrdt_day_fraction, 0);
+  rb_define_method(rhrdt_class, "eql?", rhrdt_eql_q, 1);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "jd", rhrdt_jd, 0);
