@@ -1061,6 +1061,10 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
+  rb_define_alias(rhrdt_class, "minute", "min");
+  rb_define_alias(rhrdt_class, "second", "sec");
+  rb_define_alias(rhrdt_class, "second_fraction", "sec_fraction");
+  rb_define_alias(rhrdt_class, "to_datetime", "gregorian");
 #else
   rb_define_alias(rhrdt_s_class, "new0", "new!");
   rb_define_alias(rhrdt_s_class, "new1", "jd");
