@@ -1589,9 +1589,21 @@ static VALUE rhrd_downto(VALUE self, VALUE other) {
 
 static VALUE rhrd_eql_q(VALUE self, VALUE other) {
   rhrd_t *d, *o;
+  rhrdt_t *odt;
+  long diff;
   Data_Get_Struct(self, rhrd_t, d);
 
-  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    Data_Get_Struct(other, rhrdt_t, odt);
+    RHR_FILL_JD(d)
+    RHRDT_FILL_JD(odt)
+    RHR_SPACE_SHIP(diff, d->jd, odt->jd)
+    if (diff == 0) {
+      RHRDT_FILL_FRACTION(odt)
+      RHR_SPACE_SHIP(diff, 0, odt->fraction)
+    }
+    return diff == 0 ? Qtrue : Qfalse;
+  } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
     Data_Get_Struct(other, rhrd_t, o);
     return rhrd__spaceship(d, o) == 0 ? Qtrue : Qfalse;
   }
@@ -2024,10 +2036,16 @@ static VALUE rhrd_op_minus(VALUE self, VALUE other) {
 
 static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
+  rhrdt_t *odt;
   long diff = 1;
   Data_Get_Struct(self, rhrd_t, d);
 
-  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    Data_Get_Struct(other, rhrdt_t, odt);
+    RHR_FILL_JD(d)
+    RHRDT_FILL_JD(odt)
+    diff = d->jd != odt->jd;
+  } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
     Data_Get_Struct(other, rhrd_t, o);
     diff = rhrd__spaceship(d, o);
   } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {

@@ -79,8 +79,10 @@ compare("#asctime"){|dc| d = dc.civil(2010, 1, 1); n.times{d.asctime}}
 compare("#jd"){|dc| d = dc.jd(2010); n.times{d.jd}}
 compare("#eql?"){|dc| d = dc.civil(2010, 1, 1); d2 = dc.civil(2010, 1, 1); n.times{d.eql? d2}}
 compare("#<=> Date"){|dc| d = dc.civil(2010, 1, 1); d2 = dc.civil(2010, 1, 2); n.times{d <=> d2}}
+compare("#<=> DateTime"){|dc| d = dc.civil(2010, 1, 1); d2 = DateTime.civil(2010, 1, 2, 13, 14, 15); n.times{d <=> d2}}
 compare("#<=> Integer"){|dc| d = dc.civil(2010, 1, 1); d2 = 2010; n.times{d <=> d2}}
 compare("#=== Date"){|dc| d = dc.civil(2010, 1, 1); d2 = dc.civil(2010, 1, 2); n.times{d === d2}}
+compare("#=== DateTime"){|dc| d = dc.civil(2010, 1, 1); d2 = DateTime.civil(2010, 1, 2, 13, 14, 15); n.times{d === d2}}
 compare("#=== Integer"){|dc| d = dc.civil(2010, 1, 1); d2 = 2010; n.times{d === d2}}
 compare("#+"){|dc| d = dc.civil(2010, 1, 1); n.times{d + 100}}
 compare("#- Integer"){|dc| d = dc.civil(2010, 1, 1); n.times{d - 100}}
