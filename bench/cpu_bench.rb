@@ -58,6 +58,11 @@ dt_compare("#to_s"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.to_s}}
 dt_compare("#<=> DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2, 3, 4, 5); n.times{d <=> d2}}
 dt_compare("#<=> Date"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = Date.civil(2010, 1, 2); n.times{d <=> d2}}
 dt_compare("#<=> Integer"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2).jd; n.times{d <=> d2}}
+dt_compare("#- Integer"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d - 100}}
+dt_compare("#- Date"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = Date.civil(2010, 1, 2); n.times{d - d2}}
+dt_compare("#- DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 6, 21, 31, 45); n.times{d - d2}}
+dt_compare("#>>"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d >> 13}}
+dt_compare("#<<"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d << 17}}
 
 compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
 compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 00:00:00 2007', '%c')}}
@@ -87,6 +92,7 @@ compare("#=== Integer"){|dc| d = dc.civil(2010, 1, 1); d2 = 2010; n.times{d === 
 compare("#+"){|dc| d = dc.civil(2010, 1, 1); n.times{d + 100}}
 compare("#- Integer"){|dc| d = dc.civil(2010, 1, 1); n.times{d - 100}}
 compare("#- Date"){|dc| d = dc.jd(2010); d2 = dc.jd(2011); n.times{d - d2}}
+compare("#- DateTime"){|dc| d = dc.jd(2010); d2 = DateTime.jd(2011); n.times{d - d2}}
 compare("#>>"){|dc| d = dc.civil(2010, 1, 31); n.times{d >> 13}}
 compare("#<<"){|dc| d = dc.civil(2011, 7, 31); n.times{d << 17}}
 compare("#next"){|dc| d = dc.civil(2010, 1, 1); n.times{d.next}}

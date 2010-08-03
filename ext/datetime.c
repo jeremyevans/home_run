@@ -253,6 +253,39 @@ VALUE rhrdt__add_days(VALUE self, double n) {
   return rhrdt__from_double(rhrdt__to_double(dt) + n, dt->offset);
 }
 
+VALUE rhrdt__add_months(VALUE self, long n) {
+  rhrdt_t *d;
+  rhrdt_t *newd;
+  VALUE new;
+  long x;
+  Data_Get_Struct(self, rhrdt_t, d);
+
+  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, newd);
+  RHRDT_FILL_CIVIL(d)
+  memcpy(newd, d, sizeof(rhrdt_t));
+
+  n = rhrd__safe_add_long(n, (long)(d->month));
+  if(n > 1 && n <= 12) {
+    newd->year = d->year;
+    newd->month = n;
+  } else {
+    x = n / 12;
+    n = n % 12;
+    if (n <= 0) {
+      newd->year = d->year + x - 1;
+      newd->month = n + 12;
+    } else {
+      newd->year = d->year + x;
+      newd->month = (unsigned char)n;
+    }
+  }
+  x = rhrd__days_in_month(newd->year, newd->month);
+  newd->day = (unsigned char)(d->day > x ? x : d->day);
+  RHR_CHECK_CIVIL(newd)
+  newd->flags &= ~RHR_HAVE_JD;
+  return new;
+}
+
 /* Class methods */
 
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -562,6 +595,14 @@ static VALUE rhrdt_year(VALUE self) {
 
 /* Operator methods */ 
 
+static VALUE rhrdt_op_right_shift(VALUE self, VALUE other) {
+  return rhrdt__add_months(self, NUM2LONG(other));
+}
+
+static VALUE rhrdt_op_left_shift(VALUE self, VALUE other) {
+  return rhrdt__add_months(self, -NUM2LONG(other));
+}
+
 static VALUE rhrdt_op_plus(VALUE self, VALUE other) {
    return rhrdt__add_days(self, NUM2DBL(other));
 }
@@ -649,6 +690,8 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
   rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
   
+  rb_define_method(rhrdt_class, ">>", rhrdt_op_right_shift, 1);
+  rb_define_method(rhrdt_class, "<<", rhrdt_op_left_shift, 1);
   rb_define_method(rhrdt_class, "+", rhrdt_op_plus, 1);
   rb_define_method(rhrdt_class, "-", rhrdt_op_minus, 1);
   rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
