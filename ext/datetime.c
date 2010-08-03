@@ -592,6 +592,13 @@ static VALUE rhrdt_min(VALUE self) {
   return INT2NUM(dt->minute);
 }
 
+static VALUE rhrdt_mjd(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  return INT2NUM(d->jd - RHR_JD_MJD);
+}
+
 static VALUE rhrdt_month(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -755,6 +762,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
   rb_define_method(rhrdt_class, "jd", rhrdt_jd, 0);
   rb_define_method(rhrdt_class, "min", rhrdt_min, 0);
+  rb_define_method(rhrdt_class, "mjd", rhrdt_mjd, 0);
   rb_define_method(rhrdt_class, "month", rhrdt_month, 0);
   rb_define_method(rhrdt_class, "offset", rhrdt_offset, 0);
   rb_define_method(rhrdt_class, "sec", rhrdt_sec, 0);
@@ -769,6 +777,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
 
   rb_define_alias(rhrdt_class, "ajd", "jd");
+  rb_define_alias(rhrdt_class, "amjd", "mjd");
   rb_define_alias(rhrdt_class, "mday", "day");
   rb_define_alias(rhrdt_class, "mon", "month");
   rb_define_alias(rhrdt_class, "of", "offset");
