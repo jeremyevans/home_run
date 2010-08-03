@@ -48,7 +48,7 @@ int rhrdt__valid_offset(rhrdt_t *dt, double offset) {
     return 0;
   }
 
-  dt->offset = round(offset * 1440);
+  dt->offset = lround(offset * 1440);
   return 1;
 }
 
@@ -567,7 +567,7 @@ static VALUE rhrdt_asctime(VALUE self) {
         d->day, d->hour, d->minute, d->second,
         d->year);
   if (len == -1 || len > 127) {
-    rb_raise(rb_eNoMemError, "in Date#asctime (in snprintf)");
+    rb_raise(rb_eNoMemError, "in DateTime#asctime (in snprintf)");
   }
 
   return rb_str_resize(s, len);
@@ -665,10 +665,10 @@ static VALUE rhrdt_inspect(VALUE self) {
   RHRDT_FILL_HMS(dt)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "#<DateTime %04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02li>",
-        dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second, dt->offset/60, rhrd__mod(dt->offset, 60));
+  len = snprintf(RSTRING_PTR(s), 128, "#<DateTime %04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02i>",
+        dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second, dt->offset/60, abs(dt->offset % 60));
   if (len == -1 || len > 127) {
-    rb_raise(rb_eNoMemError, "in Date#inspect (in snprintf)");
+    rb_raise(rb_eNoMemError, "in DateTime#inspect (in snprintf)");
   }
 
   return rb_str_resize(s, len);
@@ -736,7 +736,7 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "invalid offset (%f)", offset);
   } 
   Data_Get_Struct(self, rhrdt_t, dt);
-  return rhrdt__from_double(rhrdt__to_double(dt) - dt->offset/1440.0 + offset, offset * 1440.0);
+  return rhrdt__from_double(rhrdt__to_double(dt) - dt->offset/1440.0 + offset, lround(offset * 1440.0));
 }
 
 static VALUE rhrdt_next(VALUE self) {
@@ -782,10 +782,10 @@ static VALUE rhrdt_to_s(VALUE self) {
   RHRDT_FILL_HMS(dt)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02li",
-        dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second, dt->offset/60, rhrd__mod(dt->offset, 60));
+  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02i",
+        dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second, dt->offset/60, abs(dt->offset % 60));
   if (len == -1 || len > 127) {
-    rb_raise(rb_eNoMemError, "in Date#to_s (in snprintf)");
+    rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
   }
 
   return rb_str_resize(s, len);
@@ -796,6 +796,21 @@ static VALUE rhrdt_year(VALUE self) {
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
   return INT2NUM(dt->year);
+}
+
+static VALUE rhrdt_zone(VALUE self) {
+  VALUE s;
+  rhrdt_t *dt;
+  int len;
+  Data_Get_Struct(self, rhrdt_t, dt);
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%+03i:%02i", dt->offset/60, abs(dt->offset % 60));
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in DateTime#zone (in snprintf)");
+  }
+
+  return rb_str_resize(s, len);
 }
 
 /* Operator methods */ 
@@ -934,6 +949,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "sec_fraction", rhrdt_sec_fraction, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
   rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
+  rb_define_method(rhrdt_class, "zone", rhrdt_zone, 0);
   
   rb_define_method(rhrdt_class, ">>", rhrdt_op_right_shift, 1);
   rb_define_method(rhrdt_class, "<<", rhrdt_op_left_shift, 1);
