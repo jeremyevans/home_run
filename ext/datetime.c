@@ -585,6 +585,20 @@ static VALUE rhrdt_jd(VALUE self) {
   return INT2NUM(d->jd);
 }
 
+static VALUE rhrdt_ld(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  return INT2NUM(d->jd - RHR_JD_LD);
+}
+
+static VALUE rhrdt_leap_q(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_CIVIL(d)
+  return rhrd__leap_year(d->year) ? Qtrue : Qfalse;
+}
+
 static VALUE rhrdt_min(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -761,6 +775,8 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
   rb_define_method(rhrdt_class, "jd", rhrdt_jd, 0);
+  rb_define_method(rhrdt_class, "ld", rhrdt_ld, 0);
+  rb_define_method(rhrdt_class, "leap?", rhrdt_leap_q, 0);
   rb_define_method(rhrdt_class, "min", rhrdt_min, 0);
   rb_define_method(rhrdt_class, "mjd", rhrdt_mjd, 0);
   rb_define_method(rhrdt_class, "month", rhrdt_month, 0);
