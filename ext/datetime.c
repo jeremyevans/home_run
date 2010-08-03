@@ -995,6 +995,8 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   return Qnil;
 }
 
+#ifdef RUBY19
+
 /* 1.9 day? methods */
 
 VALUE rhrdt__day_q(VALUE self, long day) {
@@ -1032,6 +1034,7 @@ static VALUE rhrdt_saturday_q(VALUE self) {
   return rhrdt__day_q(self, 6);
 }
 
+#endif
 
 /* Library initialization */
 
