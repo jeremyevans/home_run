@@ -995,6 +995,43 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   return Qnil;
 }
 
+/* 1.9 day? methods */
+
+VALUE rhrdt__day_q(VALUE self, long day) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
+}
+
+static VALUE rhrdt_sunday_q(VALUE self) {
+  return rhrdt__day_q(self, 0);
+}
+
+static VALUE rhrdt_monday_q(VALUE self) {
+  return rhrdt__day_q(self, 1);
+}
+
+static VALUE rhrdt_tuesday_q(VALUE self) {
+  return rhrdt__day_q(self, 2);
+}
+
+static VALUE rhrdt_wednesday_q(VALUE self) {
+  return rhrdt__day_q(self, 3);
+}
+
+static VALUE rhrdt_thursday_q(VALUE self) {
+  return rhrdt__day_q(self, 4);
+}
+
+static VALUE rhrdt_friday_q(VALUE self) {
+  return rhrdt__day_q(self, 5);
+}
+
+static VALUE rhrdt_saturday_q(VALUE self) {
+  return rhrdt__day_q(self, 6);
+}
+
 
 /* Library initialization */
 
@@ -1065,6 +1102,14 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "second", "sec");
   rb_define_alias(rhrdt_class, "second_fraction", "sec_fraction");
   rb_define_alias(rhrdt_class, "to_datetime", "gregorian");
+
+  rb_define_method(rhrdt_class, "sunday?", rhrdt_sunday_q, 0);
+  rb_define_method(rhrdt_class, "monday?", rhrdt_monday_q, 0);
+  rb_define_method(rhrdt_class, "tuesday?", rhrdt_tuesday_q, 0);
+  rb_define_method(rhrdt_class, "wednesday?", rhrdt_wednesday_q, 0);
+  rb_define_method(rhrdt_class, "thursday?", rhrdt_thursday_q, 0);
+  rb_define_method(rhrdt_class, "friday?", rhrdt_friday_q, 0);
+  rb_define_method(rhrdt_class, "saturday?", rhrdt_saturday_q, 0);
 #else
   rb_define_alias(rhrdt_s_class, "new0", "new!");
   rb_define_alias(rhrdt_s_class, "new1", "jd");

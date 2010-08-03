@@ -2124,7 +2124,7 @@ VALUE rhrd__add_years(VALUE self, long n) {
   return new;
 }
 
-static VALUE rhrd__day_q(VALUE self, long day) {
+VALUE rhrd__day_q(VALUE self, long day) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
