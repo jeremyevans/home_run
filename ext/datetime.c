@@ -643,6 +643,12 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
   return Qfalse;
 }
 
+static VALUE rhrdt_hash(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  return rb_funcall(rb_float_new(rhrdt__to_double_offset(d)), rhrd_id_hash, 0);
+}
+
 static VALUE rhrdt_hour(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -885,6 +891,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
   rb_define_method(rhrdt_class, "day_fraction", rhrdt_day_fraction, 0);
   rb_define_method(rhrdt_class, "eql?", rhrdt_eql_q, 1);
+  rb_define_method(rhrdt_class, "hash", rhrdt_hash, 0);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "jd", rhrdt_jd, 0);
