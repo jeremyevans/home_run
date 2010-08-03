@@ -568,6 +568,39 @@ static VALUE rhrdt_asctime(VALUE self) {
   return rb_str_resize(s, len);
 }
 
+static VALUE rhrdt_cwday(VALUE self) {
+  rhrdt_t *d;
+  rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  n.jd = d->jd;
+  rhrd__fill_commercial(&n);
+  return INT2NUM(n.day);
+}
+
+static VALUE rhrdt_cweek(VALUE self) {
+  rhrdt_t *d;
+  rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  n.jd = d->jd;
+  rhrd__fill_commercial(&n);
+  return INT2NUM(n.month);
+}
+
+static VALUE rhrdt_cwyear(VALUE self) {
+  rhrdt_t *d;
+  rhrd_t n;
+  memset(&n, 0, sizeof(rhrd_t));
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  n.jd = d->jd;
+  rhrd__fill_commercial(&n);
+  return INT2NUM(n.year);
+}
+
 static VALUE rhrdt_day(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -794,9 +827,12 @@ void Init_datetime(void) {
 
   rb_define_method(rhrdt_class, "_dump", rhrdt__dump, 1);
   rb_define_method(rhrdt_class, "asctime", rhrdt_asctime, 0);
-  rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
+  rb_define_method(rhrdt_class, "cwday", rhrdt_cwday, 0);
+  rb_define_method(rhrdt_class, "cweek", rhrdt_cweek, 0);
+  rb_define_method(rhrdt_class, "cwyear", rhrdt_cwyear, 0);
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
+  rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "jd", rhrdt_jd, 0);
   rb_define_method(rhrdt_class, "ld", rhrdt_ld, 0);
   rb_define_method(rhrdt_class, "leap?", rhrdt_leap_q, 0);
