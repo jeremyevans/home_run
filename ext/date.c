@@ -472,13 +472,13 @@ int rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
   return 1;
 }
 
-long rhrd__ordinal_day(rhrd_t *d) {
-  long day;
-  day = rhrd_cumulative_days_in_month[d->month] + d->day;
-  if(d->month > 2 && rhrd__leap_year(d->year)) {
-    day += 1;
+long rhrd__ordinal_day(long year, unsigned char month, unsigned char day) {
+  long yday;
+  yday = rhrd_cumulative_days_in_month[month] + day;
+  if(month > 2 && rhrd__leap_year(year)) {
+    yday += 1;
   }
-  return day;
+  return yday;
 }
 
 int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
@@ -1852,7 +1852,7 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
           cp += sprintf(str + cp, "12");
           break;
         case 'j':
-          cp += sprintf(str + cp, "%03li", rhrd__ordinal_day(d));
+          cp += sprintf(str + cp, "%03li", rhrd__ordinal_day(d->year, d->month, d->day));
           break;
         case 'k':
           cp += sprintf(str + cp, " 0");
@@ -1994,7 +1994,7 @@ static VALUE rhrd_yday(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_CIVIL(d)
-  return INT2NUM(rhrd__ordinal_day(d));
+  return INT2NUM(rhrd__ordinal_day(d->year, d->month, d->day));
 }
 
 static VALUE rhrd_year(VALUE self) {
@@ -2425,7 +2425,7 @@ static VALUE rhrd_s_jd_to_ordinal(int argc, VALUE *argv, VALUE klass) {
   }
   RHR_FILL_CIVIL(&d)
 
-  return rb_ary_new3(2, INT2NUM(d.year), INT2NUM(rhrd__ordinal_day(&d)));
+  return rb_ary_new3(2, INT2NUM(d.year), INT2NUM(rhrd__ordinal_day(d.year, d.month, d.day)));
 }
 
 static VALUE rhrd_s_jd_to_wday(VALUE klass, VALUE jd) {

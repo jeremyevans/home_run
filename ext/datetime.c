@@ -791,6 +791,20 @@ static VALUE rhrdt_to_s(VALUE self) {
   return rb_str_resize(s, len);
 }
 
+static VALUE rhrdt_wday(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  return INT2NUM(rhrd__jd_to_wday(d->jd));
+}
+
+static VALUE rhrdt_yday(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_CIVIL(d)
+  return INT2NUM(rhrd__ordinal_day(d->year, d->month, d->day));
+}
+
 static VALUE rhrdt_year(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -948,6 +962,8 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "sec", rhrdt_sec, 0);
   rb_define_method(rhrdt_class, "sec_fraction", rhrdt_sec_fraction, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
+  rb_define_method(rhrdt_class, "wday", rhrdt_wday, 0);
+  rb_define_method(rhrdt_class, "yday", rhrdt_yday, 0);
   rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
   rb_define_method(rhrdt_class, "zone", rhrdt_zone, 0);
   
