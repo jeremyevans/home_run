@@ -144,6 +144,7 @@ ID rhrd_id_local;
 ID rhrd_id_match;
 ID rhrd_id_now;
 ID rhrd_id_slice;
+ID rhrd_id_to_f;
 ID rhrd_id_utc_offset;
 
 VALUE rhrd_sym_cwday;
@@ -2501,6 +2502,7 @@ void Init_date(void) {
   rhrd_id_match = rb_intern("match");
   rhrd_id_now = rb_intern("now");
   rhrd_id_slice = rb_intern("slice");
+  rhrd_id_to_f= rb_intern("to_f");
   rhrd_id_utc_offset = rb_intern("utc_offset");
 
   rhrd_sym_cwday = ID2SYM(rb_intern("cwday"));

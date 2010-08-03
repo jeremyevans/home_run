@@ -201,10 +201,15 @@ int rhrdt__valid_ordinal(rhrdt_t *d, long year, long yday) {
 void rhrdt__now(rhrdt_t * dt) {
   long t;
   long offset;
-  offset = NUM2LONG(rb_funcall(rb_funcall(rb_cTime, rhrd_id_now, 0), rhrd_id_utc_offset, 0));
-  t = time(NULL) + offset;
+  double f;
+  VALUE rt; 
+  rt = rb_funcall(rb_cTime, rhrd_id_now, 0);
+  offset = NUM2LONG(rb_funcall(rt, rhrd_id_utc_offset, 0));
+  f = NUM2DBL(rb_funcall(rt, rhrd_id_to_f, 0)) + offset;
+  t = floor(f);
+  f -= t;
   dt->jd = rhrd__unix_to_jd(t);
-  dt->fraction = rhrd__mod(t, 86400)/86400.0;
+  dt->fraction = (rhrd__mod(t, 86400) + f)/86400.0;
   dt->offset = offset/60;
   dt->flags |= RHR_HAVE_JD | RHR_HAVE_FRACTION;
   RHR_CHECK_JD(dt);
@@ -608,6 +613,13 @@ static VALUE rhrdt_day(VALUE self) {
   return INT2NUM(dt->day);
 }
 
+static VALUE rhrdt_day_fraction(VALUE self) {
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_FRACTION(dt)
+  return rb_float_new(dt->fraction);
+}
+
 static VALUE rhrdt_hour(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -686,6 +698,23 @@ static VALUE rhrdt_sec(VALUE self) {
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_HMS(dt)
   return INT2NUM(dt->second);
+}
+
+static VALUE rhrdt_sec_fraction(VALUE self) {
+  double f;
+  long i;
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_FRACTION(dt)
+ 
+  f = dt->fraction * 24;
+  i = floor(f);
+  f = (f - i) * 60;
+  i = floor(f);
+  f = (f - i) * 60;
+  i = floor(f);
+  f = (f - i)/86400;
+  return rb_float_new(f);
 }
 
 static VALUE rhrdt_to_s(VALUE self) {
@@ -831,6 +860,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "cweek", rhrdt_cweek, 0);
   rb_define_method(rhrdt_class, "cwyear", rhrdt_cwyear, 0);
   rb_define_method(rhrdt_class, "day", rhrdt_day, 0);
+  rb_define_method(rhrdt_class, "day_fraction", rhrdt_day_fraction, 0);
   rb_define_method(rhrdt_class, "hour", rhrdt_hour, 0);
   rb_define_method(rhrdt_class, "inspect", rhrdt_inspect, 0);
   rb_define_method(rhrdt_class, "jd", rhrdt_jd, 0);
@@ -841,6 +871,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "month", rhrdt_month, 0);
   rb_define_method(rhrdt_class, "offset", rhrdt_offset, 0);
   rb_define_method(rhrdt_class, "sec", rhrdt_sec, 0);
+  rb_define_method(rhrdt_class, "sec_fraction", rhrdt_sec_fraction, 0);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
   rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
   
