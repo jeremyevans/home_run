@@ -2020,10 +2020,18 @@ static VALUE rhrd_op_plus(VALUE self, VALUE other) {
 static VALUE rhrd_op_minus(VALUE self, VALUE other) {
   rhrd_t *d;
   rhrd_t *newd;
+  rhrdt_t *newdt;
   Data_Get_Struct(self, rhrd_t, d);
 
   if (RTEST(rb_obj_is_kind_of(other, rb_cNumeric))) {
     return rhrd__add_days(self, -NUM2LONG(other));
+  }
+  if (RTEST((rb_obj_is_kind_of(other, rhrdt_class)))) {
+    Data_Get_Struct(other, rhrdt_t, newdt);
+    RHR_FILL_JD(d)
+    RHRDT_FILL_JD(newdt)
+    RHRDT_FILL_FRACTION(newdt)
+    return rb_float_new(d->jd - (newdt->jd + newdt->fraction));
   }
   if (RTEST((rb_obj_is_kind_of(other, rhrd_class)))) {
     Data_Get_Struct(other, rhrd_t, newd);
@@ -2088,7 +2096,7 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 /* 1.9 helper methods */
 
-static VALUE rhrd__add_years(VALUE self, long n) {
+VALUE rhrd__add_years(VALUE self, long n) {
   rhrd_t *d;
   rhrd_t *newd;
   VALUE new;
