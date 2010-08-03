@@ -62,7 +62,13 @@ int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   if (s < 0) {
     s += 60;
   }
-  if (h < 0 || m < 0 || s < 0 || h > 24 || m > 59 || s > 59 || (h == 24 && m != 0 && s != 0)) {
+
+  if (h == 24 && m == 0 && s == 0) {
+    RHRDT_FILL_JD(dt)
+    dt->jd++;
+    dt->flags &= ~RHR_HAVE_CIVIL;
+    h = 0;
+  } else if (h < 0 || m < 0 || s < 0 || h > 23 || m > 59 || s > 59) {
     return 0;
   }
   if(!rhrdt__valid_offset(dt, offset)) {
