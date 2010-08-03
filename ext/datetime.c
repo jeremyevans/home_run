@@ -566,6 +566,27 @@ static VALUE rhrdt_op_plus(VALUE self, VALUE other) {
    return rhrdt__add_days(self, NUM2DBL(other));
 }
 
+static VALUE rhrdt_op_minus(VALUE self, VALUE other) {
+  rhrdt_t *dt;
+  rhrdt_t *newdt;
+  rhrd_t *newd;
+  Data_Get_Struct(self, rhrdt_t, dt);
+
+  if (RTEST(rb_obj_is_kind_of(other, rb_cNumeric))) {
+    return rhrdt__add_days(self, -NUM2DBL(other));
+  }
+  if (RTEST((rb_obj_is_kind_of(other, rhrdt_class)))) {
+    Data_Get_Struct(other, rhrdt_t, newdt);
+    return rb_float_new(rhrdt__to_double_offset(dt) - rhrdt__to_double_offset(newdt)); 
+  }
+  if (RTEST((rb_obj_is_kind_of(other, rhrd_class)))) {
+    Data_Get_Struct(other, rhrd_t, newd);
+    RHR_FILL_JD(newd)
+    return rb_float_new(rhrdt__to_double(dt) - newd->jd); 
+  }
+  rb_raise(rb_eTypeError, "expected numeric or date");
+}
+
 static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *od;
@@ -629,6 +650,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "year", rhrdt_year, 0);
   
   rb_define_method(rhrdt_class, "+", rhrdt_op_plus, 1);
+  rb_define_method(rhrdt_class, "-", rhrdt_op_minus, 1);
   rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
 
   rb_define_alias(rhrdt_class, "mday", "day");
