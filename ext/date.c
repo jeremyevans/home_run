@@ -58,6 +58,9 @@ so that no calculations can overflow.
 
 #define RHR_HAVE_JD 1
 #define RHR_HAVE_CIVIL 2
+#define RHR_HAVE_FRACTION 4
+#define RHR_HAVE_HMS 8
+
 
 #define RHRR_YEAR_SET 0x1
 #define RHRR_MONTH_SET 0x2
@@ -82,6 +85,11 @@ so that no calculations can overflow.
 #define RHR_FILL_JD(d) if (((d)->flags & RHR_HAVE_JD) == 0) { rhrd__civil_to_jd(d); }
 #define RHR_FILL_CIVIL(d) if (((d)->flags & RHR_HAVE_CIVIL) == 0) { rhrd__jd_to_civil(d); }
 
+#define RHRDT_FILL_JD(d) if (!((d)->flags & RHR_HAVE_JD)) { rhrdt__civil_to_jd(d); }
+#define RHRDT_FILL_CIVIL(d) if (!((d)->flags & RHR_HAVE_CIVIL)) { rhrdt__jd_to_civil(d); }
+#define RHRDT_FILL_HMS(d) if (!((d)->flags & RHR_HAVE_HMS)) { rhrdt__fraction_to_hms(d); }
+#define RHRDT_FILL_FRACTION(d) if (!((d)->flags & RHR_HAVE_FRACTION)) { rhrdt__hms_to_fraction(d); }
+
 #define RHR_SPACE_SHIP(x, l, r) if (l < r) { x = -1; } else if (l == r) { x = 0; } else { x = 1; } 
 
 #define RHR_CHECK_JD(d) if ((d->jd > RHR_JD_MAX) || (d->jd < RHR_JD_MIN)) { rb_raise(rb_eRangeError, "date out of range: jd = %li", d->jd);}
@@ -95,6 +103,19 @@ typedef struct rhrd_s {
   unsigned char flags;
 } rhrd_t;
 
+typedef struct rhrdt_s {
+  double fraction; /* Fraction of the day, range: [0.0, 1.0) */
+  long jd;
+  long year;
+  short offset; /* Offset from UTC in minutes */
+  unsigned char month;
+  unsigned char day;
+  unsigned char hour;
+  unsigned char minute;
+  unsigned char second;
+  unsigned char flags;
+} rhrdt_t;
+
 const unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 const long rhrd_cumulative_days_in_month[13] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
 const unsigned char rhrd_yday_to_month[366] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
@@ -106,6 +127,8 @@ const char * rhrd__abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri"
 const char rhrd__zone_re_str[] = "\\A(?:gmt|utc?)?[-+]\\d+(?:[,.:]\\d+(?::\\d+)?)?|[[:alpha:].\\s]+(?:standard|daylight)\\s+time\\b|[[:alpha:]]+(?:\\s+dst)?\\b";
 VALUE rhrd_class;
 VALUE rhrd_s_class;
+VALUE rhrdt_class;
+VALUE rhrdt_s_class;
 VALUE rhrd_monthnames;
 VALUE rhrd_abbr_monthnames;
 VALUE rhrd_daynames;
@@ -142,6 +165,10 @@ VALUE rhrd_sym_zone;
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrd_to_s(VALUE self);
+void rhrdt__civil_to_jd(rhrdt_t *d);
+void rhrdt__jd_to_civil(rhrdt_t *date);
+void rhrdt__fraction_to_hms(rhrdt_t *d);
+void rhrdt__hms_to_fraction(rhrdt_t *d);
 
 #include "date_parser.c"
 
@@ -2013,10 +2040,21 @@ static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
 
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
+  rhrdt_t *odt;
   long diff;
   Data_Get_Struct(self, rhrd_t, d);
 
-  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    Data_Get_Struct(other, rhrdt_t, odt);
+    RHR_FILL_JD(d)
+    RHRDT_FILL_JD(odt)
+    RHR_SPACE_SHIP(diff, d->jd, odt->jd)
+    if (diff == 0) {
+      RHRDT_FILL_FRACTION(odt)
+      RHR_SPACE_SHIP(diff, 0, odt->fraction)
+    }
+    return INT2NUM(diff);
+  } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
     Data_Get_Struct(other, rhrd_t, o);
     return INT2NUM(rhrd__spaceship(d, o));
   } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {

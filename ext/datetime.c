@@ -1,28 +1,4 @@
 
-#define RHR_HAVE_FRACTION 4
-#define RHR_HAVE_HMS 8
-
-typedef struct rhrdt_s {
-  double fraction; /* Fraction of the day, range: [0.0, 1.0) */
-  long jd;
-  long year;
-  short offset; /* Offset from UTC in minutes */
-  unsigned char month;
-  unsigned char day;
-  unsigned char hour;
-  unsigned char minute;
-  unsigned char second;
-  unsigned char flags;
-} rhrdt_t;
-
-#define RHRDT_FILL_JD(d) if (!((d)->flags & RHR_HAVE_JD)) { rhrdt__civil_to_jd(d); }
-#define RHRDT_FILL_CIVIL(d) if (!((d)->flags & RHR_HAVE_CIVIL)) { rhrdt__jd_to_civil(d); }
-#define RHRDT_FILL_HMS(d) if (!((d)->flags & RHR_HAVE_HMS)) { rhrdt__fraction_to_hms(d); }
-#define RHRDT_FILL_FRACTION(d) if (!((d)->flags & RHR_HAVE_FRACTION)) { rhrdt__hms_to_fraction(d); }
-
-VALUE rhrdt_class;
-VALUE rhrdt_s_class;
-
 /* Helper methods */
 
 int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
