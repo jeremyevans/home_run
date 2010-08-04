@@ -841,6 +841,27 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+static VALUE rhrdt_strftime(int argc, VALUE *argv, VALUE self) {
+  rhrdt_t* dt;
+
+  switch(argc) {
+    case 0:
+      return rhrdt_to_s(self);
+    case 1:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_CIVIL(dt)
+  RHRDT_FILL_JD(dt)
+  RHRDT_FILL_HMS(dt)
+  RHRDT_FILL_FRACTION(dt)
+  return rhrd__strftime(dt, RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
+}
+
 static VALUE rhrdt_to_s(VALUE self) {
   VALUE s;
   rhrdt_t *dt;
@@ -1247,6 +1268,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "sec", rhrdt_sec, 0);
   rb_define_method(rhrdt_class, "sec_fraction", rhrdt_sec_fraction, 0);
   rb_define_method(rhrdt_class, "step", rhrdt_step, -1);
+  rb_define_method(rhrdt_class, "strftime", rhrdt_strftime, -1);
   rb_define_method(rhrdt_class, "to_s", rhrdt_to_s, 0);
   rb_define_method(rhrdt_class, "upto", rhrdt_upto, 1);
   rb_define_method(rhrdt_class, "wday", rhrdt_wday, 0);
