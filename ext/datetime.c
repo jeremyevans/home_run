@@ -997,7 +997,47 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
 
 #ifdef RUBY19
 
-/* 1.9 day? methods */
+/* 1.9 instance methods */
+
+static VALUE rhrdt_to_date(VALUE self) {
+  rhrd_t *d;
+  rhrdt_t *dt;
+  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+  Data_Get_Struct(self, rhrdt_t, dt);
+
+  if (RHR_HAS_CIVIL(dt)) {
+    d->year = dt->year;
+    d->month = dt->month;
+    d->day = dt->day;
+    d->flags |= RHR_HAVE_CIVIL;
+  }
+  if (RHR_HAS_JD(dt)) {
+    d->jd = dt->jd;
+    d->flags |= RHR_HAVE_JD;
+  }
+
+  return rd;
+}
+
+static VALUE rhrdt_to_time(VALUE self) {
+  double f;
+  long h, m;
+  rhrdt_t *dt;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  self = rhrdt__from_double(rhrdt__to_double(dt) - dt->offset/1440.0, 0);
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_CIVIL(dt)
+  RHRDT_FILL_FRACTION(dt)
+
+  f = dt->fraction * 24;
+  h = floor(f);
+  f = (f - h) * 60;
+  m = floor(f);
+  f = (f - m) * 60;
+  return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, INT2NUM(dt->year), INT2NUM(dt->month), INT2NUM(dt->day), INT2NUM(h), INT2NUM(m), rb_float_new(f)), rhrd_id_localtime, 0);
+}
+
+/* 1.9 day? instance methods */
 
 VALUE rhrdt__day_q(VALUE self, long day) {
   rhrdt_t *d;
@@ -1101,6 +1141,9 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
+  rb_define_method(rhrdt_class, "to_date", rhrdt_to_date, 0);
+  rb_define_method(rhrdt_class, "to_time", rhrdt_to_time, 0);
+
   rb_define_alias(rhrdt_class, "minute", "min");
   rb_define_alias(rhrdt_class, "second", "sec");
   rb_define_alias(rhrdt_class, "second_fraction", "sec_fraction");
