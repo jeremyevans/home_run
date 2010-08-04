@@ -708,6 +708,187 @@ VALUE rhrd__from_hash(VALUE hash) {
   return rd;
 }
 
+VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
+  int i;
+  int cp = 0;
+  int str_len = 128;
+  int str_lim = 64;
+  int mod = 0;
+  char * str;
+  char c;
+  VALUE s;
+  rhrd_t cd;
+
+  memset(&cd, 0, sizeof(rhrd_t));
+  cd.jd = d->jd;
+  cd.flags = RHR_HAVE_JD;
+  rhrd__fill_commercial(&cd);
+
+  s = rb_str_buf_new(str_len);
+  str = RSTRING_PTR(s);
+  for (i = 0; i < fmt_len; i++) {
+    if (cp >= str_lim) {
+       str_len *= 2;
+       str_lim = str_len - 64;
+#ifndef RUBY186
+       rb_str_set_len(s, cp);
+#endif
+       s = rb_str_resize(s, str_len);
+       str = RSTRING_PTR(s);
+    }
+    c = fmt[i];
+
+    if (mod) {
+      switch (c) {
+        case 'a':
+          cp += sprintf(str + cp, "%s", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)]);
+          break;
+        case 'A':
+          cp += sprintf(str + cp, "%s", rhrd__day_names[rhrd__jd_to_wday(d->jd)]);
+          break;
+        case 'h':
+        case 'b':
+          cp += sprintf(str + cp, "%s", rhrd__abbr_month_names[d->month]);
+          break;
+        case 'B':
+          cp += sprintf(str + cp, "%s", rhrd__month_names[d->month]);
+          break;
+        case 'c':
+          cp += sprintf(str + cp, "%s %s %2hhi 00:00:00 %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->year);
+          break;
+        case 'C':
+          cp += sprintf(str + cp, "%02li", d->year / 100);
+          break;
+        case 'd':
+          cp += sprintf(str + cp, "%02hhi", d->day);
+          break;
+        case 'e':
+          cp += sprintf(str + cp, "%2hhi", d->day);
+          break;
+        case 'F':
+          cp += sprintf(str + cp, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
+          break;
+        case 'g':
+          cp += sprintf(str + cp, "%02li", cd.year % 100);
+          break;
+        case 'G':
+          cp += sprintf(str + cp, "%04li", cd.year);
+          break;
+        case 'H':
+          cp += sprintf(str + cp, "00");
+          break;
+        case 'I':
+          cp += sprintf(str + cp, "12");
+          break;
+        case 'j':
+          cp += sprintf(str + cp, "%03li", rhrd__ordinal_day(d->year, d->month, d->day));
+          break;
+        case 'k':
+          cp += sprintf(str + cp, " 0");
+          break;
+        case 'l':
+          cp += sprintf(str + cp, "12");
+          break;
+        case 'L':
+          cp += sprintf(str + cp, "000");
+          break;
+        case 'm':
+          cp += sprintf(str + cp, "%02hhi", d->month);
+          break;
+        case 'M':
+          cp += sprintf(str + cp, "00");
+          break;
+        case 'N':
+          cp += sprintf(str + cp, "000000000");
+          break;
+        case 'n':
+          cp += sprintf(str + cp, "\n");
+          break;
+        case 'p':
+          cp += sprintf(str + cp, "AM");
+          break;
+        case 'P':
+          cp += sprintf(str + cp, "am");
+          break;
+        case 'Q':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd) * 1000);
+          break;
+        case 'r':
+          cp += sprintf(str + cp, "12:00:00 AM");
+          break;
+        case 'R':
+          cp += sprintf(str + cp, "00:00");
+          break;
+        case 's':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd));
+          break;
+        case 'S':
+          cp += sprintf(str + cp, "00");
+          break;
+        case 't':
+          cp += sprintf(str + cp, "\t");
+          break;
+        case 'T':
+          cp += sprintf(str + cp, "00:00:00");
+          break;
+        case 'u':
+          cp += sprintf(str + cp, "%hhi", cd.day);
+          break;
+        case 'U':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_weeknum(d->jd, 0));
+          break;
+        case 'v':
+          cp += sprintf(str + cp, "%2hhi-%s-%04li", d->day, rhrd__abbr_month_names[d->month], d->year);
+          break;
+        case 'V':
+          cp += sprintf(str + cp, "%02hhi", cd.month);
+          break;
+        case 'w':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_wday(d->jd));
+          break;
+        case 'W':
+          cp += sprintf(str + cp, "%li", rhrd__jd_to_weeknum(d->jd, 1));
+          break;
+        case 'D':
+        case 'x':
+          cp += sprintf(str + cp, "%02hhi/%02hhi/%02li", d->month, d->day, d->year % 100);
+          break;
+        case 'X':
+          cp += sprintf(str + cp, "00:00:00");
+          break;
+        case 'y':
+          cp += sprintf(str + cp, "%02li", d->year % 100);
+          break;
+        case 'Y':
+          cp += sprintf(str + cp, "%04li", d->year);
+          break;
+        case 'z':
+          cp += sprintf(str + cp, "+0000");
+          break;
+        case 'Z':
+          cp += sprintf(str + cp, "+00:00");
+          break;
+        case '+':
+          cp += sprintf(str + cp, "%s %s %2hhi 00:00:00 +00:00 %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->year);
+          break;
+        default:
+          str[cp] = c;
+          cp += 1;
+      }
+      mod = 0;
+    } else {
+      if (c == '%') {
+        mod = 1;
+      } else {
+        str[cp] = c;
+        cp += 1;
+      }
+    }
+  }
+
+  RHR_RETURN_RESIZED_STR(s, cp)
+}
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -1779,24 +1960,13 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
 }
 
 static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
-  VALUE s;
   rhrd_t *d;
-  rhrd_t cd;
-  int i, fmt_len;
-  int cp = 0;
-  int str_len = 128;
-  int str_lim = 64;
-  int mod = 0;
-  char * fmt;
-  char * str;
-  char c;
+  rhrdt_t dt;
 
   switch(argc) {
     case 0:
       return rhrd_to_s(self);
     case 1:
-      fmt = RSTRING_PTR(argv[0]);
-      fmt_len = RSTRING_LEN(argv[0]);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
@@ -1806,175 +1976,13 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_CIVIL(d)
   RHR_FILL_JD(d)
-
-  memset(&cd, 0, sizeof(rhrd_t));
-  cd.jd = d->jd;
-  cd.flags = RHR_HAVE_JD;
-  rhrd__fill_commercial(&cd);
-
-  s = rb_str_buf_new(str_len);
-  str = RSTRING_PTR(s);
-  for (i = 0; i < fmt_len; i++) {
-    if (cp >= str_lim) {
-       str_len *= 2;
-       str_lim = str_len - 64;
-#ifndef RUBY186
-       rb_str_set_len(s, cp);
-#endif
-       s = rb_str_resize(s, str_len);
-       str = RSTRING_PTR(s);
-    }
-    c = fmt[i];
-
-    if (mod) {
-      switch (c) {
-        case 'a':
-          cp += sprintf(str + cp, "%s", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)]);
-          break;
-        case 'A':
-          cp += sprintf(str + cp, "%s", rhrd__day_names[rhrd__jd_to_wday(d->jd)]);
-          break;
-        case 'h':
-        case 'b':
-          cp += sprintf(str + cp, "%s", rhrd__abbr_month_names[d->month]);
-          break;
-        case 'B':
-          cp += sprintf(str + cp, "%s", rhrd__month_names[d->month]);
-          break;
-        case 'c':
-          cp += sprintf(str + cp, "%s %s %2hhi 00:00:00 %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->year);
-          break;
-        case 'C':
-          cp += sprintf(str + cp, "%02li", d->year / 100);
-          break;
-        case 'd':
-          cp += sprintf(str + cp, "%02hhi", d->day);
-          break;
-        case 'e':
-          cp += sprintf(str + cp, "%2hhi", d->day);
-          break;
-        case 'F':
-          cp += sprintf(str + cp, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
-          break;
-        case 'g':
-          cp += sprintf(str + cp, "%02li", cd.year % 100);
-          break;
-        case 'G':
-          cp += sprintf(str + cp, "%04li", cd.year);
-          break;
-        case 'H':
-          cp += sprintf(str + cp, "00");
-          break;
-        case 'I':
-          cp += sprintf(str + cp, "12");
-          break;
-        case 'j':
-          cp += sprintf(str + cp, "%03li", rhrd__ordinal_day(d->year, d->month, d->day));
-          break;
-        case 'k':
-          cp += sprintf(str + cp, " 0");
-          break;
-        case 'l':
-          cp += sprintf(str + cp, "12");
-          break;
-        case 'L':
-          cp += sprintf(str + cp, "000");
-          break;
-        case 'm':
-          cp += sprintf(str + cp, "%02hhi", d->month);
-          break;
-        case 'M':
-          cp += sprintf(str + cp, "00");
-          break;
-        case 'N':
-          cp += sprintf(str + cp, "000000000");
-          break;
-        case 'n':
-          cp += sprintf(str + cp, "\n");
-          break;
-        case 'p':
-          cp += sprintf(str + cp, "AM");
-          break;
-        case 'P':
-          cp += sprintf(str + cp, "am");
-          break;
-        case 'Q':
-          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd) * 1000);
-          break;
-        case 'r':
-          cp += sprintf(str + cp, "12:00:00 AM");
-          break;
-        case 'R':
-          cp += sprintf(str + cp, "00:00");
-          break;
-        case 's':
-          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd));
-          break;
-        case 'S':
-          cp += sprintf(str + cp, "00");
-          break;
-        case 't':
-          cp += sprintf(str + cp, "\t");
-          break;
-        case 'T':
-          cp += sprintf(str + cp, "00:00:00");
-          break;
-        case 'u':
-          cp += sprintf(str + cp, "%hhi", cd.day);
-          break;
-        case 'U':
-          cp += sprintf(str + cp, "%li", rhrd__jd_to_weeknum(d->jd, 0));
-          break;
-        case 'v':
-          cp += sprintf(str + cp, "%2hhi-%s-%04li", d->day, rhrd__abbr_month_names[d->month], d->year);
-          break;
-        case 'V':
-          cp += sprintf(str + cp, "%02hhi", cd.month);
-          break;
-        case 'w':
-          cp += sprintf(str + cp, "%li", rhrd__jd_to_wday(d->jd));
-          break;
-        case 'W':
-          cp += sprintf(str + cp, "%li", rhrd__jd_to_weeknum(d->jd, 1));
-          break;
-        case 'D':
-        case 'x':
-          cp += sprintf(str + cp, "%02hhi/%02hhi/%02li", d->month, d->day, d->year % 100);
-          break;
-        case 'X':
-          cp += sprintf(str + cp, "00:00:00");
-          break;
-        case 'y':
-          cp += sprintf(str + cp, "%02li", d->year % 100);
-          break;
-        case 'Y':
-          cp += sprintf(str + cp, "%04li", d->year);
-          break;
-        case 'z':
-          cp += sprintf(str + cp, "+0000");
-          break;
-        case 'Z':
-          cp += sprintf(str + cp, "+00:00");
-          break;
-        case '+':
-          cp += sprintf(str + cp, "%s %s %2hhi 00:00:00 +00:00 %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->year);
-          break;
-        default:
-          str[cp] = c;
-          cp += 1;
-      }
-      mod = 0;
-    } else {
-      if (c == '%') {
-        mod = 1;
-      } else {
-        str[cp] = c;
-        cp += 1;
-      }
-    }
-  }
-
-  RHR_RETURN_RESIZED_STR(s, cp)
+  memset(&dt, 0, sizeof(rhrdt_t));
+  dt.jd = d->jd;
+  dt.year = d->year;
+  dt.month = d->month;
+  dt.day = d->day;
+  dt.flags = RHR_HAVE_CIVIL | RHR_HAVE_JD;
+  return rhrd__strftime(&dt, RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
 }
 
 static VALUE rhrd_to_s(VALUE self) {
