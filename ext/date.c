@@ -131,6 +131,9 @@ const char * rhrd__abbr_month_names[13] = {"", "Jan", "Feb", "Mar", "Apr", "May"
 const char * rhrd__day_names[7] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 const char * rhrd__abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 const char rhrd__zone_re_str[] = "\\A(?:gmt|utc?)?[-+]\\d+(?:[,.:]\\d+(?::\\d+)?)?|[[:alpha:].\\s]+(?:standard|daylight)\\s+time\\b|[[:alpha:]]+(?:\\s+dst)?\\b";
+const char rhrd__zone_dst_re_str[] = "\\s+(?:(?:(standard)|daylight)\\s+time|dst)\\z";
+const char rhrd__zone_sign_re_str[] = "\\A(?:gmt|utc?)?(?:(-)|\\+)";
+
 VALUE rhrd_class;
 VALUE rhrd_s_class;
 VALUE rhrdt_class;
@@ -140,18 +143,29 @@ VALUE rhrd_abbr_monthnames;
 VALUE rhrd_daynames;
 VALUE rhrd_abbr_daynames;
 VALUE rhrd_zone_re;
+VALUE rhrd_zone_dst_re;
+VALUE rhrd_zone_sign_re;
+VALUE rhrd_zones_hash;
+VALUE rhrd_empty_string;
+VALUE rhrd_string_colon;
+VALUE rhrd_re_comma_period;
 
 ID rhrd_id_op_array;
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
+ID rhrd_id_downcase_b;
 ID rhrd_id_hash;
+ID rhrd_id_include_q;
 ID rhrd_id_length;
 ID rhrd_id_local;
 ID rhrd_id_localtime;
 ID rhrd_id_match;
 ID rhrd_id_now;
 ID rhrd_id_slice;
+ID rhrd_id_split;
+ID rhrd_id_sub_b;
 ID rhrd_id_to_f;
+ID rhrd_id_to_i;
 ID rhrd_id_utc;
 ID rhrd_id_utc_offset;
 
@@ -1697,6 +1711,77 @@ static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
   return INT2NUM(d.jd);
 }
 
+static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
+  long offset = 0;
+  long len, i, j;
+  char *s;
+  VALUE v, e;
+
+  rb_funcall(str, rhrd_id_downcase_b, 0);
+  if(RTEST(rb_funcall(str, rhrd_id_sub_b, 2, rhrd_zone_dst_re, rhrd_empty_string))) {
+    if (!RTEST(rb_reg_nth_match(1, rb_gv_get("$~")))) { 
+      offset += 3600;
+    }
+  }
+
+  if(RTEST(v = rb_hash_aref(rhrd_zones_hash, str))) {
+    return INT2NUM(offset + NUM2LONG(v));
+  }
+
+  if(RTEST(rb_funcall(str, rhrd_id_sub_b, 2, rhrd_zone_sign_re, rhrd_empty_string))) {
+    if (RTEST(rb_reg_nth_match(1, rb_gv_get("$~")))) { 
+      offset = -1;
+    } else {
+      offset = 1;
+    }
+    s = RSTRING_PTR(str);
+    len = RSTRING_LEN(str);
+    for(i=0; i < len; i++) {
+      if(s[i] == ':') {
+        v = rb_funcall(str, rhrd_id_split, 1, rhrd_string_colon);
+        return INT2NUM(NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
+               + NUM2LONG(rb_funcall(rb_ary_entry(v, 1), rhrd_id_to_i, 0)) * 60
+               + NUM2LONG(rb_funcall(rb_ary_entry(v, 2), rhrd_id_to_i, 0)));
+      }
+    }
+    for(i=0; i < len; i++) {
+      if((s[i] == ',') || (s[i] == '.')) {
+        v = rb_funcall(str, rhrd_id_split, 1, rhrd_re_comma_period);
+        e = rb_funcall(rb_ary_entry(v, 1), rhrd_id_to_i, 0); 
+        return INT2NUM(NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
+               + NUM2LONG(e * 3600) / (long)pow(10, RSTRING_LEN(e)));
+      }
+    }
+    switch (len) {
+      case 1:
+      case 2:
+        return INT2NUM(atol(s) * 3600);
+      case 3:
+        i = atol(s + 1);
+        s[1] = '\0';
+        len = atol(s);
+        return INT2NUM(len * 3600 + i * 60);
+      case 4:
+        i = atol(s + 2);
+        s[2] = '\0';
+        len = atol(s);
+        return INT2NUM(len * 3600 + i * 60);
+      default:
+        s[6] = '\0';
+      case 6:
+      case 5:
+        j = atol(s + 4);
+        s[4] = '\0';
+        i = atol(s + 2);
+        s[2] = '\0';
+        len = atol(s);
+        return INT2NUM(len * 3600 + i * 60 + j);
+    }
+  }
+
+  return INT2NUM(0);
+}
+
 /* Ruby Instance Methods */
 
 static VALUE rhrd__dump(VALUE self, VALUE limit) {
@@ -2541,14 +2626,19 @@ void Init_date(void) {
   rhrd_id_op_array = rb_intern("[]");
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
+  rhrd_id_downcase_b = rb_intern("downcase!");
   rhrd_id_hash = rb_intern("hash");
   rhrd_id_length = rb_intern("length");
+  rhrd_id_include_q = rb_intern("include?");
   rhrd_id_local = rb_intern("local");
   rhrd_id_localtime = rb_intern("localtime");
   rhrd_id_match = rb_intern("match");
   rhrd_id_now = rb_intern("now");
   rhrd_id_slice = rb_intern("slice");
-  rhrd_id_to_f= rb_intern("to_f");
+  rhrd_id_split = rb_intern("split");
+  rhrd_id_sub_b = rb_intern("sub!");
+  rhrd_id_to_f = rb_intern("to_f");
+  rhrd_id_to_i = rb_intern("to_i");
   rhrd_id_utc = rb_intern("utc");
   rhrd_id_utc_offset = rb_intern("utc_offset");
 
@@ -2665,9 +2755,193 @@ void Init_date(void) {
     rb_ary_push(rhrd_abbr_daynames, rb_str_new2(rhrd__abbr_day_names[i]));
   }
 
+  rhrd_zones_hash = rb_hash_new();
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("a"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("adt"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("afghanistan"), INT2NUM(16200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ahst"), INT2NUM(-36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("akdt"), INT2NUM(-28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("akst"), INT2NUM(-32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("alaskan"), INT2NUM(-32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("arab"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("arabian"), INT2NUM(14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("arabic"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("art"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ast"), INT2NUM(-14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("at"), INT2NUM(-7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("atlantic"), INT2NUM(-14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("aus central"), INT2NUM(34200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("aus eastern"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("azores"), INT2NUM(-3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("b"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("brst"), INT2NUM(-7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("brt"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("bst"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("bt"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("c"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("canada central"), INT2NUM(-21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cape verde"), INT2NUM(-3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cat"), INT2NUM(-36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("caucasus"), INT2NUM(14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cct"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cdt"), INT2NUM(-18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cen. australia"), INT2NUM(34200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central"), INT2NUM(-21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central america"), INT2NUM(-21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central asia"), INT2NUM(21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central europe"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central european"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central pacific"), INT2NUM(39600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cest"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cet"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("china"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("clst"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("clt"), INT2NUM(-14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cst"), INT2NUM(-21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("d"), INT2NUM(14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("dateline"), INT2NUM(-43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e"), INT2NUM(18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. africa"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. australia"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. europe"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. south america"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eadt"), INT2NUM(39600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("east"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eastern"), INT2NUM(-18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eat"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("edt"), INT2NUM(-14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eest"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eet"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("egypt"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ekaterinburg"), INT2NUM(18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("est"), INT2NUM(-18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("f"), INT2NUM(21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fiji"), INT2NUM(43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fle"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fst"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fwt"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("g"), INT2NUM(25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("gmt"), INT2NUM(0));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("greenland"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("greenwich"), INT2NUM(0));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("gst"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("gtb"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("h"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hadt"), INT2NUM(-32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hast"), INT2NUM(-36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hawaiian"), INT2NUM(-36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hdt"), INT2NUM(-32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hst"), INT2NUM(-36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("i"), INT2NUM(32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("idle"), INT2NUM(43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("idlw"), INT2NUM(-43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("india"), INT2NUM(19800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("iran"), INT2NUM(12600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ist"), INT2NUM(19800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("jerusalem"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("jst"), INT2NUM(32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("k"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("korea"), INT2NUM(32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("kst"), INT2NUM(32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("l"), INT2NUM(39600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("m"), INT2NUM(43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("malay peninsula"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mdt"), INT2NUM(-21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mest"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mesz"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("met"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mewt"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mexico"), INT2NUM(-21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mez"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mid-atlantic"), INT2NUM(-7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mountain"), INT2NUM(-25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("msd"), INT2NUM(14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("msk"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mst"), INT2NUM(-25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("myanmar"), INT2NUM(23400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("n"), INT2NUM(-3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("n. central asia"), INT2NUM(21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ndt"), INT2NUM(-9000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nepal"), INT2NUM(20700));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("new zealand"), INT2NUM(43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("newfoundland"), INT2NUM(-12600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("north asia"), INT2NUM(25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("north asia east"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nst"), INT2NUM(-12600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nt"), INT2NUM(-39600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nzdt"), INT2NUM(46800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nzst"), INT2NUM(43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nzt"), INT2NUM(43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("o"), INT2NUM(-7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("p"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pacific"), INT2NUM(-28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pacific sa"), INT2NUM(-14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pdt"), INT2NUM(-25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pst"), INT2NUM(-28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("q"), INT2NUM(-14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("r"), INT2NUM(-18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("romance"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("russian"), INT2NUM(10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("s"), INT2NUM(-21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sa eastern"), INT2NUM(-10800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sa pacific"), INT2NUM(-18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sa western"), INT2NUM(-14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("samoa"), INT2NUM(-39600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sast"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("se asia"), INT2NUM(25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sgt"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("south africa"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sri lanka"), INT2NUM(21600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sst"), INT2NUM(7200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("swt"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("t"), INT2NUM(-25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("taipei"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("tasmania"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("tokyo"), INT2NUM(32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("tonga"), INT2NUM(46800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("u"), INT2NUM(-28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("us eastern"), INT2NUM(-18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("us mountain"), INT2NUM(-25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ut"), INT2NUM(0));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("utc"), INT2NUM(0));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("v"), INT2NUM(-32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("vladivostok"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w"), INT2NUM(-36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w. australia"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w. central africa"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w. europe"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wadt"), INT2NUM(28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wast"), INT2NUM(25200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wat"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("west"), INT2NUM(3600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("west asia"), INT2NUM(18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("west pacific"), INT2NUM(36000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wet"), INT2NUM(0));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("x"), INT2NUM(-39600));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("y"), INT2NUM(-43200));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("yakutsk"), INT2NUM(32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ydt"), INT2NUM(-28800));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("yst"), INT2NUM(-32400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("z"), INT2NUM(0));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp4"), INT2NUM(14400));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp5"), INT2NUM(18000));
+  rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp6"), INT2NUM(21600));
+  rb_define_const(rhrd_s_class, "ZONES", rhrd_zones_hash);
+
+  rhrd_empty_string = rb_str_new("", 0);
+  rb_define_const(rhrd_s_class, "EMPTY_STRING", rhrd_empty_string);
+  rhrd_string_colon = rb_str_new(":", 1);
+  rb_define_const(rhrd_s_class, "COLON", rhrd_string_colon);
+  rhrd_re_comma_period = rb_reg_new("[,.]", 4, 0);
+  rb_define_const(rhrd_s_class, "COMMA_PERIOD", rhrd_re_comma_period);
+
   /* 1 is option ignore case */
   rhrd_zone_re = rb_reg_new(rhrd__zone_re_str, strlen(rhrd__zone_re_str), 1);
-  rb_define_const(rhrd_class, "ZONE_RE", rhrd_zone_re);
+  rb_define_const(rhrd_s_class, "ZONE_RE", rhrd_zone_re);
+  rhrd_zone_dst_re = rb_reg_new(rhrd__zone_dst_re_str, strlen(rhrd__zone_dst_re_str), 1);
+  rb_define_const(rhrd_s_class, "ZONE_DST_RE", rhrd_zone_dst_re);
+  rhrd_zone_sign_re = rb_reg_new(rhrd__zone_sign_re_str, strlen(rhrd__zone_sign_re_str), 1);
+  rb_define_const(rhrd_s_class, "ZONE_SIGN_RE", rhrd_zone_sign_re);
 
   rb_define_const(rhrd_class, "MONTHNAMES", rhrd_monthnames);
   rb_define_const(rhrd_class, "ABBR_MONTHNAMES", rhrd_abbr_monthnames);
@@ -2693,6 +2967,8 @@ void Init_date(void) {
   rb_define_method(rhrd_class, "thursday?", rhrd_thursday_q, 0);
   rb_define_method(rhrd_class, "friday?", rhrd_friday_q, 0);
   rb_define_method(rhrd_class, "saturday?", rhrd_saturday_q, 0);
+
+  rb_define_private_method(rhrd_s_class, "zone_to_diff", rhrd_s_zone_to_diff, 1);
 #else
   rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
   rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);
@@ -2714,6 +2990,7 @@ void Init_date(void) {
   rb_define_method(rhrd_s_class, "ordinal_to_jd", rhrd_s_ordinal_to_jd, -1);
   rb_define_method(rhrd_s_class, "time_to_day_fraction", rhrd_s_time_to_day_fraction, 3);
   rb_define_method(rhrd_s_class, "valid_time?", rhrd_s_valid_time_q, 3);
+  rb_define_method(rhrd_s_class, "zone_to_diff", rhrd_s_zone_to_diff, 1);
 
   rb_define_alias(rhrd_s_class, "exist?", "valid_civil?");
   rb_define_alias(rhrd_s_class, "exist1?", "valid_jd?");
