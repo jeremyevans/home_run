@@ -90,6 +90,12 @@ so that no calculations can overflow.
 #define RHRDT_FILL_HMS(d) if (!((d)->flags & RHR_HAVE_HMS)) { rhrdt__fraction_to_hms(d); }
 #define RHRDT_FILL_FRACTION(d) if (!((d)->flags & RHR_HAVE_FRACTION)) { rhrdt__hms_to_fraction(d); }
 
+#ifdef RUBY186
+#define RHR_RETURN_RESIZED_STR(s, len) return rb_str_resize(s, len);
+#else
+#define RHR_RETURN_RESIZED_STR(s, len) rb_str_set_len(s, len); return s;
+#endif
+
 #define RHR_SPACE_SHIP(x, l, r) if (l < r) { x = -1; } else if (l == r) { x = 0; } else { x = 1; } 
 
 #define RHR_CHECK_JD(d) if ((d->jd > RHR_JD_MAX) || (d->jd < RHR_JD_MIN)) { rb_raise(rb_eRangeError, "date out of range: jd = %li", d->jd);}
@@ -1537,7 +1543,7 @@ static VALUE rhrd_asctime(VALUE self) {
     rb_raise(rb_eNoMemError, "in Date#asctime (in snprintf)");
   }
 
-  return rb_str_resize(s, len);
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 static VALUE rhrd_cwday(VALUE self) {
@@ -1643,7 +1649,7 @@ static VALUE rhrd_inspect(VALUE self) {
     rb_raise(rb_eNoMemError, "in Date#inspect (in snprintf)");
   }
 
-  return rb_str_resize(s, len);
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 static VALUE rhrd_jd(VALUE self) {
@@ -1812,6 +1818,9 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
     if (cp >= str_lim) {
        str_len *= 2;
        str_lim = str_len - 64;
+#ifndef RUBY186
+       rb_str_set_len(s, cp);
+#endif
        s = rb_str_resize(s, str_len);
        str = RSTRING_PTR(s);
     }
@@ -1965,7 +1974,7 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
     }
   }
 
-  return rb_str_resize(s, cp);
+  RHR_RETURN_RESIZED_STR(s, cp)
 }
 
 static VALUE rhrd_to_s(VALUE self) {
@@ -1982,7 +1991,8 @@ static VALUE rhrd_to_s(VALUE self) {
     rb_raise(rb_eNoMemError, "in Date#to_s (in snprintf)");
   }
 
-  return rb_str_resize(s, len);
+  rb_str_set_len(s, len);
+  return s;
 }
 
 static VALUE rhrd_upto(VALUE self, VALUE other) {

@@ -570,7 +570,7 @@ static VALUE rhrdt_asctime(VALUE self) {
     rb_raise(rb_eNoMemError, "in DateTime#asctime (in snprintf)");
   }
 
-  return rb_str_resize(s, len);
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 static VALUE rhrdt_cwday(VALUE self) {
@@ -678,7 +678,7 @@ static VALUE rhrdt_inspect(VALUE self) {
     rb_raise(rb_eNoMemError, "in DateTime#inspect (in snprintf)");
   }
 
-  return rb_str_resize(s, len);
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 static VALUE rhrdt_jd(VALUE self) {
@@ -856,7 +856,7 @@ static VALUE rhrdt_to_s(VALUE self) {
     rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
   }
 
-  return rb_str_resize(s, len);
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 static VALUE rhrdt_upto(VALUE self, VALUE other) {
@@ -898,7 +898,7 @@ static VALUE rhrdt_zone(VALUE self) {
     rb_raise(rb_eNoMemError, "in DateTime#zone (in snprintf)");
   }
 
-  return rb_str_resize(s, len);
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 /* Operator methods */ 
