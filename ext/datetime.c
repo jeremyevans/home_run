@@ -999,6 +999,78 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
 
 /* 1.9 instance methods */
 
+static VALUE rhrdt_next_day(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = 1;
+      break;
+    case 1:
+      i = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+   return rhrdt__add_days(self, i);
+}
+
+static VALUE rhrdt_next_month(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = 1;
+      break;
+    case 1:
+      i = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  return rhrdt__add_months(self, i);
+}
+
+static VALUE rhrdt_prev_day(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = -1;
+      break;
+    case 1:
+      i = -NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+   return rhrdt__add_days(self, i);
+}
+
+static VALUE rhrdt_prev_month(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = -1;
+      break;
+    case 1:
+      i = -NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  return rhrdt__add_months(self, i);
+}
+
 static VALUE rhrdt_to_date(VALUE self) {
   rhrd_t *d;
   rhrdt_t *dt;
@@ -1136,11 +1208,13 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "ctime", "asctime");
   rb_define_alias(rhrdt_class, "mday", "day");
   rb_define_alias(rhrdt_class, "mon", "month");
-  rb_define_alias(rhrdt_class, "newof", "new_offset");
-  rb_define_alias(rhrdt_class, "of", "offset");
   rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
+  rb_define_method(rhrdt_class, "next_day", rhrdt_next_day, -1);
+  rb_define_method(rhrdt_class, "next_month", rhrdt_next_month, -1);
+  rb_define_method(rhrdt_class, "prev_day", rhrdt_prev_day, -1);
+  rb_define_method(rhrdt_class, "prev_month", rhrdt_prev_month, -1);
   rb_define_method(rhrdt_class, "to_date", rhrdt_to_date, 0);
   rb_define_method(rhrdt_class, "to_time", rhrdt_to_time, 0);
 
@@ -1162,5 +1236,8 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_s_class, "new2", "ordinal");
   rb_define_alias(rhrdt_s_class, "new3", "civil");
   rb_define_alias(rhrdt_s_class, "neww", "commercial");
+
+  rb_define_alias(rhrdt_class, "newof", "new_offset");
+  rb_define_alias(rhrdt_class, "of", "offset");
 #endif
 }
