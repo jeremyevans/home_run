@@ -2241,6 +2241,26 @@ static VALUE rhrd_prev_year(int argc, VALUE *argv, VALUE self) {
   return rhrd__add_years(self, i);
 }
 
+static VALUE rhrd_to_datetime(VALUE self) {
+  rhrd_t *d;
+  rhrdt_t *dt;
+  VALUE rdt = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
+  Data_Get_Struct(self, rhrd_t, d);
+
+  if (RHR_HAS_CIVIL(d)) {
+    dt->year = d->year;
+    dt->month = d->month;
+    dt->day = d->day;
+    dt->flags |= RHR_HAVE_CIVIL;
+  }
+  if (RHR_HAS_JD(d)) {
+    dt->jd = d->jd;
+    dt->flags |= RHR_HAVE_JD;
+  }
+
+  return rdt;
+}
+
 static VALUE rhrd_to_time(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2640,6 +2660,7 @@ void Init_date(void) {
   rb_define_method(rhrd_class, "prev_day", rhrd_prev_day, -1);
   rb_define_method(rhrd_class, "prev_month", rhrd_prev_month, -1);
   rb_define_method(rhrd_class, "prev_year", rhrd_prev_year, -1);
+  rb_define_method(rhrd_class, "to_datetime", rhrd_to_datetime, 0);
   rb_define_method(rhrd_class, "to_time", rhrd_to_time, 0);
 
   rb_define_alias(rhrd_class, "to_date", "gregorian");
