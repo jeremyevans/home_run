@@ -726,7 +726,7 @@ static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
 
 static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   char * str;
-  char * fmt_str = "%F";
+  const char * fmt_str = "%F";
   long len;
   long fmt_len = 2;
   long year = 0;
