@@ -88,7 +88,7 @@ task :todo do
   hrcm = `#{RUBY} -I ext -r date -e 'puts DateTime.singleton_methods(false)'`.split
   sim = `#{RUBY} -r date -e 'puts (DateTime.instance_methods(false) + Date.instance_methods(false)).uniq'`.split
   hrim = `#{RUBY} -I ext -r date -e 'puts DateTime.instance_methods(false)'`.split
-  puts "DateTime Class Methods: #{(scm-hrcm).sort.reject{|m| m.to_s =~ /to_jd|jd_to|day_fraction|valid_|exist|leap|julian|gregorian|today|\A[no]s\?\z/}.join(', ')}"
+  puts "DateTime Class Methods: #{(scm-hrcm).sort.reject{|m| m.to_s =~ /_strptime|to_jd|jd_to|day_fraction|valid_|exist|leap|julian|gregorian|today|\A[no]s\?\z/}.join(', ')}"
   puts "DateTime Instance Methods: #{(sim-hrim).sort.reject{|m| m.to_s =~ /gregorian|italy|julian|england|start|sg|\A[on]s\?/}.join(', ')}"
 end
 
