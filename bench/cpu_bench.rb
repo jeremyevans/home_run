@@ -66,6 +66,7 @@ dt_compare("#- Date"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = Date.civil
 dt_compare("#- DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 6, 21, 31, 45); n.times{d - d2}}
 dt_compare("#>>"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d >> 13}}
 dt_compare("#<<"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d << 17}}
+dt_compare("#strftime"){|dc| d = dc.civil(2010, 1, 10, 13, 43, 57); n.times{d.strftime('%+')}}
 
 compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
 compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 00:00:00 2007', '%c')}}

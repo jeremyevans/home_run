@@ -175,10 +175,12 @@ VALUE rhrd_sym_zone;
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrd_to_s(VALUE self);
+static VALUE rhrdt_to_s(VALUE self);
 void rhrdt__civil_to_jd(rhrdt_t *d);
 void rhrdt__jd_to_civil(rhrdt_t *date);
 void rhrdt__fraction_to_hms(rhrdt_t *d);
 void rhrdt__hms_to_fraction(rhrdt_t *d);
+double rhrdt__sec_fraction(rhrdt_t *dt);
 
 #include "date_parser.c"
 
@@ -754,7 +756,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%s", rhrd__month_names[d->month]);
           break;
         case 'c':
-          cp += sprintf(str + cp, "%s %s %2hhi 00:00:00 %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->year);
+          cp += sprintf(str + cp, "%s %s %2hhi %02hhi:%02hhi:%02hhi %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->hour, d->minute, d->second, d->year);
           break;
         case 'C':
           cp += sprintf(str + cp, "%02li", d->year / 100);
@@ -775,61 +777,62 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%04li", cd.year);
           break;
         case 'H':
-          cp += sprintf(str + cp, "00");
+          cp += sprintf(str + cp, "%02hhi", d->hour);
           break;
         case 'I':
-          cp += sprintf(str + cp, "12");
+          cp += sprintf(str + cp, "%02hhi", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12);
           break;
         case 'j':
           cp += sprintf(str + cp, "%03li", rhrd__ordinal_day(d->year, d->month, d->day));
           break;
         case 'k':
-          cp += sprintf(str + cp, " 0");
+          cp += sprintf(str + cp, "%2hhi", d->hour);
           break;
         case 'l':
-          cp += sprintf(str + cp, "12");
+          cp += sprintf(str + cp, "%2hhi", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12);
           break;
         case 'L':
-          cp += sprintf(str + cp, "000");
+          cp += sprintf(str + cp, "%03li", (long)(rhrdt__sec_fraction(d) * 1000));
           break;
         case 'm':
           cp += sprintf(str + cp, "%02hhi", d->month);
           break;
         case 'M':
-          cp += sprintf(str + cp, "00");
+          cp += sprintf(str + cp, "%02hhi", d->minute);
           break;
         case 'N':
-          cp += sprintf(str + cp, "000000000");
+          cp += sprintf(str + cp, "%09li", (long)(rhrdt__sec_fraction(d) * 1000000000));
           break;
         case 'n':
           cp += sprintf(str + cp, "\n");
           break;
         case 'p':
-          cp += sprintf(str + cp, "AM");
+          cp += sprintf(str + cp, d->hour >= 12 ? "PM" : "AM");
           break;
         case 'P':
-          cp += sprintf(str + cp, "am");
+          cp += sprintf(str + cp, d->hour >= 12 ? "pm" : "am");
           break;
         case 'Q':
           cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd) * 1000);
           break;
         case 'r':
-          cp += sprintf(str + cp, "12:00:00 AM");
+          cp += sprintf(str + cp, "%2hhi:%02hhi:%02hhi %s", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12, d->minute, d->second, d->hour >= 12 ? "PM" : "AM");
           break;
         case 'R':
-          cp += sprintf(str + cp, "00:00");
+          cp += sprintf(str + cp, "%02hhi:%02hhi", d->hour, d->minute);
           break;
         case 's':
           cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd));
           break;
         case 'S':
-          cp += sprintf(str + cp, "00");
+          cp += sprintf(str + cp, "%02hhi", d->second);
           break;
         case 't':
           cp += sprintf(str + cp, "\t");
           break;
+        case 'X':
         case 'T':
-          cp += sprintf(str + cp, "00:00:00");
+          cp += sprintf(str + cp, "%02hhi:%02hhi:%02hhi", d->hour, d->minute, d->second);
           break;
         case 'u':
           cp += sprintf(str + cp, "%hhi", cd.day);
@@ -853,9 +856,6 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
         case 'x':
           cp += sprintf(str + cp, "%02hhi/%02hhi/%02li", d->month, d->day, d->year % 100);
           break;
-        case 'X':
-          cp += sprintf(str + cp, "00:00:00");
-          break;
         case 'y':
           cp += sprintf(str + cp, "%02li", d->year % 100);
           break;
@@ -863,13 +863,13 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%04li", d->year);
           break;
         case 'z':
-          cp += sprintf(str + cp, "+0000");
+          cp += sprintf(str + cp, "%+03i%02i", d->offset/60, abs(d->offset % 60));
           break;
         case 'Z':
-          cp += sprintf(str + cp, "+00:00");
+          cp += sprintf(str + cp, "%+03i:%02i", d->offset/60, abs(d->offset % 60));
           break;
         case '+':
-          cp += sprintf(str + cp, "%s %s %2hhi 00:00:00 +00:00 %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->year);
+          cp += sprintf(str + cp, "%s %s %2hhi %02hhi:%02hhi:%02hhi %+03i:%02i %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->hour, d->minute, d->second, d->offset/60, abs(d->offset % 60), d->year);
           break;
         default:
           str[cp] = c;

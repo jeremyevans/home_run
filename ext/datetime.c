@@ -291,6 +291,21 @@ VALUE rhrdt__add_months(VALUE self, long n) {
   return new;
 }
 
+/* Returns a double as a fraction of the second,
+ * not as a fraction of the day */
+double rhrdt__sec_fraction(rhrdt_t *dt) {
+  double f;
+  long i;
+
+  f = dt->fraction * 24;
+  i = floor(f);
+  f = (f - i) * 60;
+  i = floor(f);
+  f = (f - i) * 60;
+  i = floor(f);
+  return  (f - i);
+}
+
 /* Class methods */
 
 static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
@@ -764,21 +779,11 @@ static VALUE rhrdt_sec(VALUE self) {
 }
 
 static VALUE rhrdt_sec_fraction(VALUE self) {
-  double f;
-  long i;
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_FRACTION(dt)
- 
-  f = dt->fraction * 24;
-  i = floor(f);
-  f = (f - i) * 60;
-  i = floor(f);
-  f = (f - i) * 60;
-  i = floor(f);
-  f = (f - i)/86400;
-  return rb_float_new(f);
-}
+  return rb_float_new(rhrdt__sec_fraction(dt)/86400);
+} 
 
 static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   rhrdt_t *d, *ndt;
