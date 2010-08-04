@@ -1991,8 +1991,7 @@ static VALUE rhrd_to_s(VALUE self) {
     rb_raise(rb_eNoMemError, "in Date#to_s (in snprintf)");
   }
 
-  rb_str_set_len(s, len);
-  return s;
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 static VALUE rhrd_upto(VALUE self, VALUE other) {
