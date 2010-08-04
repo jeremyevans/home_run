@@ -997,6 +997,35 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
 
 #ifdef RUBY19
 
+/* 1.9 helper methods */
+
+VALUE rhrdt__add_years(VALUE self, long n) {
+  rhrdt_t *d;
+  rhrdt_t *newd;
+  VALUE new;
+  Data_Get_Struct(self, rhrdt_t, d);
+
+  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, newd);
+  RHRDT_FILL_CIVIL(d)
+  memcpy(newd, d, sizeof(rhrdt_t));
+
+  newd->year = rhrd__safe_add_long(n, d->year);
+  if(d->month == 2 && d->day == 29 && !rhrd__leap_year(newd->year)) {
+    newd->day = 28;
+  } 
+
+  RHR_CHECK_CIVIL(newd)
+  newd->flags &= ~RHR_HAVE_JD;
+  return new;
+}
+
+VALUE rhrdt__day_q(VALUE self, long day) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
+}
+
 /* 1.9 instance methods */
 
 static VALUE rhrdt_next_day(int argc, VALUE *argv, VALUE self) {
@@ -1035,6 +1064,24 @@ static VALUE rhrdt_next_month(int argc, VALUE *argv, VALUE self) {
   return rhrdt__add_months(self, i);
 }
 
+static VALUE rhrdt_next_year(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = 1;
+      break;
+    case 1:
+      i = NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  return rhrdt__add_years(self, i);
+}
+
 static VALUE rhrdt_prev_day(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -1069,6 +1116,24 @@ static VALUE rhrdt_prev_month(int argc, VALUE *argv, VALUE self) {
   }
 
   return rhrdt__add_months(self, i);
+}
+
+static VALUE rhrdt_prev_year(int argc, VALUE *argv, VALUE self) {
+  long i;
+
+  switch(argc) {
+    case 0:
+      i = -1;
+      break;
+    case 1:
+      i = -NUM2LONG(argv[0]);
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  return rhrdt__add_years(self, i);
 }
 
 static VALUE rhrdt_to_date(VALUE self) {
@@ -1110,13 +1175,6 @@ static VALUE rhrdt_to_time(VALUE self) {
 }
 
 /* 1.9 day? instance methods */
-
-VALUE rhrdt__day_q(VALUE self, long day) {
-  rhrdt_t *d;
-  Data_Get_Struct(self, rhrdt_t, d);
-  RHRDT_FILL_JD(d)
-  return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
-}
 
 static VALUE rhrdt_sunday_q(VALUE self) {
   return rhrdt__day_q(self, 0);
@@ -1213,8 +1271,10 @@ void Init_datetime(void) {
 #ifdef RUBY19
   rb_define_method(rhrdt_class, "next_day", rhrdt_next_day, -1);
   rb_define_method(rhrdt_class, "next_month", rhrdt_next_month, -1);
+  rb_define_method(rhrdt_class, "next_year", rhrdt_next_year, -1);
   rb_define_method(rhrdt_class, "prev_day", rhrdt_prev_day, -1);
   rb_define_method(rhrdt_class, "prev_month", rhrdt_prev_month, -1);
+  rb_define_method(rhrdt_class, "prev_year", rhrdt_prev_year, -1);
   rb_define_method(rhrdt_class, "to_date", rhrdt_to_date, 0);
   rb_define_method(rhrdt_class, "to_time", rhrdt_to_time, 0);
 
