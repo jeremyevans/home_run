@@ -179,6 +179,7 @@ VALUE rhrd_sym_hour;
 VALUE rhrd_sym_mday;
 VALUE rhrd_sym_min;
 VALUE rhrd_sym_mon;
+VALUE rhrd_sym_offset;
 VALUE rhrd_sym_sec;
 VALUE rhrd_sym_sec_fraction;
 VALUE rhrd_sym_seconds;
@@ -193,6 +194,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrd_to_s(VALUE self);
 static VALUE rhrdt_to_s(VALUE self);
+static VALUE rhrd_s_zone_to_diff(VALUE self, VALUE zone);
 void rhrdt__civil_to_jd(rhrdt_t *d);
 void rhrdt__jd_to_civil(rhrdt_t *date);
 void rhrdt__fraction_to_hms(rhrdt_t *d);
@@ -1429,6 +1431,10 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   } 
   if(RTEST(zone)) {
     rb_hash_aset(hash, rhrd_sym_zone, zone);
+    zone = rhrd_s_zone_to_diff(klass, zone);
+    if(RTEST(zone)) {
+      rb_hash_aset(hash, rhrd_sym_offset, zone);
+    }
   } 
   if(state & RHRR_WNUM0_SET) {
     rb_hash_aset(hash, rhrd_sym_wnum0, INT2NUM(wnum0));
@@ -1744,33 +1750,35 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
     for(i=0; i < len; i++) {
       if(s[i] == ':') {
         v = rb_funcall(str, rhrd_id_split, 1, rhrd_string_colon);
-        return INT2NUM(NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
+        return INT2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
                + NUM2LONG(rb_funcall(rb_ary_entry(v, 1), rhrd_id_to_i, 0)) * 60
-               + NUM2LONG(rb_funcall(rb_ary_entry(v, 2), rhrd_id_to_i, 0)));
+               + NUM2LONG(rb_funcall(rb_ary_entry(v, 2), rhrd_id_to_i, 0))) * offset);
       }
     }
     for(i=0; i < len; i++) {
       if((s[i] == ',') || (s[i] == '.')) {
         v = rb_funcall(str, rhrd_id_split, 1, rhrd_re_comma_period);
         e = rb_funcall(rb_ary_entry(v, 1), rhrd_id_to_i, 0); 
-        return INT2NUM(NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
-               + NUM2LONG(e * 3600) / (long)pow(10, RSTRING_LEN(e)));
+        return INT2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
+               + NUM2LONG(e * 3600) / (long)pow(10, RSTRING_LEN(e)) * offset));
       }
     }
     switch (len) {
+      case 0:
+        return INT2NUM(0);
       case 1:
       case 2:
-        return INT2NUM(atol(s) * 3600);
+        return INT2NUM(atol(s) * 3600 * offset);
       case 3:
         i = atol(s + 1);
         s[1] = '\0';
         len = atol(s);
-        return INT2NUM(len * 3600 + i * 60);
+        return INT2NUM((len * 3600 + i * 60) * offset);
       case 4:
         i = atol(s + 2);
         s[2] = '\0';
         len = atol(s);
-        return INT2NUM(len * 3600 + i * 60);
+        return INT2NUM((len * 3600 + i * 60) * offset);
       default:
         s[6] = '\0';
       case 6:
@@ -1780,7 +1788,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
         i = atol(s + 2);
         s[2] = '\0';
         len = atol(s);
-        return INT2NUM(len * 3600 + i * 60 + j);
+        return INT2NUM((len * 3600 + i * 60 + j) * offset);
     }
   }
 
@@ -2658,6 +2666,7 @@ void Init_date(void) {
   rhrd_sym_mday = ID2SYM(rb_intern("mday"));
   rhrd_sym_min = ID2SYM(rb_intern("min"));
   rhrd_sym_mon = ID2SYM(rb_intern("mon"));
+  rhrd_sym_offset = ID2SYM(rb_intern("offset"));
   rhrd_sym_sec = ID2SYM(rb_intern("sec"));
   rhrd_sym_sec_fraction = ID2SYM(rb_intern("sec_fraction"));
   rhrd_sym_seconds = ID2SYM(rb_intern("seconds"));
