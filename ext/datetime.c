@@ -320,6 +320,101 @@ double rhrdt__sec_fraction(rhrdt_t *dt) {
   return  (f - i);
 }
 
+void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
+  rhrd_t d;
+  long hour = 0;
+  long minute = 0;
+  long second = 0;
+  long offset = 0;
+  double sec_fraction = 0.0;
+  long time_set = 0;
+  int r;
+  VALUE rhour, rmin, rsec, runix, roffset, rsecf;
+
+  if (!RTEST(hash)) {
+    rb_raise(rb_eArgError, "invalid date");
+  }
+
+  roffset = rb_hash_aref(hash, rhrd_sym_offset);
+  if (RTEST(roffset)) {
+    offset = NUM2LONG(roffset);
+  }
+
+  rsecf = rb_hash_aref(hash, rhrd_sym_sec_fraction);
+  if (RTEST(rsecf)) {
+    sec_fraction = NUM2DBL(rsecf);
+  }
+
+  runix = rb_hash_aref(hash, rhrd_sym_seconds);
+  if (RTEST(runix)) {
+    time_set = NUM2LONG(runix);
+    dt->jd = rhrd__unix_to_jd(time_set);
+    time_set = rhrd__mod(time_set, 86400);
+    printf("%ld\n", time_set);
+    dt->fraction = time_set/86400.0 + sec_fraction;
+    dt->hour = time_set/3600;
+    dt->minute = (time_set - dt->hour * 3600)/60;
+    dt->second = rhrd__mod(time_set, 60);
+    offset /= 60;
+    if (offset > 864 || offset < -864) {
+      rb_raise(rb_eArgError, "invalid offset: %ld minutes", offset);
+    }
+    RHR_CHECK_JD(dt);
+    dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+    return;
+  } else {
+    rhour = rb_hash_aref(hash, rhrd_sym_hour);
+    rmin = rb_hash_aref(hash, rhrd_sym_min);
+    rsec = rb_hash_aref(hash, rhrd_sym_sec);
+    
+    if (RTEST(rhour)) {
+      time_set = 1;
+      hour = NUM2LONG(rhour);
+    }
+    if (RTEST(rmin)) {
+      time_set = 1;
+      minute = NUM2LONG(rmin);
+    }
+    if (RTEST(rsec)) {
+      time_set = 1;
+      second = NUM2LONG(rsec);
+    }
+  }
+
+  memset(&d, 0, sizeof(rhrd_t));
+  r = rhrd__fill_from_hash(&d, hash);
+  if(r > 0) {
+    /* bad date info */
+    rb_raise(rb_eArgError, "invalid date");
+  } else if (r < 0) {
+    if (time_set) {
+      /* time info but no date info, assume current date */
+      rhrd__today(&d);
+    } else {
+      /* no time or date info */
+      rb_raise(rb_eArgError, "invalid date");
+    }
+  } 
+
+  if(RHR_HAS_JD(&d)) {
+    dt->jd = d.jd;
+    dt->flags |= RHR_HAVE_JD;
+  }
+  if(RHR_HAS_CIVIL(&d)) {
+    dt->year = d.year;
+    dt->month = d.month;
+    dt->day = d.day;
+    dt->flags |= RHR_HAVE_CIVIL;
+  }
+  if(time_set) {
+    rhrdt__valid_time(dt, hour, minute, second, offset/86400.0);
+    if(sec_fraction) {
+      RHRDT_FILL_FRACTION(dt)
+      dt->fraction += sec_fraction;
+    }
+  }
+}
+
 /* Class methods */
 
 static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
@@ -567,6 +662,29 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
     rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
   }
+  return rdt;
+}
+
+static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *dt;
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+
+  switch(argc) {
+    case 0:
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      return rdt;
+    case 1:
+    case 2:
+      break;
+    case 3:
+      argc = 2;
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
+      break;
+  }
+
+  rhrdt__fill_from_hash(dt, rhrd_s__strptime(argc, argv, klass));
   return rdt;
 }
 
@@ -1291,6 +1409,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_s_class, "new!", rhrdt_s_new_b, -1);
   rb_define_method(rhrdt_s_class, "now", rhrdt_s_now, -1);
   rb_define_method(rhrdt_s_class, "ordinal", rhrdt_s_ordinal, -1);
+  rb_define_method(rhrdt_s_class, "strptime", rhrdt_s_strptime, -1);
 
   rb_define_alias(rhrdt_s_class, "new", "civil");
 
