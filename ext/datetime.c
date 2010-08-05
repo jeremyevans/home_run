@@ -775,7 +775,11 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
       offset = 0;
       break;
     case 1:
-      offset = NUM2DBL(argv[0]);
+      if (RTEST(rb_obj_is_kind_of(argv[0], rb_cString))) {
+        offset = NUM2LONG(rhrd_s_zone_to_diff(self, argv[0]))/86400.0;
+      } else {
+        offset = NUM2DBL(argv[0]);
+      }
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
