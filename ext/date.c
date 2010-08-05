@@ -811,7 +811,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%2hhi", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12);
           break;
         case 'L':
-          cp += sprintf(str + cp, "%03li", (long)(rhrdt__sec_fraction(d) * 1000));
+          cp += sprintf(str + cp, "%03li", lround(rhrdt__sec_fraction(d) * 1000));
           break;
         case 'm':
           cp += sprintf(str + cp, "%02hhi", d->month);
@@ -820,7 +820,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%02hhi", d->minute);
           break;
         case 'N':
-          cp += sprintf(str + cp, "%09li", (long)(rhrdt__sec_fraction(d) * 1000000000));
+          cp += sprintf(str + cp, "%09li", lround(rhrdt__sec_fraction(d) * 1000000000));
           break;
         case 'n':
           cp += sprintf(str + cp, "\n");
