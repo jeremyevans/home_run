@@ -580,6 +580,20 @@ static VALUE rhrdt__dump(VALUE self, VALUE limit) {
   return rb_marshal_dump(rb_ary_new3(3, INT2NUM(d->jd), rb_float_new(d->fraction), INT2NUM(d->offset)), INT2NUM(NUM2LONG(limit) - 1));
 }
 
+static VALUE rhrdt_ajd(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  return rb_float_new(d->jd + d->fraction - d->offset/1440.0 + 0.5);
+}
+
+static VALUE rhrdt_amjd(VALUE self) {
+  rhrdt_t *d;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  return rb_float_new(d->jd + d->fraction - d->offset/1440.0 - RHR_JD_MJD);
+}
+
 static VALUE rhrdt_asctime(VALUE self) {
   VALUE s;
   rhrdt_t *d;
@@ -1277,6 +1291,8 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_s_class, "new", "civil");
 
   rb_define_method(rhrdt_class, "_dump", rhrdt__dump, 1);
+  rb_define_method(rhrdt_class, "ajd", rhrdt_ajd, 0);
+  rb_define_method(rhrdt_class, "amjd", rhrdt_amjd, 0);
   rb_define_method(rhrdt_class, "asctime", rhrdt_asctime, 0);
   rb_define_method(rhrdt_class, "cwday", rhrdt_cwday, 0);
   rb_define_method(rhrdt_class, "cweek", rhrdt_cweek, 0);
@@ -1315,8 +1331,6 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "===", rhrdt_op_relationship, 1);
   rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
 
-  rb_define_alias(rhrdt_class, "ajd", "jd");
-  rb_define_alias(rhrdt_class, "amjd", "mjd");
   rb_define_alias(rhrdt_class, "ctime", "asctime");
   rb_define_alias(rhrdt_class, "mday", "day");
   rb_define_alias(rhrdt_class, "mon", "month");
