@@ -613,7 +613,11 @@ long rhrd__weeknum_to_jd(long year, long week, long wday, int f) {
   return (yday1_jd - rhrd__mod(yday1_jd - f + 1, 7) - 7) + 7 * week + wday;
 }
 
-VALUE rhrd__from_hash(VALUE hash) {
+/* Fills the date structure with information from the hash, returns:
+ *  0: No errors (i.e. jd and/or year, month, day filled)
+ *  1: Bad date information given (e.g. 2009-02-29)
+ * -1: No date information given */
+int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   long year = 0;
   long month = 0;
   long day = 0;
@@ -622,16 +626,13 @@ VALUE rhrd__from_hash(VALUE hash) {
   long cwyear = 0;
   long cweek = 0;
   long cwday = 0;
-  rhrd_t *d;
   VALUE ryear, rmonth, rday, ryday, rwday, rcwyear, rcweek, rcwday, runix, rwnum0, rwnum1;
-  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
 
   runix = rb_hash_aref(hash, rhrd_sym_seconds);
   if (RTEST(runix)) {
     d->jd = rhrd__unix_to_jd(NUM2LONG(runix));
     d->flags |= RHR_HAVE_JD;
-    RHR_CHECK_JD(d)
-    return rd;
+    return 0;
   }
 
   ryear = rb_hash_aref(hash, rhrd_sym_year);
@@ -657,20 +658,18 @@ VALUE rhrd__from_hash(VALUE hash) {
       d->flags |= RHR_HAVE_JD;
       rhrd__fill_commercial(d);
       if(!rhrd__valid_commercial(d, d->year, 1, NUM2LONG(rwday))) {
-        RHR_CHECK_JD(d)
-        rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
+        return 1;
       }
-      RHR_CHECK_JD(d)
       d->flags &= ~RHR_HAVE_CIVIL;
-      return rd;
+      return 0;
     } else if (RTEST(rwnum0)) {
       d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
       d->flags |= RHR_HAVE_JD;
-      return rd;
+      return 0;
     } else if (RTEST(rwnum1)) {
       d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum1), RTEST(rwday) ? rhrd__mod(NUM2LONG(rwday) - 1, 7) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday) - 1, 7) : 0), 1);
       d->flags |= RHR_HAVE_JD;
-      return rd;
+      return 0;
     } else {
       month = RTEST(rmonth) ? NUM2LONG(rmonth) : 1;
       day = RTEST(rday) ? NUM2LONG(rday) : 1;
@@ -689,11 +688,11 @@ VALUE rhrd__from_hash(VALUE hash) {
   } else if (RTEST(rwnum0)) {
     d->jd = rhrd__weeknum_to_jd(rhrd__current_year(), NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
     d->flags |= RHR_HAVE_JD;
-    return rd;
+    return 0;
   } else if (RTEST(rwnum1)) {
     d->jd = rhrd__weeknum_to_jd(rhrd__current_year(), NUM2LONG(rwnum1), RTEST(rwday) ? rhrd__mod(NUM2LONG(rwday) - 1, 7) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday) - 1, 7) : 0), 1);
     d->flags |= RHR_HAVE_JD;
-    return rd;
+    return 0;
   } else if (RTEST(rcwyear)) {
     cwyear = NUM2LONG(rcwyear);
     cweek = RTEST(rcweek) ? NUM2LONG(rcweek) : 1;
@@ -711,24 +710,34 @@ VALUE rhrd__from_hash(VALUE hash) {
     rhrd__today(d);
     rhrd__fill_commercial(d);
     if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
-      RHR_CHECK_JD(d)
-      rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %hhi, cwday: %li)", d->year, d->month, wday);
+      return 1;
     }
-    RHR_CHECK_JD(d)
     d->flags &= ~RHR_HAVE_CIVIL;
-    return rd;
+    return 0;
+  } else {
+    return -1;
   }
   if (yday && rhrd__valid_ordinal(d, year, yday)) {
-    return rd;
+    return 0;
   } else if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday)) {
-    RHR_CHECK_JD(d)
-    return rd;
+    return 0;
   } else if (!rhrd__valid_civil(d, year, month, day)) {
-    RHR_CHECK_CIVIL(d)
-    rb_raise(rb_eArgError, "invalid_date (year: %li, month: %li, day: %li)", year, month, day);
+    return 1;
   }
 
-  return rd;
+  return 0;
+}
+
+VALUE rhrd__from_hash(VALUE hash) {
+  rhrd_t *d;
+  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+  if(rhrd__fill_from_hash(d, hash)) {
+    rb_raise(rb_eArgError, "invalid date");
+  } else {
+    RHR_FILL_JD(d)
+    RHR_CHECK_JD(d)
+    return rd;
+  }
 }
 
 VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
