@@ -57,9 +57,14 @@ so that no calculations can overflow.
 
 #define RHR_HAVE_JD 1
 #define RHR_HAVE_CIVIL 2
-#define RHR_HAVE_FRACTION 4
+#define RHR_HAVE_NANOS 4
 #define RHR_HAVE_HMS 8
 
+#define RHR_NANOS_PER_SECOND 1000000000LL
+#define RHR_NANOS_PER_MINUTE 60000000000LL
+#define RHR_NANOS_PER_DAY 86400000000000LL
+#define RHR_NANOS_PER_DAYD 86400000000000.0
+#define RHR_NANOS_PER_SECONDD 1000000000.0
 
 #define RHRR_YEAR_SET 0x1
 #define RHRR_MONTH_SET 0x2
@@ -86,8 +91,8 @@ so that no calculations can overflow.
 
 #define RHRDT_FILL_JD(d) if (!((d)->flags & RHR_HAVE_JD)) { rhrdt__civil_to_jd(d); }
 #define RHRDT_FILL_CIVIL(d) if (!((d)->flags & RHR_HAVE_CIVIL)) { rhrdt__jd_to_civil(d); }
-#define RHRDT_FILL_HMS(d) if (!((d)->flags & RHR_HAVE_HMS)) { rhrdt__fraction_to_hms(d); }
-#define RHRDT_FILL_FRACTION(d) if (!((d)->flags & RHR_HAVE_FRACTION)) { rhrdt__hms_to_fraction(d); }
+#define RHRDT_FILL_HMS(d) if (!((d)->flags & RHR_HAVE_HMS)) { rhrdt__nanos_to_hms(d); }
+#define RHRDT_FILL_NANOS(d) if (!((d)->flags & RHR_HAVE_NANOS)) { rhrdt__hms_to_nanos(d); }
 
 #ifdef RUBY186
 #define RHR_RETURN_RESIZED_STR(s, len) return rb_str_resize(s, len);
@@ -109,7 +114,7 @@ typedef struct rhrd_s {
 } rhrd_t;
 
 typedef struct rhrdt_s {
-  double fraction; /* Fraction of the day, range: [0.0, 1.0) */
+  long long nanos; /* Nanoseconds since start of day */
   long jd;
   long year;
   short offset; /* Offset from UTC in minutes */
@@ -195,11 +200,11 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrd_to_s(VALUE self);
 static VALUE rhrdt_to_s(VALUE self);
 static VALUE rhrd_s_zone_to_diff(VALUE self, VALUE zone);
+VALUE rhrdt__new_offset(VALUE self, double offset);
 void rhrdt__civil_to_jd(rhrdt_t *d);
 void rhrdt__jd_to_civil(rhrdt_t *date);
-void rhrdt__fraction_to_hms(rhrdt_t *d);
-void rhrdt__hms_to_fraction(rhrdt_t *d);
-double rhrdt__sec_fraction(rhrdt_t *dt);
+void rhrdt__nanos_to_hms(rhrdt_t *d);
+void rhrdt__hms_to_nanos(rhrdt_t *d);
 
 #include "date_parser.c"
 
@@ -822,7 +827,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%2hhi", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12);
           break;
         case 'L':
-          cp += sprintf(str + cp, "%03li", lround(rhrdt__sec_fraction(d) * 1000));
+          cp += sprintf(str + cp, "%03lli", (d->nanos % RHR_NANOS_PER_SECOND)/1000000);
           break;
         case 'm':
           cp += sprintf(str + cp, "%02hhi", d->month);
@@ -831,7 +836,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%02hhi", d->minute);
           break;
         case 'N':
-          cp += sprintf(str + cp, "%09li", lround(rhrdt__sec_fraction(d) * 1000000000));
+          cp += sprintf(str + cp, "%09lli", (d->nanos % RHR_NANOS_PER_SECOND));
           break;
         case 'n':
           cp += sprintf(str + cp, "\n");
@@ -1897,8 +1902,8 @@ static VALUE rhrd_eql_q(VALUE self, VALUE other) {
     RHRDT_FILL_JD(odt)
     RHR_SPACE_SHIP(diff, d->jd, odt->jd)
     if (diff == 0) {
-      RHRDT_FILL_FRACTION(odt)
-      RHR_SPACE_SHIP(diff, 0, odt->fraction)
+      RHRDT_FILL_NANOS(odt)
+      RHR_SPACE_SHIP(diff, 0, odt->nanos)
     }
     return diff == 0 ? Qtrue : Qfalse;
   } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
@@ -2163,8 +2168,8 @@ static VALUE rhrd_op_minus(VALUE self, VALUE other) {
     Data_Get_Struct(other, rhrdt_t, newdt);
     RHR_FILL_JD(d)
     RHRDT_FILL_JD(newdt)
-    RHRDT_FILL_FRACTION(newdt)
-    return rb_float_new(d->jd - (newdt->jd + newdt->fraction));
+    RHRDT_FILL_NANOS(newdt)
+    return rb_float_new(d->jd - (newdt->jd + newdt->nanos/RHR_NANOS_PER_DAYD));
   }
   if (RTEST((rb_obj_is_kind_of(other, rhrd_class)))) {
     Data_Get_Struct(other, rhrd_t, newd);
@@ -2209,8 +2214,8 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
     RHRDT_FILL_JD(odt)
     RHR_SPACE_SHIP(diff, d->jd, odt->jd)
     if (diff == 0) {
-      RHRDT_FILL_FRACTION(odt)
-      RHR_SPACE_SHIP(diff, 0, odt->fraction)
+      RHRDT_FILL_NANOS(odt)
+      RHR_SPACE_SHIP(diff, 0, odt->nanos)
     }
     return INT2NUM(diff);
   } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {

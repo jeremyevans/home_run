@@ -106,20 +106,18 @@ void rhrdt__jd_to_civil(rhrdt_t *date) {
   date->flags |= RHR_HAVE_CIVIL;
 }
 
-void rhrdt__fraction_to_hms(rhrdt_t *d) {
-  double f;
-  f = d->fraction * 24;
-  d->hour = floor(f);
-  f = (f - d->hour) * 60;
-  d->minute = floor(f);
-  f = (f - d->minute) * 60;
-  d->second = floor(f);
+void rhrdt__nanos_to_hms(rhrdt_t *d) {
+  unsigned int seconds;
+  seconds = d->nanos/RHR_NANOS_PER_SECOND;
+  d->hour = seconds/3600;
+  d->minute = (seconds % 3600)/60;
+  d->second = seconds % 60;
   d->flags |= RHR_HAVE_HMS;
 }
 
-void rhrdt__hms_to_fraction(rhrdt_t *d) {
-  d->fraction = d->hour/24.0 + d->minute/1440.0 + d->second/86400.0;
-  d->flags |= RHR_HAVE_FRACTION;
+void rhrdt__hms_to_nanos(rhrdt_t *d) {
+  d->nanos = (d->hour*3600 + d->minute*60 + d->second)*RHR_NANOS_PER_SECOND;
+  d->flags |= RHR_HAVE_NANOS;
 }
 
 int rhrdt__valid_commercial(rhrdt_t *d, long cwyear, long cweek, long cwday) {
@@ -207,57 +205,62 @@ void rhrdt__now(rhrdt_t * dt) {
   t = NUM2LONG(rb_funcall(rt, rhrd_id_to_i, 0)) + offset;
   dt->jd = rhrd__unix_to_jd(t);
 #ifdef RUBY19
-  dt->fraction = (rhrd__mod(t, 86400))/86400.0 + NUM2DBL(rb_funcall(rt, rhrd_id_nsec, 0))/86400000000000.0;
+  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(rt, rhrd_id_nsec, 0));
 #else
-  dt->fraction = (rhrd__mod(t, 86400))/86400.0 + NUM2DBL(rb_funcall(rt, rhrd_id_usec, 0))/86400000000.0;
+  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(rt, rhrd_id_usec, 0)) * 1000;
 #endif
   dt->offset = offset/60;
-  dt->flags |= RHR_HAVE_JD | RHR_HAVE_FRACTION;
+  dt->flags |= RHR_HAVE_JD | RHR_HAVE_NANOS;
   RHR_CHECK_JD(dt);
 }
 
 double rhrdt__to_double_offset(rhrdt_t *d) {
   RHRDT_FILL_JD(d)
-  RHRDT_FILL_FRACTION(d)
-  return d->jd + d->fraction + d->offset/1440.0;
+  RHRDT_FILL_NANOS(d)
+  return d->jd + d->nanos/RHR_NANOS_PER_DAYD + d->offset/1440.0;
 }
 
 double rhrdt__to_double(rhrdt_t *d) {
   RHRDT_FILL_JD(d)
-  RHRDT_FILL_FRACTION(d)
-  return d->jd + d->fraction;
+  RHRDT_FILL_NANOS(d)
+  return d->jd + d->nanos/RHR_NANOS_PER_DAYD;
 }
 
-VALUE rhrdt__from_jd_fraction(long jd, double d, short offset) {
+VALUE rhrdt__from_jd_nanos(long jd, long long nanos, short offset) {
   long t;
   rhrdt_t *dt;
   VALUE new;
   new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
   
-  if (d < 0) {
-    t = floor(d);
-    d += t;
-    jd -= t;
-  } else if (d > 1) {
-    t = floor(d);
-    d -= t;
+  if (nanos < 0) {
+    t = nanos/RHR_NANOS_PER_DAY - 1;
+    nanos -= t * RHR_NANOS_PER_DAY;
+    jd += t;
+  } else if (nanos >= RHR_NANOS_PER_DAY) {
+    t = nanos/RHR_NANOS_PER_DAY;
+    nanos -= t * RHR_NANOS_PER_DAY;
     jd += t;
   }
   dt->jd = jd;
-  dt->fraction = d;
+  dt->nanos = nanos;
   dt->offset = offset;
-  dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION;
+  dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
   return new;
 }
 
 long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
-  double d, o;
-  d = rhrdt__to_double_offset(dt);
-  o = rhrdt__to_double_offset(odt);
-  /* Consider anything within a millisecond as equal */
-  if (fabs(d - o) < 0.000000011574074) {
-    return 0;
-  } else if (d < o) {
+  RHRDT_FILL_JD(dt)
+  RHRDT_FILL_JD(odt)
+  RHRDT_FILL_NANOS(dt)
+  RHRDT_FILL_NANOS(odt)
+  if (dt->jd == odt->jd) { 
+    if (dt->nanos == odt->nanos) {
+      return 0;
+    } else if (dt->nanos < odt->nanos) {
+      return -1;
+    } 
+    return 1;
+  } else if (dt->jd < odt->jd) {
     return -1;
   } 
   return 1;
@@ -265,11 +268,14 @@ long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
 
 VALUE rhrdt__add_days(VALUE self, double n) {
   long l;
+  long long nanos;
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_JD(dt)
+  RHRDT_FILL_NANOS(dt)
   l = floor(n);
-  n -= l;
-  return rhrdt__from_jd_fraction(rhrd__safe_add_long(dt->jd, l), dt->fraction + n, dt->offset);
+  nanos = (n - l) * RHR_NANOS_PER_DAY;
+  return rhrdt__from_jd_nanos(rhrd__safe_add_long(dt->jd, l), dt->nanos + nanos, dt->offset);
 }
 
 VALUE rhrdt__add_months(VALUE self, long n) {
@@ -305,28 +311,13 @@ VALUE rhrdt__add_months(VALUE self, long n) {
   return new;
 }
 
-/* Returns a double as a fraction of the second,
- * not as a fraction of the day */
-double rhrdt__sec_fraction(rhrdt_t *dt) {
-  double f;
-  long i;
-
-  f = dt->fraction * 24;
-  i = floor(f);
-  f = (f - i) * 60;
-  i = floor(f);
-  f = (f - i) * 60;
-  i = floor(f);
-  return  (f - i);
-}
-
 void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
   rhrd_t d;
   long hour = 0;
   long minute = 0;
   long second = 0;
   long offset = 0;
-  double sec_fraction = 0.0;
+  long long nanos = 0;
   long time_set = 0;
   int r;
   VALUE rhour, rmin, rsec, runix, roffset, rsecf;
@@ -342,7 +333,7 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
 
   rsecf = rb_hash_aref(hash, rhrd_sym_sec_fraction);
   if (RTEST(rsecf)) {
-    sec_fraction = NUM2DBL(rsecf);
+    nanos = llround(NUM2DBL(rsecf) * RHR_NANOS_PER_SECOND);
   }
 
   runix = rb_hash_aref(hash, rhrd_sym_seconds);
@@ -351,7 +342,7 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
     dt->jd = rhrd__unix_to_jd(time_set);
     time_set = rhrd__mod(time_set, 86400);
     printf("%ld\n", time_set);
-    dt->fraction = time_set/86400.0 + sec_fraction;
+    dt->nanos = (time_set/86400)*RHR_NANOS_PER_SECOND + nanos;
     dt->hour = time_set/3600;
     dt->minute = (time_set - dt->hour * 3600)/60;
     dt->second = rhrd__mod(time_set, 60);
@@ -360,7 +351,7 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
       rb_raise(rb_eArgError, "invalid offset: %ld minutes", offset);
     }
     RHR_CHECK_JD(dt);
-    dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+    dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
     return;
   } else {
     rhour = rb_hash_aref(hash, rhrd_sym_hour);
@@ -408,11 +399,21 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
   }
   if(time_set) {
     rhrdt__valid_time(dt, hour, minute, second, offset/86400.0);
-    if(sec_fraction) {
-      RHRDT_FILL_FRACTION(dt)
-      dt->fraction += sec_fraction;
+    if(nanos) {
+      RHRDT_FILL_NANOS(dt)
+      dt->nanos += nanos;
     }
   }
+}
+
+VALUE rhrdt__new_offset(VALUE self, double offset) {
+  rhrdt_t *dt;
+
+  if(offset < -0.6 || offset > 0.6) {
+    rb_raise(rb_eArgError, "invalid offset (%f)", offset);
+  } 
+  Data_Get_Struct(self, rhrdt_t, dt);
+  return rhrdt__from_jd_nanos(dt->jd, dt->nanos - dt->offset*RHR_NANOS_PER_MINUTE + llround(offset*RHR_NANOS_PER_DAY), lround(offset * 1440.0));
 }
 
 /* Class methods */
@@ -431,9 +432,9 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   d->jd = NUM2LONG(rb_ary_entry(ary, 0));
   RHR_CHECK_JD(d)
 
-  d->fraction = NUM2DBL(rb_ary_entry(ary, 1));
-  if (d->fraction < 0 || d->fraction >= 1.0) {
-    rb_raise(rb_eArgError, "invalid day fraction: %f", d->fraction);
+  d->nanos = NUM2LL(rb_ary_entry(ary, 1));
+  if (d->nanos < 0 || d->nanos >= RHR_NANOS_PER_DAY) {
+    rb_raise(rb_eArgError, "invalid nanos: %lld", d->nanos);
   }
 
   x = NUM2LONG(rb_ary_entry(ary, 2));
@@ -442,7 +443,7 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   }
   d->offset = x;
   
-  d->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION;
+  d->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
   return rd;
 }
 
@@ -459,7 +460,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
       return rdt;
     case 8:
     case 7:
@@ -547,7 +548,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
       return rdt;
     case 6:
     case 5:
@@ -582,7 +583,7 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
       return rdt; 
     case 2:
     case 3:
@@ -593,8 +594,8 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
     case 1:
       offset += NUM2DBL(argv[0]) + 0.5;
       dt->jd = offset;
-      dt->fraction = offset - dt->jd;
-      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION;
+      dt->nanos = (offset - dt->jd)*RHR_NANOS_PER_DAY;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
@@ -648,7 +649,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
       year = NUM2LONG(argv[0]);
       break;
     case 0:
-      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
       return rdt;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 7", argc);
@@ -671,7 +672,7 @@ static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION | RHR_HAVE_HMS;
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
       return rdt;
     case 1:
     case 2:
@@ -694,22 +695,22 @@ static VALUE rhrdt__dump(VALUE self, VALUE limit) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  RHRDT_FILL_FRACTION(d)
-  return rb_marshal_dump(rb_ary_new3(3, INT2NUM(d->jd), rb_float_new(d->fraction), INT2NUM(d->offset)), INT2NUM(NUM2LONG(limit) - 1));
+  RHRDT_FILL_NANOS(d)
+  return rb_marshal_dump(rb_ary_new3(3, INT2NUM(d->jd), LL2NUM(d->nanos), INT2NUM(d->offset)), INT2NUM(NUM2LONG(limit) - 1));
 }
 
 static VALUE rhrdt_ajd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  return rb_float_new(d->jd + d->fraction - d->offset/1440.0 + 0.5);
+  return rb_float_new(d->jd + d->nanos/RHR_NANOS_PER_DAYD - d->offset/1440.0 + 0.5);
 }
 
 static VALUE rhrdt_amjd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  return rb_float_new(d->jd + d->fraction - d->offset/1440.0 - RHR_JD_MJD);
+  return rb_float_new(d->jd + d->nanos/RHR_NANOS_PER_DAYD - d->offset/1440.0 - RHR_JD_MJD);
 }
 
 static VALUE rhrdt_asctime(VALUE self) {
@@ -777,8 +778,8 @@ static VALUE rhrdt_day(VALUE self) {
 static VALUE rhrdt_day_fraction(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
-  RHRDT_FILL_FRACTION(dt)
-  return rb_float_new(dt->fraction);
+  RHRDT_FILL_NANOS(dt)
+  return rb_float_new(dt->nanos/RHR_NANOS_PER_DAYD);
 }
 
 static VALUE rhrdt_downto(VALUE self, VALUE other) {
@@ -803,8 +804,8 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
     RHR_FILL_JD(o)
     RHR_SPACE_SHIP(diff, dt->jd, o->jd)
     if (diff == 0) {
-      RHRDT_FILL_FRACTION(dt)
-      RHR_SPACE_SHIP(diff, dt->fraction, 0)
+      RHRDT_FILL_NANOS(dt)
+      RHR_SPACE_SHIP(diff, dt->nanos, 0)
     }
     return diff == 0 ? Qtrue : Qfalse;
   }
@@ -813,8 +814,10 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
 
 static VALUE rhrdt_hash(VALUE self) {
   rhrdt_t *d;
+
+  self = rhrdt__new_offset(self, 0);
   Data_Get_Struct(self, rhrdt_t, d);
-  return rb_funcall(rb_float_new(rhrdt__to_double_offset(d)), rhrd_id_hash, 0);
+  return rb_funcall(rb_ary_new3(2, INT2NUM(d->jd), LL2NUM(d->nanos)), rhrd_id_hash, 0);
 }
 
 static VALUE rhrdt_hour(VALUE self) {
@@ -885,7 +888,6 @@ static VALUE rhrdt_month(VALUE self) {
 }
 
 static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
-  rhrdt_t *dt;
   double offset;
 
   switch(argc) {
@@ -903,12 +905,7 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
       break;
   }
-
-  if(offset < -0.6 || offset > 0.6) {
-    rb_raise(rb_eArgError, "invalid offset (%f)", offset);
-  } 
-  Data_Get_Struct(self, rhrdt_t, dt);
-  return rhrdt__from_jd_fraction(dt->jd, dt->fraction - dt->offset/1440.0 + offset, lround(offset * 1440.0));
+  return rhrdt__new_offset(self, offset);
 }
 
 static VALUE rhrdt_next(VALUE self) {
@@ -931,31 +928,30 @@ static VALUE rhrdt_sec(VALUE self) {
 static VALUE rhrdt_sec_fraction(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
-  RHRDT_FILL_FRACTION(dt)
-  return rb_float_new(rhrdt__sec_fraction(dt)/86400);
+  RHRDT_FILL_NANOS(dt)
+  return rb_float_new((dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_DAYD);
 } 
 
 static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
-  rhrdt_t *d, *ndt;
+  rhrdt_t *d, *ndt, *d0;
   rhrd_t *nd;
-  double step, step_fraction, limit, current, current_fraction;
-  long step_jd, current_jd;
-  short offset;
+  double step, limit;
+  long long step_nanos, limit_nanos, current_nanos;
+  long step_jd, limit_jd, current_jd;
   VALUE rlimit, new;
   Data_Get_Struct(self, rhrdt_t, d);
-  offset = d->offset;
+  Data_Get_Struct(rhrdt__new_offset(self, 0), rhrdt_t, d0);
 
   rb_need_block();
   switch(argc) {
     case 1:
-      step = 1;
-      step_fraction = 0;
+      step_nanos = 0;
       step_jd = 1;
       break;
     case 2:
       step = NUM2DBL(argv[1]);
       step_jd = floor(step);
-      step_fraction = step - step_jd;
+      step_nanos = llround((step - step_jd)*RHR_NANOS_PER_DAY);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
@@ -965,41 +961,49 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   rlimit = argv[0];
   if (RTEST(rb_obj_is_kind_of(rlimit, rb_cNumeric))) {
     limit = NUM2DBL(rlimit);
+    limit_jd = floor(limit);
+    limit_nanos = llround((limit - limit_jd)*RHR_NANOS_PER_DAY);
   } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrdt_class)))) {
+    rlimit = rhrdt__new_offset(rlimit, 0);
     Data_Get_Struct(rlimit, rhrdt_t, ndt);
     RHRDT_FILL_JD(ndt)
-    limit = rhrdt__to_double_offset(ndt);
+    RHRDT_FILL_NANOS(ndt)
+    limit_jd = ndt->jd; 
+    limit_nanos = ndt->nanos;
   } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrd_class)))) {
     Data_Get_Struct(rlimit, rhrd_t, nd);
     RHR_FILL_JD(nd)
-    limit = nd->jd + offset/1440.0;
+    limit_jd = nd->jd; 
+    limit_nanos = d->offset*RHR_NANOS_PER_MINUTE;
+    if (limit_nanos < 0) {
+      limit_jd--;
+      limit_nanos += RHR_NANOS_PER_DAY;
+    }
   } else {
     rb_raise(rb_eTypeError, "expected numeric or date");
   }
 
-  current = rhrdt__to_double_offset(d);
-  current_jd = d->jd;
-  current_fraction = d->fraction;
-  if (limit > current) {
-    if (step > 0) {
-      while(limit >= current) {
-        new = rhrdt__from_jd_fraction(current_jd, current_fraction, offset);
+  current_jd = d0->jd;
+  current_nanos = d0->nanos;
+  new = rhrdt__from_jd_nanos(current_jd, current_nanos, d->offset);
+  if (limit_jd > current_jd || (limit_jd == current_jd && limit_nanos > current_nanos)) {
+    if (step_jd > 0 || (step_jd == 0 && step_nanos > 0)) {
+      while (limit_jd >= current_jd || (limit_jd == current_jd && limit_nanos >= current_nanos)) {
         rb_yield(new);
+        new = rhrdt__from_jd_nanos(current_jd + step_jd, current_nanos + step_nanos, d->offset);
         Data_Get_Struct(new, rhrdt_t, ndt);
-        current_jd = ndt->jd + step_jd;
-        current_fraction = ndt->fraction + step_fraction;
-        current += step;
+        current_jd = ndt->jd;
+        current_nanos = ndt->nanos;
       }
     }
-  } else if (limit < current) {
-    if (step < 0) {
-      while(limit <= current) {
-        new = rhrdt__from_jd_fraction(current_jd, current_fraction, offset);
+  } else if (limit_jd < current_jd || (limit_jd == current_jd && limit_nanos < current_nanos)) {
+    if (step_jd < 0 || (step_jd == 0 && step_nanos < 0)) {
+      while (limit_jd <= current_jd || (limit_jd == current_jd && limit_nanos <= current_nanos)) {
         rb_yield(new);
+        new = rhrdt__from_jd_nanos(current_jd + step_jd, current_nanos + step_nanos, d->offset);
         Data_Get_Struct(new, rhrdt_t, ndt);
-        current_jd = ndt->jd + step_jd;
-        current_fraction = ndt->fraction + step_fraction;
-        current += step;
+        current_jd = ndt->jd;
+        current_nanos = ndt->nanos;
       }
     }
   } else {
@@ -1026,7 +1030,7 @@ static VALUE rhrdt_strftime(int argc, VALUE *argv, VALUE self) {
   RHRDT_FILL_CIVIL(dt)
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_HMS(dt)
-  RHRDT_FILL_FRACTION(dt)
+  RHRDT_FILL_NANOS(dt)
   return rhrd__strftime(dt, RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
 }
 
@@ -1166,8 +1170,8 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
     RHR_FILL_JD(od)
     RHR_SPACE_SHIP(res, dt->jd, od->jd)
     if (res == 0) {
-      RHRDT_FILL_FRACTION(dt)
-      RHR_SPACE_SHIP(res, dt->fraction, 0)
+      RHRDT_FILL_NANOS(dt)
+      RHR_SPACE_SHIP(res, dt->nanos, 0)
     }
     return INT2NUM(res);
   }
@@ -1176,8 +1180,8 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
     RHRDT_FILL_JD(dt)
     RHR_SPACE_SHIP(res, dt->jd, (long)diff)
     if (res == 0) {
-      RHRDT_FILL_FRACTION(dt)
-      RHR_SPACE_SHIP(res, dt->fraction, diff - floor(diff))
+      RHRDT_FILL_NANOS(dt)
+      RHR_SPACE_SHIP(res, dt->nanos, llround(diff - floor(diff) * RHR_NANOS_PER_DAY))
     }
     return INT2NUM(res);
   }
@@ -1346,21 +1350,18 @@ static VALUE rhrdt_to_date(VALUE self) {
 }
 
 static VALUE rhrdt_to_time(VALUE self) {
-  double f;
-  long h, m;
+  long h, m, s;
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
-  self = rhrdt__from_jd_fraction(dt->jd, dt->fraction - dt->offset/1440.0, 0);
+  self = rhrdt__from_jd_nanos(dt->jd, dt->nanos - dt->offset * RHR_NANOS_PER_MINUTE, 0);
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
-  RHRDT_FILL_FRACTION(dt)
+  RHRDT_FILL_NANOS(dt)
 
-  f = dt->fraction * 24;
-  h = floor(f);
-  f = (f - h) * 60;
-  m = floor(f);
-  f = (f - m) * 60;
-  return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, INT2NUM(dt->year), INT2NUM(dt->month), INT2NUM(dt->day), INT2NUM(h), INT2NUM(m), rb_float_new(f)), rhrd_id_localtime, 0);
+  s = dt->nanos/RHR_NANOS_PER_SECOND;
+  h = s/3600
+  m = (s % 3600) / 60;
+  return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, INT2NUM(dt->year), INT2NUM(dt->month), INT2NUM(dt->day), INT2NUM(h), INT2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
 }
 
 /* 1.9 day? instance methods */
