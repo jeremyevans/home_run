@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ruby.h>
-#include <time.h>
 
 #define RHR_DEFAULT_JD 0
 #define RHR_DEFAULT_YEAR -4713
@@ -553,7 +552,9 @@ long rhrd__unix_to_jd(long t) {
 }
 
 void rhrd__today(rhrd_t * d) {
-  d->jd = rhrd__unix_to_jd(time(NULL) + NUM2LONG(rb_funcall(rb_funcall(rb_cTime, rhrd_id_now, 0), rhrd_id_utc_offset, 0)));
+  VALUE t;
+  t = rb_funcall(rb_cTime, rhrd_id_now, 0);
+  d->jd = rhrd__unix_to_jd(NUM2LONG(rb_funcall(t, rhrd_id_to_i, 0)) + NUM2LONG(rb_funcall(t, rhrd_id_utc_offset, 0)));
   d->flags |= RHR_HAVE_JD;
   RHR_CHECK_JD(d);
 }
