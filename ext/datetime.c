@@ -228,13 +228,23 @@ double rhrdt__to_double(rhrdt_t *d) {
   return d->jd + d->fraction;
 }
 
-VALUE rhrdt__from_double(double d, short offset) {
+VALUE rhrdt__from_jd_fraction(long jd, double d, short offset) {
+  long t;
   rhrdt_t *dt;
   VALUE new;
   new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
   
-  dt->jd = floor(d);
-  dt->fraction = d - dt->jd;
+  if (d < 0) {
+    t = floor(d);
+    d += t;
+    jd -= t;
+  } else if (d > 1) {
+    t = floor(d);
+    d -= t;
+    jd += t;
+  }
+  dt->jd = jd;
+  dt->fraction = d;
   dt->offset = offset;
   dt->flags = RHR_HAVE_JD | RHR_HAVE_FRACTION;
   return new;
@@ -254,9 +264,12 @@ long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
 }
 
 VALUE rhrdt__add_days(VALUE self, double n) {
+  long l;
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
-  return rhrdt__from_double(rhrdt__to_double(dt) + n, dt->offset);
+  l = floor(n);
+  n -= l;
+  return rhrdt__from_jd_fraction(rhrd__safe_add_long(dt->jd, l), dt->fraction + n, dt->offset);
 }
 
 VALUE rhrdt__add_months(VALUE self, long n) {
@@ -759,7 +772,7 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "invalid offset (%f)", offset);
   } 
   Data_Get_Struct(self, rhrdt_t, dt);
-  return rhrdt__from_double(rhrdt__to_double(dt) - dt->offset/1440.0 + offset, lround(offset * 1440.0));
+  return rhrdt__from_jd_fraction(dt->jd, dt->fraction - dt->offset/1440.0 + offset, lround(offset * 1440.0));
 }
 
 static VALUE rhrdt_next(VALUE self) {
@@ -789,7 +802,8 @@ static VALUE rhrdt_sec_fraction(VALUE self) {
 static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   rhrdt_t *d, *ndt;
   rhrd_t *nd;
-  double step, limit, current;
+  double step, step_fraction, limit, current, current_fraction;
+  long step_jd, current_jd;
   short offset;
   VALUE rlimit, new;
   Data_Get_Struct(self, rhrdt_t, d);
@@ -799,9 +813,13 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   switch(argc) {
     case 1:
       step = 1;
+      step_fraction = 0;
+      step_jd = 1;
       break;
     case 2:
       step = NUM2DBL(argv[1]);
+      step_jd = floor(step);
+      step_fraction = step - step_jd;
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
@@ -824,20 +842,28 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   }
 
   current = rhrdt__to_double_offset(d);
+  current_jd = d->jd;
+  current_fraction = d->fraction;
   if (limit > current) {
     if (step > 0) {
       while(limit >= current) {
-        new = rhrdt__from_double(current, offset);
-        current += step;
+        new = rhrdt__from_jd_fraction(current_jd, current_fraction, offset);
         rb_yield(new);
+        Data_Get_Struct(new, rhrdt_t, ndt);
+        current_jd = ndt->jd + step_jd;
+        current_fraction = ndt->fraction + step_fraction;
+        current += step;
       }
     }
   } else if (limit < current) {
     if (step < 0) {
       while(limit <= current) {
-        new = rhrdt__from_double(current, offset);
-        current += step;
+        new = rhrdt__from_jd_fraction(current_jd, current_fraction, offset);
         rb_yield(new);
+        Data_Get_Struct(new, rhrdt_t, ndt);
+        current_jd = ndt->jd + step_jd;
+        current_fraction = ndt->fraction + step_fraction;
+        current += step;
       }
     }
   } else {
@@ -1188,7 +1214,7 @@ static VALUE rhrdt_to_time(VALUE self) {
   long h, m;
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
-  self = rhrdt__from_double(rhrdt__to_double(dt) - dt->offset/1440.0, 0);
+  self = rhrdt__from_jd_fraction(dt->jd, dt->fraction - dt->offset/1440.0, 0);
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
   RHRDT_FILL_FRACTION(dt)
