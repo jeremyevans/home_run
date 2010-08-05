@@ -201,15 +201,16 @@ int rhrdt__valid_ordinal(rhrdt_t *d, long year, long yday) {
 void rhrdt__now(rhrdt_t * dt) {
   long t;
   long offset;
-  double f;
   VALUE rt; 
   rt = rb_funcall(rb_cTime, rhrd_id_now, 0);
   offset = NUM2LONG(rb_funcall(rt, rhrd_id_utc_offset, 0));
-  f = NUM2DBL(rb_funcall(rt, rhrd_id_to_f, 0)) + offset;
-  t = floor(f);
-  f -= t;
+  t = NUM2LONG(rb_funcall(rt, rhrd_id_to_i, 0)) + offset;
   dt->jd = rhrd__unix_to_jd(t);
-  dt->fraction = (rhrd__mod(t, 86400) + f)/86400.0;
+#ifdef RUBY19
+  dt->fraction = (rhrd__mod(t, 86400))/86400.0 + NUM2DBL(rb_funcall(rt, rhrd_id_nsec, 0))/86400000000000.0;
+#else
+  dt->fraction = (rhrd__mod(t, 86400))/86400.0 + NUM2DBL(rb_funcall(rt, rhrd_id_usec, 0))/86400000000.0;
+#endif
   dt->offset = offset/60;
   dt->flags |= RHR_HAVE_JD | RHR_HAVE_FRACTION;
   RHR_CHECK_JD(dt);

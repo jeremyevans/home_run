@@ -163,8 +163,12 @@ ID rhrd_id_now;
 ID rhrd_id_slice;
 ID rhrd_id_split;
 ID rhrd_id_sub_b;
-ID rhrd_id_to_f;
 ID rhrd_id_to_i;
+#ifdef RUBY19
+ID rhrd_id_nsec;
+#else
+ID rhrd_id_usec;
+#endif
 ID rhrd_id_utc;
 ID rhrd_id_utc_offset;
 
@@ -2638,8 +2642,12 @@ void Init_date(void) {
   rhrd_id_slice = rb_intern("slice");
   rhrd_id_split = rb_intern("split");
   rhrd_id_sub_b = rb_intern("sub!");
-  rhrd_id_to_f = rb_intern("to_f");
   rhrd_id_to_i = rb_intern("to_i");
+#ifdef RUBY19
+  rhrd_id_nsec = rb_intern("nsec");
+#else
+  rhrd_id_usec = rb_intern("usec");
+#endif
   rhrd_id_utc = rb_intern("utc");
   rhrd_id_utc_offset = rb_intern("utc_offset");
 
