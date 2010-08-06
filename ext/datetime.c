@@ -1379,7 +1379,7 @@ static VALUE rhrdt_to_time(VALUE self) {
   RHRDT_FILL_NANOS(dt)
 
   s = dt->nanos/RHR_NANOS_PER_SECOND;
-  h = s/3600
+  h = s/3600;
   m = (s % 3600) / 60;
   return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, INT2NUM(dt->year), INT2NUM(dt->month), INT2NUM(dt->day), INT2NUM(h), INT2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
 }
