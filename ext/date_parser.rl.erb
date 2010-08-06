@@ -32,7 +32,7 @@ long rhrd__weekday_num(char * str) {
 }
 
 %%{
-  machine home_run_parser;
+  machine date_parser;
 
   action tag_le_year { t_le_year = p; }
   action tag_le_month { t_le_month = p; }
@@ -268,10 +268,28 @@ long rhrd__weekday_num(char * str) {
   month_only_date = month_name >tag_month_only %set_month_only;
   day_only_date = (((([0-2]? . [1-9]) | ([123] . '0') | '31')) . ('st' | 'nd' | 'rd' | 'th')) >tag_day_only %set_day_only;
 
+  hour = ([01]? . [0-9] | '2' . [0-4]);
+  minute = [0-5] . [0-9];
+  second = minute;
+  am_pm = /ap/i . ([mM] | '.' . [mM] . '.');
+  colon_time = [tT]? . hour . ':' . minute . ':' . (second . ([.,] . digit+)?)? . (space* . am_pm)?;
+  hms_time = hour . 'h' . space* . (minute . 'm' . (second . 's')?)? . (space* . am_pm)?;
+  hour_time = hour . space* . am_pm;
+  time = (colon_time | hms_time | hour_time);
+
+  name_time_time_zone = ((alpha | '.' | space)+ ) :>> (/standard/ | /daylight/) . (space . /time/i);
+  name_time_zone = alpha+ . (space . /dst/i);
+  numeric_time_zone = ((/gmt|utc/i)? . [\-+] . digit+ . (([,.] . digit+) | (':' . digit+ . (':' . digit+)?))?);
+  time_zone = (numeric_time_zone | name_time_zone | name_time_time_zone);
+
+  time_with_zone = time . (space* . time_zone)?;
+  opt_time = time_with_zone?;
+
   date = (le_date | be_date | me_date | my_date | num_date | month_only_date | day_only_date);
   opt_day = ((abbr_day | full_day) >tag_weekday %set_weekday)? . space*;
+  opt_day_time = (opt_day . space* . opt_time) | (opt_time . space* . opt_day) | opt_day | opt_time;
   
-  main := space* . opt_day . date . space* . opt_day;
+  main := space* . opt_day_time . date . space* . opt_day_time;
   write data;
 }%%
 
