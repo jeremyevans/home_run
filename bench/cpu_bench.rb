@@ -11,13 +11,17 @@ HRDT = DateTime
 
 def compare(label, &block)
   Object.send(:remove_const, :Date)
+  Object.send(:remove_const, :DateTime)
   Object.send(:const_set, :Date, SD)
+  Object.send(:const_set, :DateTime, SDT)
   t = Time.now
   yield SD
   stdlib = Time.now - t
 
   Object.send(:remove_const, :Date)
+  Object.send(:remove_const, :DateTime)
   Object.send(:const_set, :Date, HRD)
+  Object.send(:const_set, :DateTime, HRDT)
   t = Time.now
   yield HRD
   home_run = Time.now - t
@@ -53,6 +57,7 @@ dt_compare(".jd"){|dc| n.times{dc.jd(2010, 13, 43, 57)}}
 dt_compare(".new!"){|dc| n.times{dc.new!(201013.3, -8/24.0)}}
 dt_compare(".now"){|dc| n.times{dc.now}}
 dt_compare(".ordinal"){|dc| n.times{dc.ordinal(2010, 1, 13, 43, 57)}}
+dt_compare(".strptime"){|dc| n.times{dc.strptime('fri jan 5 00:00:00 2007', '%c')}}
 dt_compare("#inspect"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.inspect}}
 dt_compare("#to_s"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.to_s}}
 dt_compare("#<=> DateTime"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); d2 = dc.civil(2010, 1, 2, 3, 4, 5); n.times{d <=> d2}}
@@ -78,9 +83,10 @@ compare(".julian_leap?"){|dc| n.times{dc.julian_leap?(2000)}}
 compare(".new!"){|dc| n.times{dc.new!(2012)}}
 compare(".ordinal"){|dc| n.times{dc.ordinal(2012, 100)}}
 compare(".parse"){|dc| n.times{dc.parse('2010-12-13')}}
-compare(".strptime'"){|dc| n.times{dc.strptime('fri jan 5 00:00:00 2007', '%c')}}
+compare(".strptime"){|dc| n.times{dc.strptime('fri jan 5 00:00:00 2007', '%c')}}
 compare(".today"){|dc| n.times{dc.today}}
 compare(".valid_date?"){|dc| n.times{dc.valid_date?(2010, 1, 1)}}
+compare(".zone_to_diff"){|dc| n.times{dc.zone_to_diff('+0800')}}
 
 compare("#inspect"){|dc| d = dc.civil(2010, 1, 1); n.times{d.inspect}}
 compare("#to_s"){|dc| d = dc.civil(2010, 1, 1); n.times{d.to_s}}
@@ -115,7 +121,8 @@ compare("#downto"){|dc| d = dc.civil(2010, 1, 10); d2 = dc.civil(2010, 1, 1); n.
 compare("#upto"){|dc| d = dc.civil(2010, 1, 1); d2 = dc.civil(2010, 1, 10); n.times{d.upto(d2){}}}
 compare("#strftime"){|dc| d = dc.civil(2010, 1, 10); n.times{d.strftime('%+')}}
 
-compare(".jd.inspect"){|dc|n.times{dc.jd(2010).inspect}}
+dt_compare(".now.to_s"){|dc|n.times{dc.jd(2010).inspect}}
+compare(".jd.to_s"){|dc|n.times{dc.jd(2010).to_s}}
 compare(".jd.(year|month|day)"){|dc| n.times{d = dc.jd(2010); d.year; d.month; d.day}}
 compare(".civil.jd"){|dc| n.times{dc.civil(2010, 1, 1).jd}}
 
