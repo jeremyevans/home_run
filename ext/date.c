@@ -158,7 +158,7 @@ VALUE rhrd_re_comma_period;
 ID rhrd_id_op_array;
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
-ID rhrd_id_downcase_b;
+ID rhrd_id_downcase;
 ID rhrd_id_hash;
 ID rhrd_id_include_q;
 ID rhrd_id_length;
@@ -928,35 +928,9 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
   RHR_RETURN_RESIZED_STR(s, cp)
 }
 
-/* Ruby Class Methods */
-
-static VALUE rhrd_s__load(VALUE klass, VALUE string) {
-  rhrd_t * d;
-  VALUE jd, rd;
-  jd = rb_marshal_load(string);
-  rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
-  d->jd = NUM2LONG(jd);
-  RHR_CHECK_JD(d)
-  d->flags = RHR_HAVE_JD;
-  return rd;
-}
-
-static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
-  switch(argc) {
-    case 2:
-    case 1:
-      return rhrd__parse(RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
-      break;
-  }
-}
-
-static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
+VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
   char * str;
-  const char * fmt_str = "%F";
   long len;
-  long fmt_len = 2;
   long year = 0;
   long month = 0;
   long day = 0;
@@ -981,23 +955,10 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   long i;
   long fmt_pos;
   int scan_len;
-  VALUE rstr;
   VALUE zone = Qnil;
   VALUE hash;
-
-  switch(argc) {
-    case 2:
-      fmt_str = RSTRING_PTR(argv[1]);
-      fmt_len = RSTRING_LEN(argv[1]);
-    case 1:
-      rstr = argv[0];
-      str = RSTRING_PTR(rstr);
-      len = RSTRING_LEN(rstr);
-      break;
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
-      break;
-  }
+  str = RSTRING_PTR(rstr);
+  len = RSTRING_LEN(rstr);
 
   for (fmt_pos = 0; fmt_pos < fmt_len; fmt_pos++) {
     if (pos >= len) {
@@ -1461,7 +1422,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   } 
   if(RTEST(zone)) {
     rb_hash_aset(hash, rhrd_sym_zone, zone);
-    zone = rhrd_s_zone_to_diff(klass, zone);
+    zone = rhrd_s_zone_to_diff(rstr, zone);
     if(RTEST(zone)) {
       rb_hash_aset(hash, rhrd_sym_offset, zone);
     }
@@ -1478,6 +1439,48 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   }
 #endif
   return hash;
+}
+
+/* Ruby Class Methods */
+
+static VALUE rhrd_s__load(VALUE klass, VALUE string) {
+  rhrd_t * d;
+  VALUE jd, rd;
+  jd = rb_marshal_load(string);
+  rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  d->jd = NUM2LONG(jd);
+  RHR_CHECK_JD(d)
+  d->flags = RHR_HAVE_JD;
+  return rd;
+}
+
+static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
+  switch(argc) {
+    case 2:
+    case 1:
+      return rhrd__parse(RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
+  char * fmt_str = "%F";
+  long fmt_len = 2;
+
+  switch(argc) {
+    case 2:
+      fmt_str = RSTRING_PTR(argv[1]);
+      fmt_len = RSTRING_LEN(argv[1]);
+    case 1:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+
+  return rhrd__strptime(argv[0], fmt_str, fmt_len);
 }
 
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -1763,7 +1766,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
   char *s;
   VALUE v, e;
 
-  rb_funcall(str, rhrd_id_downcase_b, 0);
+  str = rb_funcall(str, rhrd_id_downcase, 0);
   if(RTEST(rb_funcall(str, rhrd_id_sub_b, 2, rhrd_zone_dst_re, rhrd_empty_string))) {
     if (!RTEST(rb_reg_nth_match(1, rb_gv_get("$~")))) { 
       offset += 3600;
@@ -2674,7 +2677,7 @@ void Init_date(void) {
   rhrd_id_op_array = rb_intern("[]");
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
-  rhrd_id_downcase_b = rb_intern("downcase!");
+  rhrd_id_downcase = rb_intern("downcase");
   rhrd_id_hash = rb_intern("hash");
   rhrd_id_length = rb_intern("length");
   rhrd_id_include_q = rb_intern("include?");

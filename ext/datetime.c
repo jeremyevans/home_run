@@ -447,6 +447,24 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   return rd;
 }
 
+static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
+  char * fmt_str = "%FT%T%z";
+  long fmt_len = 7;
+
+  switch(argc) {
+    case 2:
+      fmt_str = RSTRING_PTR(argv[1]);
+      fmt_len = RSTRING_LEN(argv[1]);
+    case 1:
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+
+  return rhrd__strptime(argv[0], fmt_str, fmt_len);
+}
+
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   long year = RHR_DEFAULT_YEAR;
@@ -1424,6 +1442,7 @@ void Init_datetime(void) {
 
   rb_undef(rhrdt_s_class, rb_intern("today"));
   rb_define_method(rhrdt_s_class, "_load", rhrdt_s__load, 1);
+  rb_define_method(rhrdt_s_class, "_strptime", rhrdt_s__strptime, -1);
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
   rb_define_method(rhrdt_s_class, "commercial", rhrdt_s_commercial, -1);
   rb_define_method(rhrdt_s_class, "jd", rhrdt_s_jd, -1);
