@@ -82,6 +82,7 @@ so that no calculations can overflow.
 #define RHRR_UNIX_SET 0x2000
 #define RHRR_WNUM0_SET 0x4000
 #define RHRR_WNUM1_SET 0x8000
+#define RHRR_MERIDIAN_SET 0x10000
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -1137,7 +1138,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           if (sscanf(str + pos, "%03ld%n", &sec_fraction_num, &scan_len) != 1) {
             return Qnil;
           }
-	  sec_fraction = sec_fraction_num/pow(10, scan_len);
+          sec_fraction = sec_fraction_num/pow(10, scan_len);
           state |= RHRR_SEC_FRACTION_SET;
           break;
         case 'm':
@@ -1170,15 +1171,17 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
           if (sscanf(str + pos, "%09ld%n", &sec_fraction_num, &scan_len) != 1) {
             return Qnil;
           }
-	  sec_fraction = sec_fraction_num/pow(10, scan_len);
+          sec_fraction = sec_fraction_num/pow(10, scan_len);
           state |= RHRR_SEC_FRACTION_SET;
           break;
+        case 'P':
         case 'p':
 #define RHR_PARSE_p if (!(str[pos] == 'a' || str[pos] == 'A' ||\
                 str[pos] == 'p' || str[pos] == 'P')) {\
             return Qnil;\
           } else {\
-            meridian = 1;\
+            state |= RHRR_MERIDIAN_SET;\
+            meridian = str[pos] == 'p' || str[pos] == 'P';\
           }\
           if (pos + 2 <= len) {\
             if (!(str[pos + 1] == 'M' || str[pos + 1] == 'm')) {\
@@ -1429,6 +1432,16 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
     rb_hash_aset(hash, rhrd_sym_cwday, INT2NUM(cwday));
   } 
   if(state & RHRR_HOUR_SET) {
+    if (state & RHRR_MERIDIAN_SET) {
+      if (meridian) {
+        if (hour < 12) {
+          hour += 12;
+        }
+      }
+      else if (hour == 12) {
+        hour = 0;
+      }
+    }
     rb_hash_aset(hash, rhrd_sym_hour, INT2NUM(hour));
   } 
   if(state & RHRR_MINUTE_SET) {
