@@ -666,7 +666,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
-static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
+static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
 
@@ -676,9 +676,29 @@ static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
       return rdt;
     case 1:
     case 2:
+    case 3:
       break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
+      break;
+  }
+
+  rhrdt__fill_from_hash(dt, rhrd_s__parse(1, argv, klass));
+  return rdt;
+}
+
+static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *dt;
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+
+  switch(argc) {
+    case 0:
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
+      return rdt;
     case 3:
       argc = 2;
+    case 1:
+    case 2:
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
@@ -1410,6 +1430,7 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_s_class, "new!", rhrdt_s_new_b, -1);
   rb_define_method(rhrdt_s_class, "now", rhrdt_s_now, -1);
   rb_define_method(rhrdt_s_class, "ordinal", rhrdt_s_ordinal, -1);
+  rb_define_method(rhrdt_s_class, "parse", rhrdt_s_parse, -1);
   rb_define_method(rhrdt_s_class, "strptime", rhrdt_s_strptime, -1);
 
   rb_define_alias(rhrdt_s_class, "new", "civil");
