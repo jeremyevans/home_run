@@ -182,6 +182,9 @@ VALUE rhrd_sym_cwday;
 VALUE rhrd_sym_cweek;
 VALUE rhrd_sym_cwyear;
 VALUE rhrd_sym_hour;
+#ifdef RUBY19
+VALUE rhrd_sym_leftover;
+#endif
 VALUE rhrd_sym_mday;
 VALUE rhrd_sym_min;
 VALUE rhrd_sym_mon;
@@ -1469,6 +1472,11 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   if(state & RHRR_WNUM1_SET) {
     rb_hash_aset(hash, rhrd_sym_wnum1, INT2NUM(wnum1));
   } 
+#ifdef RUBY19  
+  if(pos < len) {
+    rb_hash_aset(hash, rhrd_sym_leftover, rb_str_new(str + pos, len - pos));
+  }
+#endif
   return hash;
 }
 
@@ -2690,6 +2698,9 @@ void Init_date(void) {
   rhrd_sym_cweek = ID2SYM(rb_intern("cweek"));
   rhrd_sym_cwyear = ID2SYM(rb_intern("cwyear"));
   rhrd_sym_hour = ID2SYM(rb_intern("hour"));
+#ifdef RUBY19
+  rhrd_sym_leftover = ID2SYM(rb_intern("leftover"));
+#endif
   rhrd_sym_mday = ID2SYM(rb_intern("mday"));
   rhrd_sym_min = ID2SYM(rb_intern("min"));
   rhrd_sym_mon = ID2SYM(rb_intern("mon"));
