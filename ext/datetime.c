@@ -723,7 +723,7 @@ static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
-  rhrdt__fill_from_hash(dt, rhrd_s__strptime(argc, argv, klass));
+  rhrdt__fill_from_hash(dt, rhrdt_s__strptime(argc, argv, klass));
   return rdt;
 }
 
