@@ -12,13 +12,6 @@ task :spec do
   sh %{#{MSPEC} -I ext rubyspec/library/date/*_spec.rb}
 end
 
-desc "Build the ragel parser"
-task :parser do
-  require 'erb'
-  File.open('ext/date_parser.rl', 'wb'){|f| f.write(ERB.new(File.read('ext/date_parser.rl.erb')).result(binding))}
-  sh %{cd ext && ragel date_parser.rl}
-end
-
 desc "Build the extension"
 task :build=>[:clean] do
   sh %{cd ext && #{RUBY} extconf.rb && make}

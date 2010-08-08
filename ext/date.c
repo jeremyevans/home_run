@@ -158,6 +158,7 @@ VALUE rhrd_re_comma_period;
 ID rhrd_id_op_array;
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
+ID rhrd_id__parse;
 ID rhrd_id_downcase;
 ID rhrd_id_hash;
 ID rhrd_id_include_q;
@@ -209,8 +210,6 @@ void rhrdt__civil_to_jd(rhrdt_t *d);
 void rhrdt__jd_to_civil(rhrdt_t *date);
 void rhrdt__nanos_to_hms(rhrdt_t *d);
 void rhrdt__hms_to_nanos(rhrdt_t *d);
-
-#include "date_parser.c"
 
 /* C Helper Methods */
 
@@ -1454,17 +1453,6 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   return rd;
 }
 
-static VALUE rhrd_s__parse(int argc, VALUE *argv, VALUE klass) {
-  switch(argc) {
-    case 2:
-    case 1:
-      return rhrd__parse(RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
-    default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
-      break;
-  }
-}
-
 static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   char * fmt_str = "%F";
   long fmt_len = 2;
@@ -1632,15 +1620,14 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__parse, 1, argv[0]));
     case 2:
     case 3:
-      break;
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__parse, 2, argv[0], argv[1]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
       break;
   }
-
-  return rhrd__from_hash(rhrd__parse(RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0])));
 }
 
 static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
@@ -2677,6 +2664,7 @@ void Init_date(void) {
   rhrd_id_op_array = rb_intern("[]");
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
+  rhrd_id__parse = rb_intern("_parse");
   rhrd_id_downcase = rb_intern("downcase");
   rhrd_id_hash = rb_intern("hash");
   rhrd_id_length = rb_intern("length");
@@ -2728,7 +2716,6 @@ void Init_date(void) {
 
   /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
-  rb_define_method(rhrd_s_class, "_parse", rhrd_s__parse, -1);
   rb_define_method(rhrd_s_class, "_strptime", rhrd_s__strptime, -1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
   rb_define_method(rhrd_s_class, "commercial", rhrd_s_commercial, -1);

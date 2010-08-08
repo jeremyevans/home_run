@@ -693,15 +693,15 @@ static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
       dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
       return rdt;
     case 1:
+      rhrdt__fill_from_hash(dt, rb_funcall(klass, rhrd_id__parse, 1, argv[0]));
     case 2:
     case 3:
-      break;
+      rhrdt__fill_from_hash(dt, rb_funcall(klass, rhrd_id__parse, 2, argv[0], argv[1]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
       break;
   }
 
-  rhrdt__fill_from_hash(dt, rhrd_s__parse(1, argv, klass));
   return rdt;
 }
 
