@@ -619,7 +619,7 @@ if RUBY_VERSION >= '1.9.0'
       e
     elsif /\A\s*(?:--(\d{2})(?:-(\d{2}))?|---(\d{2}))
 	(z|[-+]\d{2}:\d{2})?\s*\z/ix =~ str
-      e
+      e = {}
       e[:mon] = $1.to_i if $1
       e[:mday] = $2.to_i if $2
       e[:mday] = $3.to_i if $3
