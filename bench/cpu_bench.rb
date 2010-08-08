@@ -6,6 +6,7 @@ $:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ex
 Object.send(:remove_const, :Date)
 Object.send(:remove_const, :DateTime)
 require 'ext/date.so'
+require 'ext/date/format'
 HRD = Date
 HRDT = DateTime
 
@@ -57,6 +58,7 @@ dt_compare(".jd"){|dc| n.times{dc.jd(2010, 13, 43, 57)}}
 dt_compare(".new!"){|dc| n.times{dc.new!(201013.3, -8/24.0)}}
 dt_compare(".now"){|dc| n.times{dc.now}}
 dt_compare(".ordinal"){|dc| n.times{dc.ordinal(2010, 1, 13, 43, 57)}}
+dt_compare(".parse"){|dc| n.times{dc.parse('2010-12-13T13:43:57+08:00')}}
 dt_compare(".strptime"){|dc| n.times{dc.strptime('fri jan 5 00:00:00 2007', '%c')}}
 dt_compare("#inspect"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.inspect}}
 dt_compare("#to_s"){|dc| d = dc.civil(2010, 1, 1, 13, 43, 57); n.times{d.to_s}}

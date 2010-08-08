@@ -694,9 +694,11 @@ static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
       return rdt;
     case 1:
       rhrdt__fill_from_hash(dt, rb_funcall(klass, rhrd_id__parse, 1, argv[0]));
+      break;
     case 2:
     case 3:
       rhrdt__fill_from_hash(dt, rb_funcall(klass, rhrd_id__parse, 2, argv[0], argv[1]));
+      break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
       break;
