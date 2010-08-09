@@ -1279,7 +1279,7 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
 
   l = snprintf(str + len, 128 - len, "T%02hhi:%02hhi:%02hhi", dt->hour, dt->minute, dt->second);
   if (l == -1 || l > 127) {
-    rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
+    rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
   }
   len += l;
 
@@ -1287,14 +1287,14 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
     RHRDT_FILL_NANOS(dt)
     l = snprintf(str + len, 128 - len, ".%09lli", dt->nanos % RHR_NANOS_PER_SECOND);
     if (l == -1 || l > 127) {
-      rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
+      rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
     }
     len += i + 1;
   }
 
   l = snprintf(str + len, 128 - len, "%+03i:%02i", dt->offset/60, abs(dt->offset % 60));
   if (l == -1 || l > 127) {
-    rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
+    rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
   }
 
   return len + l;
@@ -1496,6 +1496,28 @@ static VALUE rhrdt_prev_year(int argc, VALUE *argv, VALUE self) {
   return rhrdt__add_years(self, i);
 }
 
+static VALUE rhrdt_rfc2822(VALUE self) {
+  VALUE s;
+  rhrdt_t *d;
+  int len;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_CIVIL(d)
+  RHRDT_FILL_JD(d)
+  RHRDT_FILL_HMS(d)
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %hhi %s %04li %02hhi:%02hhi:%02hhi %+03i%02i", 
+        rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
+        d->day,
+        rhrd__abbr_month_names[d->month],
+        d->year, d->hour, d->minute, d->second, d->offset/60, abs(d->offset % 60));
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in DateTime#rfc2822 (in snprintf)");
+  }
+
+  RHR_RETURN_RESIZED_STR(s, len)
+}
+
 static VALUE rhrdt_to_date(VALUE self) {
   rhrd_t *d;
   rhrdt_t *dt;
@@ -1638,11 +1660,13 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "prev_day", rhrdt_prev_day, -1);
   rb_define_method(rhrdt_class, "prev_month", rhrdt_prev_month, -1);
   rb_define_method(rhrdt_class, "prev_year", rhrdt_prev_year, -1);
+  rb_define_method(rhrdt_class, "rfc2822", rhrdt_rfc2822, 0);
   rb_define_method(rhrdt_class, "to_date", rhrdt_to_date, 0);
   rb_define_method(rhrdt_class, "to_time", rhrdt_to_time, 0);
 
   rb_define_alias(rhrdt_class, "minute", "min");
   rb_define_alias(rhrdt_class, "rfc3339", "iso8601");
+  rb_define_alias(rhrdt_class, "rfc822", "rfc2822");
   rb_define_alias(rhrdt_class, "second", "sec");
   rb_define_alias(rhrdt_class, "second_fraction", "sec_fraction");
   rb_define_alias(rhrdt_class, "to_datetime", "gregorian");

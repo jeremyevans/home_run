@@ -3120,8 +3120,8 @@ void Init_date(void) {
   rb_define_alias(rhrd_class, "to_date", "gregorian");
   rb_define_alias(rhrd_class, "iso8601", "to_s");
   rb_define_alias(rhrd_class, "rfc3339", "to_s");
-  rb_define_alias(rhrd_class, "xmlschema", "to_s");
   rb_define_alias(rhrd_class, "rfc822", "rfc2822");
+  rb_define_alias(rhrd_class, "xmlschema", "to_s");
 
   rb_define_method(rhrd_class, "sunday?", rhrd_sunday_q, 0);
   rb_define_method(rhrd_class, "monday?", rhrd_monday_q, 0);
