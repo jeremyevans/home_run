@@ -1683,7 +1683,11 @@ static VALUE rhrd_s_valid_civil_q(int argc, VALUE *argv, VALUE klass) {
     case 3:
     case 4:
       if (!rhrd__valid_civil(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]))) {
+#ifdef RUBY19
+        return Qfalse;
+#else
         return Qnil;
+#endif
       }
       break;
     default:
@@ -1691,8 +1695,12 @@ static VALUE rhrd_s_valid_civil_q(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
+#ifdef RUBY19
+  return Qtrue;
+#else
   RHR_FILL_JD(&d)
   return INT2NUM(d.jd);
+#endif
 }
 
 static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
@@ -1703,7 +1711,11 @@ static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
     case 3:
     case 4:
       if (!rhrd__valid_commercial(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]))) {
+#ifdef RUBY19
+        return Qfalse;
+#else
         return Qnil;
+#endif
       }
       break;
     default:
@@ -1711,7 +1723,11 @@ static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
+#ifdef RUBY19
+  return Qtrue;
+#else
   return INT2NUM(d.jd);
+#endif
 }
 
 static VALUE rhrd_s_valid_jd_q(int argc, VALUE *argv, VALUE klass) {
@@ -1724,7 +1740,11 @@ static VALUE rhrd_s_valid_jd_q(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
+#ifdef RUBY19
+  return Qtrue;
+#else
   return argv[0];
+#endif
 }
 
 static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
@@ -1735,7 +1755,11 @@ static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
     case 2:
     case 3:
       if (!rhrd__valid_ordinal(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]))) {
+#ifdef RUBY19
+        return Qfalse;
+#else
         return Qnil;
+#endif
       }
       break;
     default:
@@ -1743,8 +1767,12 @@ static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
+#ifdef RUBY19
+  return Qtrue;
+#else
   RHR_FILL_JD(&d)
   return INT2NUM(d.jd);
+#endif
 }
 
 static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
