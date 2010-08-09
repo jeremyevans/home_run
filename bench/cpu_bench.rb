@@ -52,6 +52,7 @@ end
 
 n = (ARGV.first || 100000).to_i
 puts "label,stdlib,home_run,times faster"
+dt_compare("._parse"){|dc| n.times{dc._parse('2010-12-13 10:20:30-07:00')}}
 dt_compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".jd"){|dc| n.times{dc.jd(2010, 13, 43, 57)}}

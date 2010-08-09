@@ -12,6 +12,11 @@ task :spec do
   sh %{#{MSPEC} -I ext rubyspec/library/date/*_spec.rb}
 end
 
+desc "Build the ragel parser"
+task :parser do
+  sh %{cd ext && ragel date_parser.rl}
+end
+
 desc "Build the extension"
 task :build=>[:clean] do
   sh %{cd ext && #{RUBY} extconf.rb && make}

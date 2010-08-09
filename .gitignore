@@ -1,5 +1,6 @@
 *.rbc
 /ext/Makefile
 /ext/date.*o
+/ext/date_parser.c
 *.core
 rubyspec

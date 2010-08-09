@@ -448,6 +448,10 @@ class Date
 	:_parse_year, :_parse_mon, :_parse_mday, :_parse_ddd
 
   def self._parse(str, comp=true)
+    if v = _ragel_parse(str)
+      return v
+    end
+
     str = str.dup
 
     e = {:_ => {:comp => comp}}

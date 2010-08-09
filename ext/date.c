@@ -84,6 +84,8 @@ so that no calculations can overflow.
 #define RHRR_WNUM0_SET 0x4000
 #define RHRR_WNUM1_SET 0x8000
 #define RHRR_MERIDIAN_SET 0x10000
+#define RHRR_ZONE_SET 0x20000
+#define RHRR_OFFSET_SET 0x40000
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -1450,6 +1452,8 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
   return hash;
 }
 
+#include "date_parser.c"
+
 /* Ruby Class Methods */
 
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
@@ -1461,6 +1465,11 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   RHR_CHECK_JD(d)
   d->flags = RHR_HAVE_JD;
   return rd;
+}
+
+static VALUE rhrd_s__ragel_parse(VALUE klass, VALUE s) {
+  s = rb_str_to_str(s);
+  return rhrd__ragel_parse(RSTRING_PTR(s), RSTRING_LEN(s));
 }
 
 static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
@@ -2977,6 +2986,8 @@ void Init_date(void) {
   rb_define_alias(rhrd_s_class, "leap?", "gregorian_leap?");
   rb_define_alias(rhrd_s_class, "new", "civil");
   rb_define_alias(rhrd_s_class, "valid_date?", "valid_civil?");
+
+  rb_define_private_method(rhrd_s_class, "_ragel_parse", rhrd_s__ragel_parse, 1);
 
   rb_define_method(rhrd_class, "_dump", rhrd__dump, 1);
   rb_define_method(rhrd_class, "asctime", rhrd_asctime, 0);
