@@ -2657,6 +2657,16 @@ static VALUE rhrd_to_time(VALUE self) {
   return rb_funcall(rb_cTime, rhrd_id_local, 3, INT2NUM(d->year), INT2NUM(d->month), INT2NUM(d->day));
 }
 
+static VALUE rhrd_time_to_date(VALUE self) {
+  rhrd_t *d;
+  VALUE rd;
+  rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+  d->jd = rhrd__unix_to_jd(NUM2LONG(rb_funcall(self, rhrd_id_to_i, 0)) + NUM2LONG(rb_funcall(self, rhrd_id_utc_offset, 0)));
+  d->flags = RHR_HAVE_JD;
+  RHR_CHECK_JD(d)
+  return rd;
+}
+
 /* 1.9 day? methods */
 
 static VALUE rhrd_sunday_q(VALUE self) {
@@ -3290,6 +3300,8 @@ void Init_date(void) {
   rb_define_method(rhrd_class, "saturday?", rhrd_saturday_q, 0);
 
   rb_define_private_method(rhrd_s_class, "zone_to_diff", rhrd_s_zone_to_diff, 1);
+
+  rb_define_method(rb_cTime, "to_date", rhrd_time_to_date, 0);
 #else
   rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
   rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);

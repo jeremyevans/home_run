@@ -1696,6 +1696,26 @@ static VALUE rhrdt_to_time(VALUE self) {
   return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, INT2NUM(dt->year), INT2NUM(dt->month), INT2NUM(dt->day), INT2NUM(h), INT2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
 }
 
+static VALUE rhrdt_time_to_datetime(VALUE self) {
+  rhrdt_t *dt;
+  VALUE rd;
+  long t, offset;
+  rd = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
+
+  offset = NUM2LONG(rb_funcall(self, rhrd_id_utc_offset, 0));
+  t = NUM2LONG(rb_funcall(self, rhrd_id_to_i, 0)) + offset;
+  dt->jd = rhrd__unix_to_jd(t);
+#ifdef RUBY19
+  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(self, rhrd_id_nsec, 0));
+#else
+  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(self, rhrd_id_usec, 0)) * 1000;
+#endif
+  dt->offset = offset/60;
+  dt->flags |= RHR_HAVE_JD | RHR_HAVE_NANOS;
+  RHR_CHECK_JD(dt);
+  return rd;
+}
+
 /* 1.9 day? instance methods */
 
 static VALUE rhrdt_sunday_q(VALUE self) {
@@ -1833,6 +1853,8 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "thursday?", rhrdt_thursday_q, 0);
   rb_define_method(rhrdt_class, "friday?", rhrdt_friday_q, 0);
   rb_define_method(rhrdt_class, "saturday?", rhrdt_saturday_q, 0);
+
+  rb_define_method(rb_cTime, "to_datetime", rhrdt_time_to_datetime, 0);
 #else
   rb_define_alias(rhrdt_s_class, "new0", "new!");
   rb_define_alias(rhrdt_s_class, "new1", "jd");
