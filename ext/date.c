@@ -2948,6 +2948,7 @@ void Init_date(void) {
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
 
   rhrd_class = rb_define_class("Date", rb_cObject);
+  rb_undef_alloc_func(rhrd_class);
   rhrd_s_class = rb_singleton_class(rhrd_class);
 
   rb_define_const(rhrd_class, "ITALY", INT2NUM(RHR_JD_ITALY));

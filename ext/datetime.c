@@ -1728,6 +1728,7 @@ static VALUE rhrdt_saturday_q(VALUE self) {
 
 void Init_datetime(void) {
   rhrdt_class = rb_define_class("DateTime", rhrd_class);
+  rb_undef_alloc_func(rhrdt_class);
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
 
   rb_undef(rhrdt_s_class, rb_intern("today"));
