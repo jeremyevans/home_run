@@ -1269,6 +1269,8 @@ VALUE rhrdt__day_q(VALUE self, long day) {
 long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
   int l;
 
+  RHRDT_FILL_HMS(dt)
+
   if (i < 1) {
     i = 0;
   } else if (i > 9) {
@@ -1282,6 +1284,7 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
   len += l;
 
   if (i) {
+    RHRDT_FILL_NANOS(dt)
     l = snprintf(str + len, 128 - len, ".%09lli", dt->nanos % RHR_NANOS_PER_SECOND);
     if (l == -1 || l > 127) {
       rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
@@ -1307,7 +1310,6 @@ static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
   int len;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
-  RHRDT_FILL_HMS(dt)
 
   switch(argc) {
     case 1:
@@ -1330,6 +1332,59 @@ static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
   }
 
   len = rhrdt__add_iso_time_format(dt, str, len, i);
+  RHR_RETURN_RESIZED_STR(s, len)
+}
+
+static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
+  VALUE s;
+  rhrdt_t *d;
+  int len;
+  int i;
+  char c;
+  char * str;
+  long year;
+  Data_Get_Struct(self, rhrdt_t, d);
+  RHRDT_FILL_CIVIL(d)
+  RHRDT_FILL_JD(d)
+
+  switch(argc) {
+    case 1:
+      i = NUM2LONG(argv[0]);
+      break;
+    case 0:
+      i = 0;
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  s = rb_str_buf_new(128);
+  str = RSTRING_PTR(s); 
+
+  if (d->jd < 2405160) {
+    len = snprintf(str, 128, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
+  } else {
+    if (d->jd >= 2447535) {
+      c = 'H';
+      year = d->year - 1988;
+    } else if (d->jd >= 2424875) {
+      c = 'S';
+      year = d->year - 1925;
+    } else if (d->jd >= 2419614) {
+      c = 'T';
+      year = d->year - 1911;
+    } else {
+      c = 'M';
+      year = d->year - 1867;
+    }
+    len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02hhi.%02hhi", c, year, d->month, d->day);
+  }
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#jisx0301 (in snprintf)");
+  }
+
+  len = rhrdt__add_iso_time_format(d, str, len, i);
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
@@ -1576,6 +1631,7 @@ void Init_datetime(void) {
 
 #ifdef RUBY19
   rb_define_method(rhrdt_class, "iso8601", rhrdt_iso8601, -1);
+  rb_define_method(rhrdt_class, "jisx0301", rhrdt_jisx0301, -1);
   rb_define_method(rhrdt_class, "next_day", rhrdt_next_day, -1);
   rb_define_method(rhrdt_class, "next_month", rhrdt_next_month, -1);
   rb_define_method(rhrdt_class, "next_year", rhrdt_next_year, -1);
