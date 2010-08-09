@@ -180,6 +180,15 @@ ID rhrd_id_usec;
 ID rhrd_id_utc;
 ID rhrd_id_utc_offset;
 
+#ifdef RUBY19
+ID rhrd_id__httpdate;
+ID rhrd_id__iso8601;
+ID rhrd_id__jisx0301;
+ID rhrd_id__rfc2822;
+ID rhrd_id__rfc3339;
+ID rhrd_id__xmlschema;
+#endif
+
 VALUE rhrd_sym_cwday;
 VALUE rhrd_sym_cweek;
 VALUE rhrd_sym_cwyear;
@@ -637,6 +646,9 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   long cwday = 0;
   VALUE ryear, rmonth, rday, ryday, rwday, rcwyear, rcweek, rcwday, runix, rwnum0, rwnum1;
 
+  if (!RTEST(hash)) {
+    return -1;
+  }
   runix = rb_hash_aref(hash, rhrd_sym_seconds);
   if (RTEST(runix)) {
     d->jd = rhrd__unix_to_jd(NUM2LONG(runix));
@@ -2305,6 +2317,116 @@ VALUE rhrd__day_q(VALUE self, long day) {
   return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
 }
 
+/* 1.9 class methods */
+
+static VALUE rhrd_s_httpdate(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd;
+
+  switch(argc) {
+    case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 1:
+    case 2:
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__httpdate, 1, argv[0]));
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrd_s_iso8601(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd;
+
+  switch(argc) {
+    case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 1:
+    case 2:
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__iso8601, 1, argv[0]));
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrd_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd;
+
+  switch(argc) {
+    case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 1:
+    case 2:
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__jisx0301, 1, argv[0]));
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrd_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd;
+
+  switch(argc) {
+    case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 1:
+    case 2:
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__rfc2822, 1, argv[0]));
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrd_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd;
+
+  switch(argc) {
+    case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 1:
+    case 2:
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__rfc3339, 1, argv[0]));
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrd_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
+  rhrd_t *d;
+  VALUE rd;
+
+  switch(argc) {
+    case 0:
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      d->flags = RHR_HAVE_JD;
+      return rd;
+    case 1:
+    case 2:
+      return rhrd__from_hash(rb_funcall(klass, rhrd_id__xmlschema, 1, argv[0]));
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
 /* 1.9 instance methods */
 
 static VALUE rhrd_httpdate(VALUE self) {
@@ -2795,6 +2917,15 @@ void Init_date(void) {
   rhrd_id_utc = rb_intern("utc");
   rhrd_id_utc_offset = rb_intern("utc_offset");
 
+#ifdef RUBY19
+  rhrd_id__httpdate = rb_intern("_httpdate");
+  rhrd_id__iso8601 = rb_intern("_iso8601");
+  rhrd_id__jisx0301 = rb_intern("_jisx0301");
+  rhrd_id__rfc2822 = rb_intern("_rfc2822");
+  rhrd_id__rfc3339 = rb_intern("_rfc3339");
+  rhrd_id__xmlschema = rb_intern("_xmlschema");
+#endif
+
   rhrd_sym_cwday = ID2SYM(rb_intern("cwday"));
   rhrd_sym_cweek = ID2SYM(rb_intern("cweek"));
   rhrd_sym_cwyear = ID2SYM(rb_intern("cwyear"));
@@ -3105,6 +3236,15 @@ void Init_date(void) {
   rb_define_const(rhrd_class, "ABBR_DAYNAMES", rhrd_abbr_daynames);
 
 #ifdef RUBY19
+  rb_define_method(rhrd_s_class, "httpdate", rhrd_s_httpdate, -1);
+  rb_define_method(rhrd_s_class, "iso8601", rhrd_s_iso8601, -1);
+  rb_define_method(rhrd_s_class, "jisx0301", rhrd_s_jisx0301, -1);
+  rb_define_method(rhrd_s_class, "rfc2822", rhrd_s_rfc2822, -1);
+  rb_define_method(rhrd_s_class, "rfc3339", rhrd_s_rfc3339, -1);
+  rb_define_method(rhrd_s_class, "xmlschema", rhrd_s_xmlschema, -1);
+
+  rb_define_alias(rhrd_s_class, "rfc822", "rfc2822");
+
   rb_define_method(rhrd_class, "httpdate", rhrd_httpdate, 0);
   rb_define_method(rhrd_class, "jisx0301", rhrd_jisx0301, 0);
   rb_define_method(rhrd_class, "next_day", rhrd_next_day, -1);
