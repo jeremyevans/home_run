@@ -2307,6 +2307,63 @@ VALUE rhrd__day_q(VALUE self, long day) {
 
 /* 1.9 instance methods */
 
+static VALUE rhrd_httpdate(VALUE self) {
+  VALUE s;
+  rhrd_t *d;
+  int len;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  RHR_FILL_JD(d)
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %02hhi %s %04li 00:00:00 GMT", 
+        rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
+        d->day,
+        rhrd__abbr_month_names[d->month],
+        d->year);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#httpdate (in snprintf)");
+  }
+
+  RHR_RETURN_RESIZED_STR(s, len)
+}
+
+static VALUE rhrd_jisx0301(VALUE self) {
+  VALUE s;
+  rhrd_t *d;
+  int len;
+  char c;
+  long year;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  RHR_FILL_JD(d)
+
+  s = rb_str_buf_new(128);
+  if (d->jd < 2405160) {
+    len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
+  } else {
+    if (d->jd >= 2447535) {
+      c = 'H';
+      year = d->year - 1988;
+    } else if (d->jd >= 2424875) {
+      c = 'S';
+      year = d->year - 1925;
+    } else if (d->jd >= 2419614) {
+      c = 'T';
+      year = d->year - 1911;
+    } else {
+      c = 'M';
+      year = d->year - 1867;
+    }
+    len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02hhi.%02hhi", c, year, d->month, d->day);
+  }
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#jisx0301 (in snprintf)");
+  }
+
+  RHR_RETURN_RESIZED_STR(s, len)
+}
+
 static VALUE rhrd_next_day(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -2413,6 +2470,27 @@ static VALUE rhrd_prev_year(int argc, VALUE *argv, VALUE self) {
   }
 
   return rhrd__add_years(self, i);
+}
+
+static VALUE rhrd_rfc2822(VALUE self) {
+  VALUE s;
+  rhrd_t *d;
+  int len;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+  RHR_FILL_JD(d)
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %hhi %s %04li 00:00:00 +0000", 
+        rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
+        d->day,
+        rhrd__abbr_month_names[d->month],
+        d->year);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#rfc2822 (in snprintf)");
+  }
+
+  RHR_RETURN_RESIZED_STR(s, len)
 }
 
 static VALUE rhrd_to_datetime(VALUE self) {
@@ -3027,16 +3105,23 @@ void Init_date(void) {
   rb_define_const(rhrd_class, "ABBR_DAYNAMES", rhrd_abbr_daynames);
 
 #ifdef RUBY19
+  rb_define_method(rhrd_class, "httpdate", rhrd_httpdate, 0);
+  rb_define_method(rhrd_class, "jisx0301", rhrd_jisx0301, 0);
   rb_define_method(rhrd_class, "next_day", rhrd_next_day, -1);
   rb_define_method(rhrd_class, "next_month", rhrd_next_month, -1);
   rb_define_method(rhrd_class, "next_year", rhrd_next_year, -1);
   rb_define_method(rhrd_class, "prev_day", rhrd_prev_day, -1);
   rb_define_method(rhrd_class, "prev_month", rhrd_prev_month, -1);
   rb_define_method(rhrd_class, "prev_year", rhrd_prev_year, -1);
+  rb_define_method(rhrd_class, "rfc2822", rhrd_rfc2822, 0);
   rb_define_method(rhrd_class, "to_datetime", rhrd_to_datetime, 0);
   rb_define_method(rhrd_class, "to_time", rhrd_to_time, 0);
 
   rb_define_alias(rhrd_class, "to_date", "gregorian");
+  rb_define_alias(rhrd_class, "iso8601", "to_s");
+  rb_define_alias(rhrd_class, "rfc3339", "to_s");
+  rb_define_alias(rhrd_class, "xmlschema", "to_s");
+  rb_define_alias(rhrd_class, "rfc822", "rfc2822");
 
   rb_define_method(rhrd_class, "sunday?", rhrd_sunday_q, 0);
   rb_define_method(rhrd_class, "monday?", rhrd_monday_q, 0);

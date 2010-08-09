@@ -33,39 +33,6 @@ class Date
 
   end
 
-  if RUBY_VERSION >= '1.9.0'
-  def iso8601() strftime('%F') end
-
-  def rfc3339() iso8601 end
-
-  def xmlschema() iso8601 end # :nodoc:
-
-  def rfc2822() strftime('%a, %d %b %Y %T %z') end
-
-  alias_method :rfc822, :rfc2822
-
-  def httpdate() new_offset(0).strftime('%a, %d %b %Y %T GMT') end # :nodoc:
-
-  def jisx0301
-    if jd < 2405160
-      iso8601
-    else
-      case jd
-      when 2405160...2419614
-	g = 'M%02d' % (year - 1867)
-      when 2419614...2424875
-	g = 'T%02d' % (year - 1911)
-      when 2424875...2447535
-	g = 'S%02d' % (year - 1925)
-      else
-	g = 'H%02d' % (year - 1988)
-      end
-      g + strftime('.%m.%d')
-    end
-  end
-
-  end
-
   def self.s3e(e, y, m, d, bc=false)
     unless String === m
       m = m.to_s
