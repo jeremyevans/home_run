@@ -299,34 +299,26 @@ class Date
     end
   end
 
-  if RUBY_VERSION >= '1.9.0'
   def self._parse_sla(str, e) # :nodoc:
     if str.sub!(%r|('?-?\d+)/\s*('?\d+)(?:\D\s*('?-?\d+))?|, ' ') # '
-      s3e(e, $1, $2, $3)
+      if RUBY_VERSION >= '1.9.0'
+        s3e(e, $1, $2, $3)
+      else
+        s3e(e, $3, $1, $2)
+      end
       true
     end
   end
 
   def self._parse_dot(str, e) # :nodoc:
     if str.sub!(%r|('?-?\d+)\.\s*('?\d+)\.\s*('?-?\d+)|, ' ') # '
-      s3e(e, $1, $2, $3)
+      if RUBY_VERSION >= '1.8.7'
+        s3e(e, $1, $2, $3)
+      else
+        s3e(e, $3, $1, $2)
+      end
       true
     end
-  end
-  else
-  def self._parse_sla(str, e) # :nodoc:
-    if str.sub!(%r|('?-?\d+)/\s*('?\d+)(?:\D\s*('?-?\d+))?|, ' ') # '
-      s3e(e, $3, $1, $2)
-      true
-    end
-  end
-
-  def self._parse_dot(str, e) # :nodoc:
-    if str.sub!(%r|('?-?\d+)\.\s*('?\d+)\.\s*('?-?\d+)|, ' ') # '
-      s3e(e, $3, $1, $2)
-      true
-    end
-  end
   end
 
   def self._parse_year(str, e) # :nodoc:
