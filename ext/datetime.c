@@ -1302,6 +1302,29 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
 
 /* 1.9 instance methods */
 
+static VALUE rhrdt_httpdate(VALUE self) {
+  VALUE s;
+  rhrdt_t *d;
+  int len;
+  s = rhrdt__new_offset(self, 0);
+  Data_Get_Struct(s, rhrdt_t, d);
+  RHRDT_FILL_JD(d)
+  RHRDT_FILL_CIVIL(d)
+  RHRDT_FILL_HMS(d)
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %02hhi %s %04li %02hhi:%02hhi:%02hhi GMT", 
+        rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
+        d->day,
+        rhrd__abbr_month_names[d->month],
+        d->year, d->hour, d->minute, d->second);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in DateTime#httpdate (in snprintf)");
+  }
+
+  RHR_RETURN_RESIZED_STR(s, len)
+}
+
 static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
   long i;
   VALUE s;
@@ -1381,7 +1404,7 @@ static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
     len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02hhi.%02hhi", c, year, d->month, d->day);
   }
   if (len == -1 || len > 127) {
-    rb_raise(rb_eNoMemError, "in Date#jisx0301 (in snprintf)");
+    rb_raise(rb_eNoMemError, "in DateTime#jisx0301 (in snprintf)");
   }
 
   len = rhrdt__add_iso_time_format(d, str, len, i);
@@ -1652,6 +1675,7 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
+  rb_define_method(rhrdt_class, "httpdate", rhrdt_httpdate, 0);
   rb_define_method(rhrdt_class, "iso8601", rhrdt_iso8601, -1);
   rb_define_method(rhrdt_class, "jisx0301", rhrdt_jisx0301, -1);
   rb_define_method(rhrdt_class, "next_day", rhrdt_next_day, -1);
