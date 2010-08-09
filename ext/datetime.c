@@ -1300,6 +1300,122 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
   return len + l;
 }
 
+/* 1.9 class methods */
+
+static VALUE rhrdt_s_httpdate(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *d;
+  VALUE rd;
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->flags = RHR_HAVE_JD | RHR_HAVE_HMS | RHR_HAVE_NANOS;
+      return rd;
+    case 1:
+    case 2:
+      rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__httpdate, 1, argv[0]));
+      return rd;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrdt_s_iso8601(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *d;
+  VALUE rd;
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->flags = RHR_HAVE_JD | RHR_HAVE_HMS | RHR_HAVE_NANOS;
+      return rd;
+    case 1:
+    case 2:
+      rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__iso8601, 1, argv[0]));
+      return rd;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrdt_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *d;
+  VALUE rd;
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->flags = RHR_HAVE_JD | RHR_HAVE_HMS | RHR_HAVE_NANOS;
+      return rd;
+    case 1:
+    case 2:
+      rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__jisx0301, 1, argv[0]));
+      return rd;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrdt_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *d;
+  VALUE rd;
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->flags = RHR_HAVE_JD | RHR_HAVE_HMS | RHR_HAVE_NANOS;
+      return rd;
+    case 1:
+    case 2:
+      rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__rfc2822, 1, argv[0]));
+      return rd;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrdt_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *d;
+  VALUE rd;
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->flags = RHR_HAVE_JD | RHR_HAVE_HMS | RHR_HAVE_NANOS;
+      return rd;
+    case 1:
+    case 2:
+      rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__rfc3339, 1, argv[0]));
+      return rd;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
+static VALUE rhrdt_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
+  rhrdt_t *d;
+  VALUE rd;
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+
+  switch(argc) {
+    case 0:
+      d->flags = RHR_HAVE_JD | RHR_HAVE_HMS | RHR_HAVE_NANOS;
+      return rd;
+    case 1:
+    case 2:
+      rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__xmlschema, 1, argv[0]));
+      return rd;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      break;
+  }
+}
+
 /* 1.9 instance methods */
 
 static VALUE rhrdt_httpdate(VALUE self) {
@@ -1675,6 +1791,15 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
+  rb_define_method(rhrdt_s_class, "httpdate", rhrdt_s_httpdate, -1);
+  rb_define_method(rhrdt_s_class, "iso8601", rhrdt_s_iso8601, -1);
+  rb_define_method(rhrdt_s_class, "jisx0301", rhrdt_s_jisx0301, -1);
+  rb_define_method(rhrdt_s_class, "rfc2822", rhrdt_s_rfc2822, -1);
+  rb_define_method(rhrdt_s_class, "rfc3339", rhrdt_s_rfc3339, -1);
+  rb_define_method(rhrdt_s_class, "xmlschema", rhrdt_s_xmlschema, -1);
+
+  rb_define_alias(rhrdt_s_class, "rfc822", "rfc2822");
+
   rb_define_method(rhrdt_class, "httpdate", rhrdt_httpdate, 0);
   rb_define_method(rhrdt_class, "iso8601", rhrdt_iso8601, -1);
   rb_define_method(rhrdt_class, "jisx0301", rhrdt_jisx0301, -1);
