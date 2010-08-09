@@ -163,6 +163,7 @@ ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
 ID rhrd_id__parse;
 ID rhrd_id_downcase;
+ID rhrd_id_getlocal;
 ID rhrd_id_hash;
 ID rhrd_id_include_q;
 ID rhrd_id_length;
@@ -2667,6 +2668,10 @@ static VALUE rhrd_time_to_date(VALUE self) {
   return rd;
 }
 
+static VALUE rhrd_time_to_time(VALUE self) {
+  return rb_funcall(self, rhrd_id_getlocal, 0);
+}
+
 /* 1.9 day? methods */
 
 static VALUE rhrd_sunday_q(VALUE self) {
@@ -2923,6 +2928,7 @@ void Init_date(void) {
   rhrd_id_op_lt = rb_intern("<");
   rhrd_id__parse = rb_intern("_parse");
   rhrd_id_downcase = rb_intern("downcase");
+  rhrd_id_getlocal = rb_intern("getlocal");
   rhrd_id_hash = rb_intern("hash");
   rhrd_id_length = rb_intern("length");
   rhrd_id_include_q = rb_intern("include?");
@@ -3302,6 +3308,7 @@ void Init_date(void) {
   rb_define_private_method(rhrd_s_class, "zone_to_diff", rhrd_s_zone_to_diff, 1);
 
   rb_define_method(rb_cTime, "to_date", rhrd_time_to_date, 0);
+  rb_define_method(rb_cTime, "to_time", rhrd_time_to_time, 0);
 #else
   rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
   rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);
