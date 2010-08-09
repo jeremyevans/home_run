@@ -968,6 +968,7 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
   int scan_len;
   VALUE zone = Qnil;
   VALUE hash;
+  rstr = rb_str_to_str(rstr);
   str = RSTRING_PTR(rstr);
   len = RSTRING_LEN(rstr);
 
@@ -1475,11 +1476,13 @@ static VALUE rhrd_s__ragel_parse(VALUE klass, VALUE s) {
 static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   char * fmt_str = "%F";
   long fmt_len = 2;
+  VALUE r;
 
   switch(argc) {
     case 2:
-      fmt_str = RSTRING_PTR(argv[1]);
-      fmt_len = RSTRING_LEN(argv[1]);
+      r = rb_str_to_str(argv[1]);
+      fmt_str = RSTRING_PTR(r);
+      fmt_len = RSTRING_LEN(r);
     case 1:
       break;
     default:
@@ -1823,6 +1826,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
     } else {
       offset = 1;
     }
+    str = rb_str_to_str(str);
     s = RSTRING_PTR(str);
     len = RSTRING_LEN(str);
     for(i=0; i < len; i++) {
@@ -2138,11 +2142,13 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
 static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
   rhrd_t *d;
   rhrdt_t dt;
+  VALUE r;
 
   switch(argc) {
     case 0:
       return rhrd_to_s(self);
     case 1:
+      r = rb_str_to_str(argv[0]);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
@@ -2158,7 +2164,7 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
   dt.month = d->month;
   dt.day = d->day;
   dt.flags = RHR_HAVE_CIVIL | RHR_HAVE_JD;
-  return rhrd__strftime(&dt, RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
+  return rhrd__strftime(&dt, RSTRING_PTR(r), RSTRING_LEN(r));
 }
 
 static VALUE rhrd_to_s(VALUE self) {

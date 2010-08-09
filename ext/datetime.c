@@ -450,11 +450,13 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
 static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
   char * fmt_str = "%FT%T%z";
   long fmt_len = 7;
+  VALUE r;
 
   switch(argc) {
     case 2:
-      fmt_str = RSTRING_PTR(argv[1]);
-      fmt_len = RSTRING_LEN(argv[1]);
+      r = rb_str_to_str(argv[1]);
+      fmt_str = RSTRING_PTR(r);
+      fmt_len = RSTRING_LEN(r);
     case 1:
       break;
     default:
@@ -1062,11 +1064,13 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
 
 static VALUE rhrdt_strftime(int argc, VALUE *argv, VALUE self) {
   rhrdt_t* dt;
+  VALUE r;
 
   switch(argc) {
     case 0:
       return rhrdt_to_s(self);
     case 1:
+      r = rb_str_to_str(argv[0]);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
@@ -1078,7 +1082,7 @@ static VALUE rhrdt_strftime(int argc, VALUE *argv, VALUE self) {
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_HMS(dt)
   RHRDT_FILL_NANOS(dt)
-  return rhrd__strftime(dt, RSTRING_PTR(argv[0]), RSTRING_LEN(argv[0]));
+  return rhrd__strftime(dt, RSTRING_PTR(r), RSTRING_LEN(r));
 }
 
 static VALUE rhrdt_to_s(VALUE self) {
