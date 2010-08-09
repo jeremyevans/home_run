@@ -467,7 +467,7 @@ static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
 
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
-  long year = RHR_DEFAULT_YEAR;
+  long year;
   long month = 1;
   long day = 1;
   long hour = 0;
@@ -539,8 +539,15 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
       cweek = NUM2LONG(argv[1]);
     case 1:
       cwyear = NUM2LONG(argv[0]);
+#ifdef RUBY19
+      break;
+    case 0:
+      dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
+      return rdt;
+#else
     case 0:
       break;
+#endif
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 8", argc);
       break;
@@ -642,8 +649,8 @@ static VALUE rhrdt_s_now(int argc, VALUE *argv, VALUE klass) {
 }
 
 static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
-  long year = RHR_DEFAULT_ORDINAL_YEAR;
-  long day = RHR_DEFAULT_ORDINAL_DAY;
+  long year;
+  long day = 1;
   long hour = 0;
   long minute = 0;
   long second = 0;
