@@ -1266,7 +1266,72 @@ VALUE rhrdt__day_q(VALUE self, long day) {
   return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
 }
 
+long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
+  int l;
+
+  if (i < 1) {
+    i = 0;
+  } else if (i > 9) {
+    i = 9;
+  }
+
+  l = snprintf(str + len, 128 - len, "T%02hhi:%02hhi:%02hhi", dt->hour, dt->minute, dt->second);
+  if (l == -1 || l > 127) {
+    rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
+  }
+  len += l;
+
+  if (i) {
+    l = snprintf(str + len, 128 - len, ".%09lli", dt->nanos % RHR_NANOS_PER_SECOND);
+    if (l == -1 || l > 127) {
+      rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
+    }
+    len += i + 1;
+  }
+
+  l = snprintf(str + len, 128 - len, "%+03i:%02i", dt->offset/60, abs(dt->offset % 60));
+  if (l == -1 || l > 127) {
+    rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
+  }
+
+  return len + l;
+}
+
 /* 1.9 instance methods */
+
+static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
+  long i;
+  VALUE s;
+  rhrdt_t *dt;
+  char * str;
+  int len;
+  Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_CIVIL(dt)
+  RHRDT_FILL_HMS(dt)
+
+  switch(argc) {
+    case 1:
+      i = NUM2LONG(argv[0]);
+      break;
+    case 0:
+      i = 0;
+      break;
+    default:
+      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      break;
+  }
+
+  s = rb_str_buf_new(128);
+  str = RSTRING_PTR(s);
+
+  len = snprintf(str, 128, "%04li-%02hhi-%02hhi", dt->year, dt->month, dt->day);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
+  }
+
+  len = rhrdt__add_iso_time_format(dt, str, len, i);
+  RHR_RETURN_RESIZED_STR(s, len)
+}
 
 static VALUE rhrdt_next_day(int argc, VALUE *argv, VALUE self) {
   long i;
@@ -1510,6 +1575,7 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
+  rb_define_method(rhrdt_class, "iso8601", rhrdt_iso8601, -1);
   rb_define_method(rhrdt_class, "next_day", rhrdt_next_day, -1);
   rb_define_method(rhrdt_class, "next_month", rhrdt_next_month, -1);
   rb_define_method(rhrdt_class, "next_year", rhrdt_next_year, -1);
@@ -1520,9 +1586,11 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "to_time", rhrdt_to_time, 0);
 
   rb_define_alias(rhrdt_class, "minute", "min");
+  rb_define_alias(rhrdt_class, "rfc3339", "iso8601");
   rb_define_alias(rhrdt_class, "second", "sec");
   rb_define_alias(rhrdt_class, "second_fraction", "sec_fraction");
   rb_define_alias(rhrdt_class, "to_datetime", "gregorian");
+  rb_define_alias(rhrdt_class, "xmlschema", "iso8601");
 
   rb_define_method(rhrdt_class, "sunday?", rhrdt_sunday_q, 0);
   rb_define_method(rhrdt_class, "monday?", rhrdt_monday_q, 0);
