@@ -717,10 +717,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   } else if (RTEST(rwday)) {
     wday = NUM2LONG(rwday);
     rhrd__today(d);
-    rhrd__fill_commercial(d);
-    if(!rhrd__valid_commercial(d, d->year, d->month, wday)) {
-      return 1;
-    }
+    d->jd += wday - rhrd__jd_to_wday(d->jd);
     d->flags &= ~RHR_HAVE_CIVIL;
     return 0;
   } else {
