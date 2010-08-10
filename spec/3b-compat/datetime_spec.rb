@@ -55,14 +55,22 @@ describe DateTime do
     DateTime.new(2008, 1, 1, 12).day_fraction.should == 0.5
   end
 
-  it "#new_offset and #newof should be a separate datetime with a modified offset" do
+  it "#new_offset should be a separate datetime with a modified offset" do
     DateTime.new(2008, 1, 1).new_offset(0.5).should == DateTime.new(2008, 1, 1, 12, 0, 0, 0.5)
-    DateTime.new(2008, 1, 1).newof(0.5).should == DateTime.new(2008, 1, 1, 12, 0, 0, 0.5)
   end
 
-  it "#offset and #of should be the offset as a float fraction of the day" do
+  it "#offset should be the offset as a float fraction of the day" do
     DateTime.parse('2008-01-01 00:00:00+12:00').offset.should == 0.5
-    DateTime.parse('2008-01-01 00:00:00+12:00').of.should == 0.5
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "#newof should be a separate datetime with a modified offset" do
+      DateTime.new(2008, 1, 1).newof(0.5).should == DateTime.new(2008, 1, 1, 12, 0, 0, 0.5)
+    end
+
+    it "#of should be the offset as a float fraction of the day" do
+      DateTime.parse('2008-01-01 00:00:00+12:00').of.should == 0.5
+    end
   end
 
   it "#sec_fraction should be the fraction of a second as a fraction of the day" do

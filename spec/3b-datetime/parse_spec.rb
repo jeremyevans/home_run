@@ -72,7 +72,6 @@ describe "DateTime#parse" do
 
   it "should parse the time strings output by ruby's Time class" do
     proc{DateTime.parse(Time.now.to_s)}.should_not raise_error
-    proc{DateTime.parse(Time.now.strftime('%+'))}.should_not raise_error
   end
 
   it "can handle DD as month day number" do
@@ -214,35 +213,70 @@ describe :date_parse_us, :shared => true do
     d.sec.should   == 3
   end
 
-  it "parses a MM#{@sep}DD#{@sep}YYYY string into a DateTime object" do
-    d = DateTime.parse("10#{@sep}01#{@sep}2007")
-    d.year.should  == 2007
-    d.month.should == 10
-    d.day.should   == 1
-    
-    
-    d = DateTime.parse("10#{@sep}01#{@sep}2007 01:02:03")
-    d.year.should  == 2007
-    d.month.should == 10
-    d.day.should   == 1
-    d.hour.should  == 1
-    d.min.should   == 2
-    d.sec.should   == 3
+  ruby_version_is "" ... "1.9" do
+    it "parses a MM#{@sep}DD#{@sep}YYYY string into a DateTime object" do
+      d = DateTime.parse("10#{@sep}01#{@sep}2007")
+      d.year.should  == 2007
+      d.month.should == 10
+      d.day.should   == 1
+      
+      
+      d = DateTime.parse("10#{@sep}01#{@sep}2007 01:02:03")
+      d.year.should  == 2007
+      d.month.should == 10
+      d.day.should   == 1
+      d.hour.should  == 1
+      d.min.should   == 2
+      d.sec.should   == 3
+    end
+
+    it "parses a MM#{@sep}DD#{@sep}YY string into a DateTime object using the year digits as 20XX" do
+      d = DateTime.parse("10#{@sep}01#{@sep}07")
+      d.year.should  == 2007
+      d.month.should == 10
+      d.day.should   == 1
+      
+      d = DateTime.parse("10#{@sep}01#{@sep}97 01:02:03 Z")
+      d.year.should  == 1997
+      d.month.should == 10
+      d.day.should   == 1
+      d.hour.should  == 1
+      d.min.should   == 2
+      d.sec.should   == 3
+    end
   end
 
-  it "parses a MM#{@sep}DD#{@sep}YY string into a DateTime object using the year digits as 20XX" do
-    d = DateTime.parse("10#{@sep}01#{@sep}07")
-    d.year.should  == 2007
-    d.month.should == 10
-    d.day.should   == 1
-    
-    d = DateTime.parse("10#{@sep}01#{@sep}97 01:02:03 Z")
-    d.year.should  == 1997
-    d.month.should == 10
-    d.day.should   == 1
-    d.hour.should  == 1
-    d.min.should   == 2
-    d.sec.should   == 3
+  ruby_version_is "1.9" do
+    it "parses a DD#{@sep}MM#{@sep}YYYY string into a DateTime object" do
+      d = DateTime.parse("10#{@sep}01#{@sep}2007")
+      d.year.should  == 2007
+      d.month.should == 1
+      d.day.should   == 10
+      
+      
+      d = DateTime.parse("10#{@sep}01#{@sep}2007 01:02:03")
+      d.year.should  == 2007
+      d.month.should == 1
+      d.day.should   == 10
+      d.hour.should  == 1
+      d.min.should   == 2
+      d.sec.should   == 3
+    end
+
+    it "parses a YY#{@sep}MM#{@sep}DD string into a DateTime object using the year digits as 20XX" do
+      d = DateTime.parse("10#{@sep}01#{@sep}07")
+      d.year.should  == 2010
+      d.month.should == 1
+      d.day.should   == 7
+      
+      d = DateTime.parse("10#{@sep}01#{@sep}07 01:02:03 Z")
+      d.year.should  == 2010
+      d.month.should == 1
+      d.day.should   == 7
+      d.hour.should  == 1
+      d.min.should   == 2
+      d.sec.should   == 3
+    end
   end
 end
 

@@ -1,12 +1,24 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "Date#commercial" do
-  it "Creates a Date for the friday in the year and week given" do
-    d = Date.commercial(2000, 1)
-    d.year.should  == 2000
-    d.month.should == 1
-    d.day.should   == 7
-    d.cwday.should == 5
+  ruby_version_is "" ... "1.9" do
+    it "Creates a Date for the friday in the year and week given" do
+      d = Date.commercial(2000, 1)
+      d.year.should  == 2000
+      d.month.should == 1
+      d.day.should   == 7
+      d.cwday.should == 5
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "Creates a Date for the friday in the year and week given" do
+      d = Date.commercial(2000, 1)
+      d.year.should  == 2000
+      d.month.should == 1
+      d.day.should   == 3
+      d.cwday.should == 1
+    end
   end
 
   it "Creates a Date for the correct day given the year, week and day number" do
