@@ -2,4 +2,5 @@
 /ext/Makefile
 /ext/date.*o
 /ext/date_parser.c
+*.gem
 *.core

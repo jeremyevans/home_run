@@ -1,0 +1,63 @@
+= home_run
+
+home_run is an implementation of ruby's Date/DateTime classes in C,
+with much better performance (20-200x) than the version in the
+standard library, while being almost completely compatible.
+
+== Installing the gem
+
+  gem install home_run
+
+== Installing into site_ruby
+
+After installing the gem:
+
+  home_run --install
+
+Installing into site_ruby means that ruby will always use home_run's
+Date/DateTime classes instead of the ones in the standard library.
+
+== Running without installing into site_ruby
+
+If you don't want to install into site_ruby, you may need to run
+your script using home_run:
+
+  home_run ruby ...
+  home_run irb ...
+
+This manipulates the RUBYLIB environment variable so that home_run's
+Date/DateTime classes will be used.
+
+== Usage
+
+home_run aims to be compatible with the standard library, except
+for exceptions mentioned below.  So you can use it the same way
+you use the standard library.
+
+== Differences from standard library
+
+* Written in C (mostly) instead of ruby.  Stores information in a
+  C structure, and therefore has a range limitation.  home_run
+  cannot handle dates after 5874773-08-15 or before -5877752-05-08
+  on 32-bit platforms (with larger limits for 64-bit platforms).
+* The Date class does not store fractional days (e.g. hours/minutes),
+  or offsets, only the DateTime class.
+* The DateTime class store fractional days as the number of
+  nanoseconds since midnight, so it cannot deal with differences
+  less than a nanosecond.
+* Neither Date nor DateTime uses Rational.  Places where the standard
+  library returns Rationals, home_run returns integers or floats.
+* There is no support for modifying the date of calendar reform, the
+  Gregorian calendar is always used.  This means that julian day 0
+  is displayed as -4173-11-24, instead of -4712-01-01.
+* The undocumented strftime format modifiers are not supported.
+* The DateTime offset is checked for reasonableness. home_run
+  does not support offsets with an absolute difference of more than
+  14 hours from UTC.
+* DateTime offsets are stored in minutes, so it will round offsets
+  with fractional minutes to the nearest minute.
+
+== Author
+
+Jeremy Evans
+code@jeremyevans.net

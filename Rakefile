@@ -6,10 +6,15 @@ RUBY=ENV['RUBY'] || 'ruby'
 IRB=ENV['IRB'] || 'irb'
 MSPEC=ENV['MSPEC'] || 'mspec'
 
-desc "Run the rubyspecs with mspec"
+desc "Run the specs with mspec"
 task :default => :spec
 task :spec do
   sh %{#{MSPEC} -I ext -rdate spec/*/*_spec.rb}
+end
+
+desc "Build the gem"
+task :gem => [:clean, :parser] do
+  sh %{gem build home_run.gemspec}
 end
 
 desc "Build the ragel parser"
