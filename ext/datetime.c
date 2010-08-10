@@ -341,8 +341,7 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
     time_set = NUM2LONG(runix);
     dt->jd = rhrd__unix_to_jd(time_set);
     time_set = rhrd__mod(time_set, 86400);
-    printf("%ld\n", time_set);
-    dt->nanos = (time_set/86400)*RHR_NANOS_PER_SECOND + nanos;
+    dt->nanos = time_set*RHR_NANOS_PER_SECOND + nanos;
     dt->hour = time_set/3600;
     dt->minute = (time_set - dt->hour * 3600)/60;
     dt->second = rhrd__mod(time_set, 60);
@@ -403,6 +402,10 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
       RHRDT_FILL_NANOS(dt)
       dt->nanos += nanos;
     }
+  } else if (offset) {
+    if(!rhrdt__valid_offset(dt, offset/86400.0)){
+      rb_raise(rb_eArgError, "invalid date");
+    } 
   }
 }
 
@@ -413,6 +416,8 @@ VALUE rhrdt__new_offset(VALUE self, double offset) {
     rb_raise(rb_eArgError, "invalid offset (%f)", offset);
   } 
   Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_JD(dt)
+  RHRDT_FILL_NANOS(dt)
   return rhrdt__from_jd_nanos(dt->jd, dt->nanos - dt->offset*RHR_NANOS_PER_MINUTE + llround(offset*RHR_NANOS_PER_DAY), lround(offset * 1440.0));
 }
 
@@ -842,12 +847,15 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *o;
   long diff;
-  Data_Get_Struct(self, rhrdt_t, dt);
 
   if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    self = rhrdt__new_offset(self, 0);
+    other = rhrdt__new_offset(other, 0);
+    Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrdt_t, odt);
     return rhrdt__spaceship(dt, odt) == 0 ? Qtrue : Qfalse;
   } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrd_t, o);
     RHRDT_FILL_JD(dt)
     RHR_FILL_JD(o)
@@ -1209,13 +1217,16 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *od;
   double diff;
   int res;
-  Data_Get_Struct(self, rhrdt_t, dt);
 
   if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+    self = rhrdt__new_offset(self, 0);
+    other = rhrdt__new_offset(other, 0);
+    Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrdt_t, odt);
     return INT2NUM(rhrdt__spaceship(dt, odt));
   }
   if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+    Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrd_t, od);
     RHRDT_FILL_JD(dt)
     RHR_FILL_JD(od)
@@ -1227,12 +1238,13 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
     return INT2NUM(res);
   }
   if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+    Data_Get_Struct(self, rhrdt_t, dt);
     diff = NUM2DBL(other);
     RHRDT_FILL_JD(dt)
     RHR_SPACE_SHIP(res, dt->jd, (long)diff)
     if (res == 0) {
       RHRDT_FILL_NANOS(dt)
-      RHR_SPACE_SHIP(res, dt->nanos, llround(diff - floor(diff) * RHR_NANOS_PER_DAY))
+      RHR_SPACE_SHIP(res, dt->nanos, llround((diff - floor(diff)) * RHR_NANOS_PER_DAY))
     }
     return INT2NUM(res);
   }

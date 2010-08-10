@@ -873,7 +873,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%02hhi:%02hhi", d->hour, d->minute);
           break;
         case 's':
-          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd));
+          cp += sprintf(str + cp, "%lli", rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60);
           break;
         case 'S':
           cp += sprintf(str + cp, "%02hhi", d->second);
@@ -2071,7 +2071,7 @@ static VALUE rhrd_new_start(int argc, VALUE *argv, VALUE self) {
 }
 
 static VALUE rhrd_start(VALUE self) {
-  return INT2NUM(RHR_JD_MAX);
+  return INT2NUM(RHR_JD_MIN);
 }
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {

@@ -154,7 +154,7 @@ class Date
       e[:hour] = $1.to_i
       e[:min] = $2.to_i if $2
       e[:sec] = $3.to_i if $3
-      e[:sec_fraction] = Rational($4.to_i, 10**$4.size) if $4
+      e[:sec_fraction] = $4.to_i/10.0**$4.size if $4
 
       if $5
 	e[:hour] %= 12
@@ -425,7 +425,7 @@ class Date
 	end
       end
       if $4
-	e[:sec_fraction] = Rational($4.to_i, 10**$4.size)
+	e[:sec_fraction] = $4.to_i/10.0**$4.size
       end
       if $5
 	e[:zone] = $5
@@ -562,7 +562,7 @@ if RUBY_VERSION >= '1.9.0'
       e[:hour] = $4.to_i if $4
       e[:min] = $5.to_i if $5
       e[:sec] = $6.to_i if $6
-      e[:sec_fraction] = Rational($7.to_i, 10**$7.size) if $7
+      e[:sec_fraction] = $7.to_i/10.0**$7.size if $7
       if $8
 	e[:zone] = $8
 	e[:offset] = zone_to_diff($8)
@@ -574,7 +574,7 @@ if RUBY_VERSION >= '1.9.0'
       e[:hour] = $1.to_i if $1
       e[:min] = $2.to_i if $2
       e[:sec] = $3.to_i if $3
-      e[:sec_fraction] = Rational($4.to_i, 10**$4.size) if $4
+      e[:sec_fraction] = $4.to_i/10.0**$4.size if $4
       if $5
 	e[:zone] = $5
 	e[:offset] = zone_to_diff($5)
