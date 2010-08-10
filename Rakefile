@@ -9,7 +9,10 @@ MSPEC=ENV['MSPEC'] || 'mspec'
 desc "Run the rubyspecs with mspec"
 task :default => :spec
 task :spec do
-  sh %{#{MSPEC} -I ext rubyspec/library/date/*_spec.rb}
+  sh %{#{MSPEC} -I ext -rdate spec/rubyspec-date/*_spec.rb}
+  sh %{#{MSPEC} -I ext -rdate spec/3b-compat/*_spec.rb}
+  sh %{#{MSPEC} -I ext -rdate spec/3b-date/*_spec.rb}
+  sh %{#{MSPEC} -I ext -rdate spec/3b-datetime/*_spec.rb}
 end
 
 desc "Build the ragel parser"
