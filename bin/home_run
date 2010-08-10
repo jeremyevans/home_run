@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+command = :run
+lib = File.expand_path('../../ext', __FILE__)
+
+opts = OptionParser.new do |opts|
+  opts.banner = "home_run: Fast Date/DateTime classes for ruby"
+  opts.define_head "Usage: home_run (--install | --uninstall | command)"
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on_tail("--install", "install home_run to site_ruby") do
+    command = :install
+  end
+
+  opts.on_tail("--uninstall", "uninstall home_run from site_ruby") do
+    command = :uninstall
+  end
+end
+opts.parse!
+
+case command
+when :run
+  ENV['RUBYOPT'] = "-rdate #{ENV['RUBYOPT']}"
+  ENV['RUBYLIB'] = [lib, ENV['RUBYLIB']].join(RUBY_PLATFORM =~ /win32/ ? ';' : ':')
+  exec(*ARGV)
+else
+  if !ARGV.empty?
+    puts "Cannot specify command when using --#{command}"
+    exit(1)
+  end
+  Dir.chdir(lib)
+  system("make #{command}-home-run")
+end
