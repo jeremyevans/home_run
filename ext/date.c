@@ -1458,6 +1458,13 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
 
 /* Ruby Class Methods */
 
+/* call-seq:
+ *   _load(string) -> Date
+ *
+ * Unmarshal a dumped +Date+ object. Note that this does not handle 
+ * the marshalling format used by the stdlib's +Date+, it only handles
+ * marshalled versions of this library's +Date+ objects.
+ */
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   rhrd_t * d;
   VALUE jd, rd;
@@ -1469,11 +1476,26 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   return rd;
 }
 
+
+/* call-seq:
+ *   _ragel_parse(string) -> Hash
+ *
+ * Attemps to parse the string with Ragel, returning a hash
+ * if there is a match (or +nil+ if no match), similar to +_parse+.
+ */
 static VALUE rhrd_s__ragel_parse(VALUE klass, VALUE s) {
   s = rb_str_to_str(s);
   return rhrd__ragel_parse(RSTRING_PTR(s), RSTRING_LEN(s));
 }
 
+/* call-seq:
+ *   _strptime(string, format='%F') -> Hash
+ *
+ * Attemps to parse the string using the given format, returning
+ * a hash if there is a match (or +nil+ if no match), similar to +_parse+.
+ *
+ * +_strptime+ supports the same formats that <tt>Date#strftime</tt> does.
+ */
 static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   char * fmt_str = "%F";
   long fmt_len = 2;
@@ -1494,6 +1516,14 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
   return rhrd__strptime(argv[0], fmt_str, fmt_len);
 }
 
+/* call-seq:
+ *   civil() -> Date <br />
+ *   civil(year, month=1, day=1, sg=nil) -> Date
+ *
+ * If no arguments are given, returns a +Date+ for julian day 0,
+ * Otherwise, returns a +Date+ for the year, month, and day given.
+ * Ignores the 4th argument.
+ */
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   long year;
@@ -1525,6 +1555,18 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+/* call-seq:
+ *   commercial() -> Date <br />
+ *   commercial(cwyear, cweek=41, cwday=5, sg=nil) -> Date [ruby 1-8] <br />
+ *   commercial(cwyear, cweek=1, cwday=1, sg=nil) -> Date [ruby 1-9]
+ *
+ * If no arguments are given:
+ * * ruby 1.8: returns a +Date+ for 1582-10-15 (the Day of Calendar Reform in Italy)
+ * * ruby 1.9: returns a +Date+ for julian day 0
+ *
+ * Otherwise, returns a +Date+ for the commercial week year, commercial week, and
+ * commercial week day given. Ignores the 4th argument.
+ */
 static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   long cwyear = RHR_DEFAULT_CWYEAR;
@@ -1561,10 +1603,22 @@ static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+/* call-seq:
+ *   gregorian_leap?(year) -> true or false
+ *
+ * Returns true if the given year is a leap year in the Gregorian
+ * calendar, or false if not.
+ */
 static VALUE rhrd_s_gregorian_leap_q(VALUE klass, VALUE year) {
   return rhrd__leap_year(NUM2LONG(year)) ? Qtrue : Qfalse;
 }
 
+/* call-seq:
+ *   jd(jd=0, sg=nil) -> Date
+ *
+ * Returns a +Date+ for the julian day number given.
+ * Ignores the 2nd argument.
+ */
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
@@ -1586,6 +1640,12 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+/* call-seq:
+ *   julian_leap?(year) -> true or false
+ *
+ * Returns true if the given year is a leap year in the Julian
+ * calendar (just divisable by 4), or false if not.
+ */
 static VALUE rhrd_s_julian_leap_q(VALUE klass, VALUE y) {
   return NUM2LONG(y) % 4 == 0 ? Qtrue : Qfalse;
 }
@@ -2919,6 +2979,15 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
 #include "datetime.c"
 
 /* Ruby Library Initialization */
+
+/* +Date+ is used to store a single date in the gregorian calendar.
+ *
+ * In general, +Date+ objects are created by calling one of the class
+ * methods: +civil+, +parse+, +strptime+, +today+.  Once created,
+ * +Date+ objects are immutable.  Operations that result in a separate
+ * date (such as adding a number of days), always return a new +Date+
+ * object.
+ * */
 
 void Init_date(void) {
   int i;

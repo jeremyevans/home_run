@@ -1,10 +1,24 @@
 require "rake"
 require "rake/clean"
+begin
+  require "hanna/rdoctask"
+rescue LoadError
+  gem 'rdoc'
+  require 'rdoc/rdoc'
+  require "rake/rdoctask"
+end
 
 CLEAN.include %w'Makefile ext/date.*o **/*.rbc *.core' 
 RUBY=ENV['RUBY'] || 'ruby'
-IRB=ENV['IRB'] || 'irb'
+IRBPROG=ENV['IRB'] || 'irb'
 MSPEC=ENV['MSPEC'] || 'mspec'
+
+Rake::RDocTask.new do |rdoc|
+  rdoc.rdoc_dir = "rdoc"
+  rdoc.options += ["--quiet", "--line-numbers", "--inline-source", '--title',
+    'home_run: Fast Date/DateTime classes for ruby', '--main', 'README.rdoc']
+  rdoc.rdoc_files.add %w"README.rdoc CHANGELOG LICENSE ext/**/*.rb ext/*.c"
+end
 
 desc "Run the specs with mspec"
 task :default => :spec
@@ -35,7 +49,7 @@ end
 
 desc "Start an IRB shell using the extension"
 task :irb do
-  sh %{#{IRB} -I ext -r date}
+  sh %{#{IRBPROG} -I ext -r date}
 end
 
 desc "Run comparative benchmarks"
