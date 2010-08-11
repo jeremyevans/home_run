@@ -873,7 +873,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%02hhi:%02hhi", d->hour, d->minute);
           break;
         case 's':
-          cp += sprintf(str + cp, "%lli", rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60);
+          cp += sprintf(str + cp, "%li", (long)(rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60));
           break;
         case 'S':
           cp += sprintf(str + cp, "%02hhi", d->second);
