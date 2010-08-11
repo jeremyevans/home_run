@@ -202,3 +202,11 @@ ruby_version_is "" ... "1.9" do
     end
   end
 end
+
+describe "Date marshalling" do
+  it "should marshal and unmarshal correctly" do
+    Marshal.load(Marshal.dump(Date.jd)).should == Date.civil
+    Marshal.load(Marshal.dump(Date.today)).should == Date.today
+    Marshal.load(Marshal.dump(Date.civil(2010, 2, 4))).should == Date.civil(2010, 2, 4)
+  end
+end
