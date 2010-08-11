@@ -2071,7 +2071,7 @@ static VALUE rhrd_new_start(int argc, VALUE *argv, VALUE self) {
 }
 
 static VALUE rhrd_start(VALUE self) {
-  return INT2NUM(RHR_JD_MIN);
+  return LL2NUM(RHR_JD_MIN);
 }
 
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
