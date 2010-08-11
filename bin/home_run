@@ -19,7 +19,7 @@ opts = OptionParser.new do |opts|
     command = :uninstall
   end
 end
-opts.parse!
+opts.order!
 
 case command
 when :run
