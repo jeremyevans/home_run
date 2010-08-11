@@ -750,7 +750,7 @@ static VALUE rhrdt__dump(VALUE self, VALUE limit) {
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
   RHRDT_FILL_NANOS(d)
-  return rb_marshal_dump(rb_ary_new3(3, INT2NUM(d->jd), LL2NUM(d->nanos), INT2NUM(d->offset)), INT2NUM(NUM2LONG(limit) - 1));
+  return rb_marshal_dump(rb_ary_new3(3, LONG2NUM(d->jd), LL2NUM(d->nanos), LONG2NUM(d->offset)), LONG2NUM(NUM2LONG(limit) - 1));
 }
 
 static VALUE rhrdt_ajd(VALUE self) {
@@ -797,7 +797,7 @@ static VALUE rhrdt_cwday(VALUE self) {
   RHRDT_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
-  return INT2NUM(n.day);
+  return LONG2NUM(n.day);
 }
 
 static VALUE rhrdt_cweek(VALUE self) {
@@ -808,7 +808,7 @@ static VALUE rhrdt_cweek(VALUE self) {
   RHRDT_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
-  return INT2NUM(n.month);
+  return LONG2NUM(n.month);
 }
 
 static VALUE rhrdt_cwyear(VALUE self) {
@@ -819,14 +819,14 @@ static VALUE rhrdt_cwyear(VALUE self) {
   RHRDT_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
-  return INT2NUM(n.year);
+  return LONG2NUM(n.year);
 }
 
 static VALUE rhrdt_day(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
-  return INT2NUM(dt->day);
+  return LONG2NUM(dt->day);
 }
 
 static VALUE rhrdt_day_fraction(VALUE self) {
@@ -874,14 +874,14 @@ static VALUE rhrdt_hash(VALUE self) {
 
   self = rhrdt__new_offset(self, 0);
   Data_Get_Struct(self, rhrdt_t, d);
-  return rb_funcall(rb_ary_new3(2, INT2NUM(d->jd), LL2NUM(d->nanos)), rhrd_id_hash, 0);
+  return rb_funcall(rb_ary_new3(2, LONG2NUM(d->jd), LL2NUM(d->nanos)), rhrd_id_hash, 0);
 }
 
 static VALUE rhrdt_hour(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_HMS(dt)
-  return INT2NUM(dt->hour);
+  return LONG2NUM(dt->hour);
 }
 
 static VALUE rhrdt_inspect(VALUE self) {
@@ -906,14 +906,14 @@ static VALUE rhrdt_jd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  return INT2NUM(d->jd);
+  return LONG2NUM(d->jd);
 }
 
 static VALUE rhrdt_ld(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  return INT2NUM(d->jd - RHR_JD_LD);
+  return LONG2NUM(d->jd - RHR_JD_LD);
 }
 
 static VALUE rhrdt_leap_q(VALUE self) {
@@ -927,21 +927,21 @@ static VALUE rhrdt_min(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_HMS(dt)
-  return INT2NUM(dt->minute);
+  return LONG2NUM(dt->minute);
 }
 
 static VALUE rhrdt_mjd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  return INT2NUM(d->jd - RHR_JD_MJD);
+  return LONG2NUM(d->jd - RHR_JD_MJD);
 }
 
 static VALUE rhrdt_month(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
-  return INT2NUM(dt->month);
+  return LONG2NUM(dt->month);
 }
 
 static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
@@ -979,7 +979,7 @@ static VALUE rhrdt_sec(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_HMS(dt)
-  return INT2NUM(dt->second);
+  return LONG2NUM(dt->second);
 }
 
 static VALUE rhrdt_sec_fraction(VALUE self) {
@@ -1121,21 +1121,21 @@ static VALUE rhrdt_wday(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  return INT2NUM(rhrd__jd_to_wday(d->jd));
+  return LONG2NUM(rhrd__jd_to_wday(d->jd));
 }
 
 static VALUE rhrdt_yday(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_CIVIL(d)
-  return INT2NUM(rhrd__ordinal_day(d->year, d->month, d->day));
+  return LONG2NUM(rhrd__ordinal_day(d->year, d->month, d->day));
 }
 
 static VALUE rhrdt_year(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
-  return INT2NUM(dt->year);
+  return LONG2NUM(dt->year);
 }
 
 static VALUE rhrdt_zone(VALUE self) {
@@ -1223,7 +1223,7 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
     other = rhrdt__new_offset(other, 0);
     Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrdt_t, odt);
-    return INT2NUM(rhrdt__spaceship(dt, odt));
+    return LONG2NUM(rhrdt__spaceship(dt, odt));
   }
   if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
     Data_Get_Struct(self, rhrdt_t, dt);
@@ -1235,7 +1235,7 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
       RHRDT_FILL_NANOS(dt)
       RHR_SPACE_SHIP(res, dt->nanos, 0)
     }
-    return INT2NUM(res);
+    return LONG2NUM(res);
   }
   if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
     Data_Get_Struct(self, rhrdt_t, dt);
@@ -1246,7 +1246,7 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
       RHRDT_FILL_NANOS(dt)
       RHR_SPACE_SHIP(res, dt->nanos, llround((diff - floor(diff)) * RHR_NANOS_PER_DAY))
     }
-    return INT2NUM(res);
+    return LONG2NUM(res);
   }
   return Qnil;
 }
@@ -1705,7 +1705,7 @@ static VALUE rhrdt_to_time(VALUE self) {
   s = dt->nanos/RHR_NANOS_PER_SECOND;
   h = s/3600;
   m = (s % 3600) / 60;
-  return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, INT2NUM(dt->year), INT2NUM(dt->month), INT2NUM(dt->day), INT2NUM(h), INT2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
+  return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, LONG2NUM(dt->year), LONG2NUM(dt->month), LONG2NUM(dt->day), LONG2NUM(h), LONG2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
 }
 
 static VALUE rhrdt_time_to_datetime(VALUE self) {
