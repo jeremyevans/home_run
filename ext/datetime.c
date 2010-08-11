@@ -214,18 +214,6 @@ void rhrdt__now(rhrdt_t * dt) {
   RHR_CHECK_JD(dt);
 }
 
-double rhrdt__to_double_offset(rhrdt_t *d) {
-  RHRDT_FILL_JD(d)
-  RHRDT_FILL_NANOS(d)
-  return d->jd + d->nanos/RHR_NANOS_PER_DAYD + d->offset/1440.0;
-}
-
-double rhrdt__to_double(rhrdt_t *d) {
-  RHRDT_FILL_JD(d)
-  RHRDT_FILL_NANOS(d)
-  return d->jd + d->nanos/RHR_NANOS_PER_DAYD;
-}
-
 VALUE rhrdt__from_jd_nanos(long jd, long long nanos, short offset) {
   long t;
   rhrdt_t *dt;
@@ -274,7 +262,7 @@ VALUE rhrdt__add_days(VALUE self, double n) {
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_NANOS(dt)
   l = floor(n);
-  nanos = (n - l) * RHR_NANOS_PER_DAY;
+  nanos = llround((n - l) * RHR_NANOS_PER_DAY);
   return rhrdt__from_jd_nanos(rhrd__safe_add_long(dt->jd, l), dt->nanos + nanos, dt->offset);
 }
 
@@ -411,14 +399,16 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
 
 VALUE rhrdt__new_offset(VALUE self, double offset) {
   rhrdt_t *dt;
+  long offset_min;
 
   if(offset < -0.6 || offset > 0.6) {
     rb_raise(rb_eArgError, "invalid offset (%f)", offset);
   } 
+  offset_min = lround(offset * 1440.0);
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_NANOS(dt)
-  return rhrdt__from_jd_nanos(dt->jd, dt->nanos - dt->offset*RHR_NANOS_PER_MINUTE + llround(offset*RHR_NANOS_PER_DAY), lround(offset * 1440.0));
+  return rhrdt__from_jd_nanos(dt->jd, dt->nanos - (dt->offset - offset_min)*RHR_NANOS_PER_MINUTE, offset_min);
 }
 
 /* Class methods */
@@ -1171,19 +1161,35 @@ static VALUE rhrdt_op_minus(VALUE self, VALUE other) {
   rhrdt_t *dt;
   rhrdt_t *newdt;
   rhrd_t *newd;
-  Data_Get_Struct(self, rhrdt_t, dt);
 
   if (RTEST(rb_obj_is_kind_of(other, rb_cNumeric))) {
+    Data_Get_Struct(self, rhrdt_t, dt);
     return rhrdt__add_days(self, -NUM2DBL(other));
   }
   if (RTEST((rb_obj_is_kind_of(other, rhrdt_class)))) {
+    self = rhrdt__new_offset(self, 0);
+    other = rhrdt__new_offset(other, 0);
+    Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrdt_t, newdt);
-    return rb_float_new(rhrdt__to_double_offset(dt) - rhrdt__to_double_offset(newdt)); 
+    RHRDT_FILL_JD(dt)
+    RHRDT_FILL_NANOS(dt)
+    RHRDT_FILL_JD(newdt)
+    RHRDT_FILL_NANOS(newdt)
+    if (dt->nanos == newdt->nanos) {
+      return rb_float_new(dt->jd - newdt->jd);
+    } else if (dt->jd == newdt->jd) 
+      return rb_float_new((dt->nanos - newdt->nanos)/RHR_NANOS_PER_DAYD);
+    else {
+      return rb_float_new((dt->jd - newdt->jd) + (dt->nanos - newdt->nanos)/RHR_NANOS_PER_DAYD);
+    }
   }
   if (RTEST((rb_obj_is_kind_of(other, rhrd_class)))) {
+    Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrd_t, newd);
+    RHRDT_FILL_JD(dt)
+    RHRDT_FILL_NANOS(dt)
     RHR_FILL_JD(newd)
-    return rb_float_new(rhrdt__to_double(dt) - newd->jd); 
+    return rb_float_new((dt->jd - newd->jd) + dt->nanos/RHR_NANOS_PER_DAYD); 
   }
   rb_raise(rb_eTypeError, "expected numeric or date");
 }
