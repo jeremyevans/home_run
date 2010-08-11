@@ -1180,7 +1180,7 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
           if (sscanf(str + pos, "%ld%n", &seconds, &scan_len) != 1) {
             return Qnil;
           }
-	  seconds /= 1000;
+          seconds /= 1000;
           state |= RHRR_UNIX_SET;
           break;
         case 's':
@@ -2984,8 +2984,8 @@ void Init_date(void) {
 
   rb_define_const(rhrd_class, "ITALY", INT2NUM(RHR_JD_ITALY));
   rb_define_const(rhrd_class, "ENGLAND", INT2NUM(RHR_JD_ENGLAND));
-  rb_define_const(rhrd_class, "JULIAN", INT2NUM(RHR_JD_MIN - 1));
-  rb_define_const(rhrd_class, "GREGORIAN", INT2NUM(RHR_JD_MAX + 1));
+  rb_define_const(rhrd_class, "JULIAN", LL2NUM(RHR_JD_MIN - 1));
+  rb_define_const(rhrd_class, "GREGORIAN", LL2NUM(RHR_JD_MAX + 1));
 
   /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
