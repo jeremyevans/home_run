@@ -33,7 +33,7 @@ class Date
 
   end
 
-  def self.s3e(e, y, m, d, bc=false)
+  def self.s3e(e, y, m, d, bc=false) # :nodoc:
     unless String === m
       m = m.to_s
     end
