@@ -10,11 +10,21 @@ describe "Date.jd" do
     Date.civil(2008, 1, 16).jd.should == 2454482
   end
   
-  it ".jd should have defaults" do
-    Date.jd(2008, 1).should == Date.jd(2008)
+  it "should have defaults" do
     Date.jd.should == Date.jd(0)
+    Date.jd(2008).should == Date.jd(2008)
+    Date.jd(2008, 1).should == Date.jd(2008)
   end
   
+  it "should not accept more than 2 arguments" do
+    proc{Date.jd(2008, 1, 1)}.should raise_error(ArgumentError)
+  end
+
+  it "should raise ArgumentError for invalid dates" do
+    proc{Date.jd(Date::GREGORIAN)}.should raise_error
+    proc{Date.jd(Date::JULIAN)}.should raise_error
+  end
+
   it "#new! should be the same as jd" do
     Date.new!(2454156).should == Date.jd(2454156)
   end

@@ -51,9 +51,21 @@ end
 describe "Date.civil" do
   it_behaves_like(:date_civil, :civil)
   
-  it ".civil should have defaults and an optional sg value" do
-    Date.civil(2008, 1, 1, 1).should == Date.civil(2008, 1, 1)
+  it "should have defaults and an optional sg value" do
     Date.civil.should == Date.jd
+    Date.civil(2008).should == Date.civil(2008, 1, 1)
+    Date.civil(2008, 1).should == Date.civil(2008, 1, 1)
+    Date.civil(2008, 1, 1).should == Date.civil(2008, 1, 1)
+    Date.civil(2008, 1, 1, 1).should == Date.civil(2008, 1, 1)
+  end
+
+  it "should not accept more than 4 arguments" do
+    proc{Date.civil(2008, 1, 1, 1, 1)}.should raise_error(ArgumentError)
+  end
+
+  it "should raise ArgumentError for invalid dates" do
+    proc{Date.civil(2008, 2, 30)}.should raise_error(ArgumentError)
+    proc{Date.civil(2009, 2, 29)}.should raise_error(ArgumentError)
   end
 end
 

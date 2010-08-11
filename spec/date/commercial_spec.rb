@@ -63,9 +63,33 @@ end
 describe "Date.commercial" do
   it_behaves_like(:date_commercial, :commercial)
   
-  it "should have defaults and an optional sg value" do
-    Date.commercial(2008, 1, 1, 1).should == Date.commercial(2008, 1, 1)
-    Date.commercial.should == (RUBY_VERSION > '1.9.0' ? Date.jd : Date.commercial(1582, 41, 5))
+  ruby_version_is "" ... "1.9" do
+    it "should have defaults and an optional sg value" do
+      Date.commercial.should == Date.commercial(1582, 41, 5)
+      Date.commercial(2008).should == Date.commercial(2008, 41, 5)
+      Date.commercial(2008, 1).should == Date.commercial(2008, 1, 5)
+      Date.commercial(2008, 1, 1).should == Date.commercial(2008, 1, 1)
+      Date.commercial(2008, 1, 1, 1).should == Date.commercial(2008, 1, 1)
+    end
+  end
+  
+  ruby_version_is "1.9" do
+    it "should have defaults and an optional sg value" do
+      Date.commercial.should == Date.jd
+      Date.commercial(2008).should == Date.commercial(2008, 1, 1)
+      Date.commercial(2008, 1).should == Date.commercial(2008, 1, 1)
+      Date.commercial(2008, 1, 1).should == Date.commercial(2008, 1, 1)
+      Date.commercial(2008, 1, 1, 1).should == Date.commercial(2008, 1, 1)
+    end
+  end
+
+  it ".should not accept more than 4 arguments" do
+    proc{Date.commercial(2008, 1, 1, 1, 1)}.should raise_error(ArgumentError)
+  end
+
+  it "should raise ArgumentError for invalid dates" do
+    proc{Date.commercial(2008, 54, 6)}.should raise_error(ArgumentError)
+    proc{Date.commercial(2009, 1, 8)}.should raise_error(ArgumentError)
   end
 end
 

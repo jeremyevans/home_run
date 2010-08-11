@@ -2,6 +2,14 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 describe "Date#strptime" do
 
+  it "._strptime should not accept less than 1 arguments" do
+    proc{Date._strptime}.should raise_error(ArgumentError)
+  end
+
+  it "._strptime should not accept more than 2 arguments" do
+    proc{Date._strptime('2008-10-11', '%Y-%m-%d', '1')}.should raise_error(ArgumentError)
+  end
+
   it "._strptime should be a hash of values" do
     Date._strptime('2008-10-11').should == {:year=>2008, :mon=>10, :mday=>11}
     Date._strptime('2008-10-11', '%Y-%m-%d').should == {:year=>2008, :mon=>10, :mday=>11}
@@ -39,6 +47,10 @@ describe "Date#strptime" do
     Date.strptime("Thu", "%a").should == expected_date
   end
 
+  it "parses only the short part of the day name" do
+    Date._strptime("Friday", "%aday").should == {:wday=>5}
+  end
+
   it "parses a full month name" do
     d = Date.today
     Date.strptime("April", "%B").should == Date.civil(d.year, 4, 1)
@@ -48,6 +60,12 @@ describe "Date#strptime" do
     d = Date.today
     Date.strptime("Apr", "%b").should == Date.civil(d.year, 4, 1)
     Date.strptime("Apr", "%h").should == Date.civil(d.year, 4, 1)
+  end
+
+  it "parses only the short part of the month name" do
+    d = Date.today
+    Date.strptime("April", "%bil").should == Date.civil(d.year, 4, 1)
+    Date.strptime("April", "%hil").should == Date.civil(d.year, 4, 1)
   end
 
   it "parses a century" do
