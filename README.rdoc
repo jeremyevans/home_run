@@ -23,8 +23,9 @@ If you ever want to uninstall from site_ruby:
 
 == Running without installing into site_ruby
 
-If you don't want to install into site_ruby, you may need to run
-your script using home_run:
+If you don't want to install into site_ruby, you can use home_run's
+Date/DateTime classes for specific programs by running your script
+using home_run:
 
   home_run ruby ...
   home_run irb ...
@@ -44,16 +45,19 @@ you use the standard library.
   C structure, and therefore has a range limitation.  home_run
   cannot handle dates after 5874773-08-15 or before -5877752-05-08
   on 32-bit platforms (with larger limits for 64-bit platforms).
-* The Date class does not store fractional days (e.g. hours/minutes),
-  or offsets, only the DateTime class.
+* The Date class does not store fractional days (e.g. hours, minutes),
+  or offsets. The DateTime class does handle fractional days and
+  offsets.
 * The DateTime class stores fractional days as the number of
   nanoseconds since midnight, so it cannot deal with differences
   less than a nanosecond.
 * Neither Date nor DateTime uses Rational.  Places where the standard
   library returns Rationals, home_run returns integers or floats.
+  This can break other libraries that use Rational without directly
+  requiring it.
 * There is no support for modifying the date of calendar reform, the
   Gregorian calendar is always used.  This means that julian day 0
-  is displayed as -4173-11-24, instead of -4712-01-01.
+  is -4173-11-24, instead of -4712-01-01.
 * The undocumented strftime format modifiers are not supported.
 * The DateTime offset is checked for reasonableness. home_run
   does not support offsets with an absolute difference of more than
@@ -73,10 +77,11 @@ There are a few requirements:
 
 * Rake
 * Ragel 6.5+ for building the ragel parser.  The compiled C file is
-  included in the gem, so people installing them gem don't need
+  included in the gem, so people installing the gem don't need
   Ragel.  The compiled C file is not checked into git, so you need
   Ragel if you are working with a git checkout.
-* RSpec for running the specs
+* MSpec (not RSpec) for running the specs.  The specs are based on
+  the rubyspec specs, which is why they use MSpec.
 * RDoc 2.5.10+ (not yet released) or trunk from RubyForge.  The
   documentation will not display class methods correctly with RDoc
   2.5.9 and previous versions.
@@ -85,12 +90,21 @@ The directory layout is slightly unusual in that there is no
 lib directory and there are .rb files in the ext directory. This may
 change in a future version.
 
-==  Testing
+== Building
+
+To build the library from a git checkout, after installing the
+requirements:
+
+  rake parser build
+
+== Testing
 
 The default rake task runs the specs, so just cd into the home_run
 directory and run:
 
   rake
+
+You need to build the library before running the specs.
 
 == Benchmarking
 
@@ -117,8 +131,15 @@ OpenBSD i386 w/ GCC 3.3.5
 Ubuntu Linux i386 w/ GCC 4.4.3
 
 If your platform is not listed above, please test and send me a
-report including the output of the specs and each of the three
-benchmarks.
+report including:
+
+* Your platform (i386, x86_64/amd64)
+* Your operating system
+* Your ruby version
+* The output of rake spec
+* The output of rake bench_long
+* The output of rake mem_bench
+* The output of rake garbage_bench
 
 == Author
 
