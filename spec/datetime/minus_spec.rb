@@ -51,9 +51,9 @@ describe "DateTimeTime#-" do
   end
   
   it "should consider the offset when computing the different between two DateTimes" do
-    (DateTime.civil(2007,2,27, 0, 0, 0, 0.5) - DateTime.civil(2007,2,27,0,0,0)).should be_close(0.5, 0.00000001)
-    (DateTime.civil(2007,2,27, 0, 0, 0, 0.5) - DateTime.civil(2007,2,27,12,0,0)).should be_close(0.0, 0.00000001)
-    (DateTime.civil(2007,2,27,0,0,0,-0.5) - DateTime.civil(2007,2,27,0,0,0,0.5)).should be_close(-1.0, 0.00000001)
+    (DateTime.civil(2007,2,27, 0, 0, 0, 0.5) - DateTime.civil(2007,2,27,0,0,0)).should be_close(-0.5, 0.00000001)
+    (DateTime.civil(2007,2,27, 0, 0, 0, -0.5) - DateTime.civil(2007,2,27,12,0,0)).should be_close(0.0, 0.00000001)
+    (DateTime.civil(2007,2,27,0,0,0,-0.5) - DateTime.civil(2007,2,27,0,0,0,0.5)).should be_close(1.0, 0.00000001)
   end
 
   it "should raise an error on non numeric parameters" do
