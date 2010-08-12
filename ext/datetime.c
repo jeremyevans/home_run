@@ -1703,10 +1703,12 @@ static VALUE rhrdt_to_time(VALUE self) {
   long h, m, s;
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
+  RHRDT_FILL_JD(dt)
+  RHRDT_FILL_NANOS(dt)
   self = rhrdt__from_jd_nanos(dt->jd, dt->nanos - dt->offset * RHR_NANOS_PER_MINUTE, 0);
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
-  RHRDT_FILL_NANOS(dt)
+  RHRDT_FILL_HMS(dt)
 
   s = dt->nanos/RHR_NANOS_PER_SECOND;
   h = s/3600;
