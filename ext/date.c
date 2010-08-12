@@ -2691,6 +2691,22 @@ static VALUE rhrd_rfc2822(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+static VALUE rhrd_rfc3339(VALUE self) {
+  VALUE s;
+  rhrd_t *d;
+  int len;
+  Data_Get_Struct(self, rhrd_t, d);
+  RHR_FILL_CIVIL(d)
+
+  s = rb_str_buf_new(128);
+  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhiT00:00:00+00:00", d->year, d->month, d->day);
+  if (len == -1 || len > 127) {
+    rb_raise(rb_eNoMemError, "in Date#rfc3339 (in snprintf)");
+  }
+
+  RHR_RETURN_RESIZED_STR(s, len)
+}
+
 static VALUE rhrd_to_datetime(VALUE self) {
   rhrd_t *d;
   rhrdt_t *dt;
@@ -3357,12 +3373,12 @@ void Init_date(void) {
   rb_define_method(rhrd_class, "prev_month", rhrd_prev_month, -1);
   rb_define_method(rhrd_class, "prev_year", rhrd_prev_year, -1);
   rb_define_method(rhrd_class, "rfc2822", rhrd_rfc2822, 0);
+  rb_define_method(rhrd_class, "rfc3339", rhrd_rfc3339, 0);
   rb_define_method(rhrd_class, "to_datetime", rhrd_to_datetime, 0);
   rb_define_method(rhrd_class, "to_time", rhrd_to_time, 0);
 
   rb_define_alias(rhrd_class, "to_date", "gregorian");
   rb_define_alias(rhrd_class, "iso8601", "to_s");
-  rb_define_alias(rhrd_class, "rfc3339", "to_s");
   rb_define_alias(rhrd_class, "rfc822", "rfc2822");
   rb_define_alias(rhrd_class, "xmlschema", "to_s");
 
