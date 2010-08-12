@@ -17,6 +17,10 @@ After installing the gem:
 Installing into site_ruby means that ruby will always use home_run's
 Date/DateTime classes instead of the ones in the standard library.
 
+If you ever want to uninstall from site_ruby:
+
+  home_run --uninstall
+
 == Running without installing into site_ruby
 
 If you don't want to install into site_ruby, you may need to run
@@ -25,8 +29,8 @@ your script using home_run:
   home_run ruby ...
   home_run irb ...
 
-This manipulates the RUBYLIB environment variable so that home_run's
-Date/DateTime classes will be used.
+This manipulates the RUBYLIB and RUBYOPT environment variables so
+that home_run's Date/DateTime classes will be used.
 
 == Usage
 
@@ -42,7 +46,7 @@ you use the standard library.
   on 32-bit platforms (with larger limits for 64-bit platforms).
 * The Date class does not store fractional days (e.g. hours/minutes),
   or offsets, only the DateTime class.
-* The DateTime class store fractional days as the number of
+* The DateTime class stores fractional days as the number of
   nanoseconds since midnight, so it cannot deal with differences
   less than a nanosecond.
 * Neither Date nor DateTime uses Rational.  Places where the standard
@@ -56,6 +60,65 @@ you use the standard library.
   14 hours from UTC.
 * DateTime offsets are stored in minutes, so it will round offsets
   with fractional minutes to the nearest minute.
+
+== Contributing
+
+The source code is on GitHub: http://github.com/jeremyevans/home_run
+
+To get a copy:
+
+  git clone git://github.com/jeremyevans/home_run.git
+
+There are a few requirements:
+
+* Rake
+* Ragel 6.5+ for building the ragel parser.  The compiled C file is
+  included in the gem, so people installing them gem don't need
+  Ragel.  The compiled C file is not checked into git, so you need
+  Ragel if you are working with a git checkout.
+* RSpec for running the specs
+* RDoc 2.5.10+ (not yet released) or trunk from RubyForge.  The
+  documentation will not display class methods correctly with RDoc
+  2.5.9 and previous versions.
+
+The directory layout is slightly unusual in that there is no
+lib directory and there are .rb files in the ext directory. This may
+change in a future version.
+
+==  Testing
+
+The default rake task runs the specs, so just cd into the home_run
+directory and run:
+
+  rake
+
+== Benchmarking
+
+To see the speedup that home_run gives you over the standard library:
+
+  rake bench # or bench_long or bench_quick
+
+To see how much less memory home_run uses compared to the standard
+library:
+
+  rake mem_bench
+
+To see how much less garbage is created when instantiating objects
+with home_run compared to the standard library:
+
+  rake garbage_bench
+
+== Platforms Supported
+
+home_run has been tested on the following platforms:
+
+OpenBSD amd64 w/ GCC 4.2.1
+OpenBSD i386 w/ GCC 3.3.5
+Ubuntu Linux i386 w/ GCC 4.4.3
+
+If your platform is not listed above, please test and send me a
+report including the output of the specs and each of the three
+benchmarks.
 
 == Author
 
