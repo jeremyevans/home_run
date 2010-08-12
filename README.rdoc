@@ -124,11 +124,27 @@ with home_run compared to the standard library:
 
 == Platforms Supported
 
-home_run has been tested on the following platforms:
+home_run has been tested on the following:
 
-OpenBSD amd64 w/ GCC 4.2.1
-OpenBSD i386 w/ GCC 3.3.5
-Ubuntu Linux i386 w/ GCC 4.4.3
+=== Operating Systems/Platforms
+
+* OpenBSD amd64
+* OpenBSD i386
+* Linux i386
+
+=== Compiler Versions
+
+* GCC 3.3.5
+* GCC 4.2.1
+* GCC 4.4.3
+
+=== Ruby Versions
+
+* ruby 1.8.6p399
+* ruby 1.8.7p299
+* ruby 1.9.1p378
+* ruby 1.9.2rc2
+* ruby 1.9.3dev
 
 If your platform is not listed above, please test and send me a
 report including:
