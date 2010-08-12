@@ -50,7 +50,7 @@ def dt_compare(label, &block)
   puts sprintf('DateTime%s,%0.5f,%0.5f,%0.2f', label, stdlib, home_run, stdlib/home_run)
 end
 
-n = (ARGV.first || 100000).to_i
+n = (ARGV.first || 10000).to_i
 puts "label,stdlib,home_run,times faster"
 dt_compare("._parse"){|dc| n.times{dc._parse('2010-12-13 10:20:30-07:00')}}
 dt_compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1, 13, 43, 57)}}
