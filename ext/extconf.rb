@@ -4,4 +4,3 @@ $CFLAGS << ' -Wno-extra' if $CFLAGS =~ /-Wextra/
 $CFLAGS << ' -g -ggdb -rdynamic -O0 -DDEBUG' if ENV['DEBUG']
 $objs = ['date.o']
 create_makefile("date")
-end
