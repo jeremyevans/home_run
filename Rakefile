@@ -32,7 +32,7 @@ end
 if File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
 begin
   require "rake/extensiontask"
-  desc "Build the windows binary gem"
+  desc "Internal--cross compile the windows binary gem"
   ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
   load('home_run.gemspec')
   Rake::ExtensionTask.new('home_run', HOME_RUN_GEMSPEC) do |ext|
@@ -42,6 +42,18 @@ begin
     ext.cross_compile = true
     ext.cross_platform = 'i386-mswin32'
     ext.source_pattern = '*.c'
+  end
+
+  # FIXME: Incredibly hacky, should figure out how to get
+  # rake compiler to do this.
+  desc "Build the cross compiled windows binary gem"
+  task :windows_gem do
+    sh %{rm -rf tmp}
+    sh %{rm -rf home_run-*.gem}
+    sh %{rake cross native gem}
+    sh %{rm -rf home_run-*.gem}
+    sh %{mv pkg/home_run-*.gem .}
+    sh %{rmdir pkg}
   end
 rescue LoadError
 end
