@@ -82,8 +82,15 @@ task :bench_long do
   sh %{#{RUBY} bench/cpu_bench.rb 100000}
 end
 
-desc "Run memory benchmarks"
+desc "Run all benchmarks"
+task :bench_all => [:bench_long, :mem_bench, :garbage_bench]
+
+desc "Run comparative memory benchmarks"
 task :mem_bench do
+  if RUBY_PLATFORM =~ /win|w32/
+    puts "Memory benchmarks not supported on Windows"
+    next
+  end
   stdlib = `#{RUBY} bench/mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/mem_bench.rb`.to_i
   puts "stdlib Date: #{stdlib}KB"
@@ -97,8 +104,12 @@ task :mem_bench do
   puts "home_run DateTime uses #{sprintf('%0.1f', stdlib/home_run.to_f)} times less memory"
 end
 
-desc "Run garbage creation benchmarks"
+desc "Run comparative garbage creation benchmarks"
 task :garbage_bench do
+  if RUBY_PLATFORM =~ /win|w32/
+    puts "Garbage creation benchmarks not supported on Windows"
+    next
+  end
   stdlib = `#{RUBY} bench/garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/garbage_bench.rb`.to_i
   puts "stdlib Date: #{stdlib}KB"

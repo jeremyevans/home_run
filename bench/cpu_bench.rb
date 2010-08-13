@@ -5,8 +5,8 @@ SDT = DateTime
 $:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext'))
 Object.send(:remove_const, :Date)
 Object.send(:remove_const, :DateTime)
-require 'ext/date.so'
-require 'ext/date/format'
+require 'ext/date.rb'
+require 'ext/date/format.rb'
 HRD = Date
 HRDT = DateTime
 

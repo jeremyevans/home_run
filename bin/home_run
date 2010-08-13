@@ -18,19 +18,24 @@ opts = OptionParser.new do |opts|
   opts.on_tail("--uninstall", "uninstall home_run from site_ruby") do
     command = :uninstall
   end
+
+  opts.on_tail("--bench", "benchmark home_run compared to the standard library") do
+    command = :bench
+  end
 end
 opts.order!
 
 case command
 when :run
   ENV['RUBYOPT'] = "-rdate #{ENV['RUBYOPT']}"
-  ENV['RUBYLIB'] = [lib, ENV['RUBYLIB']].join(RUBY_PLATFORM =~ /win32/ ? ';' : ':')
+  ENV['RUBYLIB'] = [lib, ENV['RUBYLIB']].join(File::PATH_SEPARATOR)
   exec(*ARGV)
+when :bench
+  Dir.chdir(File.join(lib, '..'))
+  require 'rake'
+  load './Rakefile'
+  Rake::Task[:bench_all].invoke
 else
-  if !ARGV.empty?
-    puts "Cannot specify command when using --#{command}"
-    exit(1)
-  end
   Dir.chdir(lib)
   system("make #{command}-home-run")
 end

@@ -5,3 +5,6 @@
 /rdoc
 /*.gem
 *.core
+/pkg
+/ext/1.8
+/ext/1.9
