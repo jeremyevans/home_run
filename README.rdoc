@@ -33,6 +33,18 @@ using home_run:
 This manipulates the RUBYLIB and RUBYOPT environment variables so
 that home_run's Date/DateTime classes will be used.
 
+== Running the specs
+
+You can run the specs after installing the gem:
+
+  home_run --spec
+
+== Running comparative benchmarks
+
+You can run the benchmarks after installing the gem:
+
+  home_run --bench
+
 == Usage
 
 home_run aims to be compatible with the standard library, except
@@ -67,7 +79,9 @@ you use the standard library.
 
 == Contributing
 
-The source code is on GitHub: http://github.com/jeremyevans/home_run
+The source code is on GitHub:
+
+  http://github.com/jeremyevans/home_run
 
 To get a copy:
 
@@ -151,11 +165,10 @@ report including:
 
 * Your platform (i386, x86_64/amd64)
 * Your operating system
+* Your compiler
 * Your ruby version
-* The output of rake spec
-* The output of rake bench_long
-* The output of rake mem_bench
-* The output of rake garbage_bench
+* The output of home_run --spec
+* The output of home_run --bench
 
 == Author
 
