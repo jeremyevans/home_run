@@ -29,7 +29,7 @@ task :gem => [:clean, :parser] do
   sh %{gem build home_run.gemspec}
 end
 
-if File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
+if RUBY_PLATFORM !~ /win|w32/ and File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
 begin
   require "rake/extensiontask"
   desc "Internal--cross compile the windows binary gem"
