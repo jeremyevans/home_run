@@ -4,7 +4,6 @@ require "rake/clean"
 CLEAN.include %w'Makefile ext/date.*o **/*.rbc *.core' 
 RUBY=ENV['RUBY'] || 'ruby'
 IRBPROG=ENV['IRB'] || 'irb'
-MSPEC=ENV['MSPEC'] || 'mspec'
 
 begin
   gem 'rdoc'
@@ -22,7 +21,7 @@ end
 desc "Run the specs with mspec"
 task :default => :spec
 task :spec do
-  sh %{#{MSPEC} -I ext -rdate spec/*/*_spec.rb}
+  sh %{mspec -I ext -rdate spec/*/*_spec.rb}
 end
 
 desc "Build the gem"
