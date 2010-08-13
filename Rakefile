@@ -30,6 +30,7 @@ task :gem => [:clean, :parser] do
   sh %{gem build home_run.gemspec}
 end
 
+if File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
 begin
   require "rake/extensiontask"
   desc "Build the windows binary gem"
@@ -44,6 +45,7 @@ begin
     ext.source_pattern = '*.c'
   end
 rescue LoadError
+end
 end
 
 desc "Build the ragel parser"
