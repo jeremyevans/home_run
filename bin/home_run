@@ -41,7 +41,8 @@ when :bench
 when :spec
   Dir.chdir(File.join(lib, '..'))
   require 'rbconfig'
-  ENV['RUBY'] = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
+  ENV['PATH'] = [Config::CONFIG['bindir'], ENV['PATH']].join(File::PATH_SEPARATOR)
+  ENV['RUBY'] = File.join(Config::CONFIG['ruby_install_name'])
   require 'rubygems'
   require 'rake'
   load './Rakefile'
