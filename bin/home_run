@@ -22,15 +22,30 @@ opts = OptionParser.new do |opts|
   opts.on_tail("--bench", "benchmark home_run compared to the standard library") do
     command = :bench
   end
+
+  opts.on_tail("--spec", "run the home_run specs") do
+    command = :spec 
+  end
 end
 opts.order!
 
 case command
 when :bench
   Dir.chdir(File.join(lib, '..'))
+  require 'rbconfig'
+  ENV['RUBY'] = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
+  require 'rubygems'
   require 'rake'
   load './Rakefile'
   Rake::Task[:bench_all].invoke
+when :spec
+  Dir.chdir(File.join(lib, '..'))
+  require 'rbconfig'
+  ENV['RUBY'] = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
+  require 'rubygems'
+  require 'rake'
+  load './Rakefile'
+  Rake::Task[:default].invoke
 when :install
   Dir.chdir(lib)
   require 'rbconfig'
