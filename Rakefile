@@ -30,6 +30,22 @@ task :gem => [:clean, :parser] do
   sh %{gem build home_run.gemspec}
 end
 
+begin
+  require "rake/extensiontask"
+  desc "Build the windows binary gem"
+  ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
+  load('home_run.gemspec')
+  Rake::ExtensionTask.new('home_run', HOME_RUN_GEMSPEC) do |ext|
+    ext.name = 'date'
+    ext.ext_dir = 'ext' 
+    ext.lib_dir = 'ext' 
+    ext.cross_compile = true
+    ext.cross_platform = 'i386-mswin32'
+    ext.source_pattern = '*.c'
+  end
+rescue LoadError
+end
+
 desc "Build the ragel parser"
 task :parser do
   sh %{cd ext && ragel date_parser.rl}

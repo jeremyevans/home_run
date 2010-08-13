@@ -1,4 +1,4 @@
-spec = Gem::Specification.new do |s|
+HOME_RUN_GEMSPEC = Gem::Specification.new do |s|
   s.name = 'home_run'
   s.version = '0.1.0'
   s.platform = Gem::Platform::RUBY
@@ -21,4 +21,3 @@ with much better performance (20-200x) than the version in the
 standard library, while being almost completely compatible.
 END
 end
-
