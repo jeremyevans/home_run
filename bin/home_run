@@ -26,16 +26,44 @@ end
 opts.order!
 
 case command
-when :run
-  ENV['RUBYOPT'] = "-rdate #{ENV['RUBYOPT']}"
-  ENV['RUBYLIB'] = [lib, ENV['RUBYLIB']].join(File::PATH_SEPARATOR)
-  exec(*ARGV)
 when :bench
   Dir.chdir(File.join(lib, '..'))
   require 'rake'
   load './Rakefile'
   Rake::Task[:bench_all].invoke
-else
+when :install
   Dir.chdir(lib)
-  system("make #{command}-home-run")
+  require 'rbconfig'
+  require 'fileutils'
+  FUV = FileUtils::Verbose
+  FUV.cp("date.rb", Config::CONFIG['sitelibdir'])
+  FUV.mkdir_p(File.join(Config::CONFIG['sitelibdir'], 'date'))
+  FUV.cp("date/format.rb", File.join(Config::CONFIG['sitelibdir'], 'date'))
+  if File.exists?('date.so')
+    FUV.cp("date.so", Config::CONFIG['sitearchdir'])
+  end
+  if File.exists?('1.8/date.so')
+    FUV.mkdir_p(File.join(Config::CONFIG['sitearchdir'], '1.8'))
+    FUV.cp("1.8/date.so", File.join(Config::CONFIG['sitearchdir'], '1.8'))
+  end
+  if File.exists?('1.9/date.so')
+    FUV.mkdir_p(File.join(Config::CONFIG['sitearchdir'], '1.9'))
+    FUV.cp("1.9/date.so", File.join(Config::CONFIG['sitearchdir'], '1.9'))
+  end
+when :uninstall
+  require 'rbconfig'
+  require 'fileutils'
+  FUV = FileUtils::Verbose
+  FUV.rm_f(File.join(Config::CONFIG['sitelibdir'], 'date.rb'))
+  FUV.rm_f(File.join(Config::CONFIG['sitelibdir'], 'date/format.rb'))
+  FUV.rmdir(File.join(Config::CONFIG['sitelibdir'], 'date')) rescue nil
+  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], 'date.so'))
+  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], '1.8/date.so'))
+  FUV.rmdir(File.join(Config::CONFIG['sitearchdir'], '1.8')) rescue nil
+  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], '1.9/date.so'))
+  FUV.rmdir(File.join(Config::CONFIG['sitearchdir'], '1.9')) rescue nil
+else
+  ENV['RUBYOPT'] = "-rdate #{ENV['RUBYOPT']}"
+  ENV['RUBYLIB'] = [lib, ENV['RUBYLIB']].join(File::PATH_SEPARATOR)
+  exec(*ARGV)
 end
