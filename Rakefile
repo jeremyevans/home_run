@@ -106,15 +106,11 @@ task :mem_bench do
   end
   stdlib = `#{RUBY} bench/mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/mem_bench.rb`.to_i
-  puts "stdlib Date: #{stdlib}KB"
-  puts "home_run Date: #{home_run}KB"
-  puts "home_run Date uses #{sprintf('%0.1f', stdlib/home_run.to_f)} times less memory"
+  puts "Date memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
   stdlib = `#{RUBY} bench/dt_mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/dt_mem_bench.rb`.to_i
-  puts "stdlib DateTime: #{stdlib}KB"
-  puts "home_run DateTime: #{home_run}KB"
-  puts "home_run DateTime uses #{sprintf('%0.1f', stdlib/home_run.to_f)} times less memory"
+  puts "DateTime memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
 
 desc "Run comparative garbage creation benchmarks"
@@ -125,13 +121,9 @@ task :garbage_bench do
   end
   stdlib = `#{RUBY} bench/garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/garbage_bench.rb`.to_i
-  puts "stdlib Date: #{stdlib}KB"
-  puts "home_run Date: #{home_run}KB"
-  puts "home_run Date creates #{sprintf('%0.1f', stdlib/home_run.to_f)} times less garbage"
+  puts "Date garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
   stdlib = `#{RUBY} bench/dt_garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/dt_garbage_bench.rb`.to_i
-  puts "stdlib DateTime: #{stdlib}KB"
-  puts "home_run DateTime: #{home_run}KB"
-  puts "home_run DateTime creates #{sprintf('%0.1f', stdlib/home_run.to_f)} times less garbage"
+  puts "DateTime garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
