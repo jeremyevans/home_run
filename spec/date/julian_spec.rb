@@ -1,7 +1,6 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "Date.jd" do
-
   it "should be able to construct a Date object based on the Julian day" do
     Date.jd(2454482).should == Date.civil(2008, 1, 16)
   end
@@ -25,17 +24,32 @@ describe "Date.jd" do
     proc{Date.jd(Date::JULIAN)}.should raise_error
   end
 
-  it "#new! should be the same as jd" do
+  ruby_version_is "" ... "1.9" do
+    it ".new1 should be the same as jd" do
+      Date.new1(2454156).should == Date.jd(2454156)
+    end
+  end
+end
+
+describe "Date.new!" do
+  it "should be the same as jd" do
     Date.new!(2454156).should == Date.jd(2454156)
   end
   
+  it "should accept extra arguments" do
+    Date.new!.should == Date.jd(0)
+    Date.new!(2008).should == Date.jd(2008)
+    Date.new!(2008, 1).should == Date.jd(2008)
+    Date.new!(2008, 1, 1).should == Date.jd(2008)
+  end
+  
+  it "should not accept more than 3 arguments" do
+    proc{Date.new!(2008, 1, 1, 1)}.should raise_error(ArgumentError)
+  end
+
   ruby_version_is "" ... "1.9" do
     it "#new0 should be the same as new!" do
       Date.new0(2454156).should == Date.new!(2454156)
-    end
-    
-    it ".new1 should be the same as jd" do
-      Date.new1(2454156).should == Date.jd(2454156)
     end
   end
 end

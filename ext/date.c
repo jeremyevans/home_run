@@ -1644,12 +1644,18 @@ static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
  *   julian_leap?(year) -> true or false
  *
  * Returns true if the given year is a leap year in the Julian
- * calendar (just divisable by 4), or false if not.
+ * calendar (i.e. divisible by 4), or false if not.
  */
 static VALUE rhrd_s_julian_leap_q(VALUE klass, VALUE y) {
   return NUM2LONG(y) % 4 == 0 ? Qtrue : Qfalse;
 }
 
+/* call-seq:
+ *   new!(jd=0, offset=nil, sg=nil) -> Date
+ *
+ * Returns a +Date+ for the julian day number given.
+ * Ignores the 2nd and 3rd arguments.
+ */
 static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
