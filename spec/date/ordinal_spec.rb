@@ -10,10 +10,15 @@ describe "Date.ordinal" do
   end
     
   it "should have defaults and an optional sg value" do
-    Date.ordinal(2008, 1, 1).should == Date.ordinal(2008, 1)
     Date.ordinal.should == Date.jd
+    Date.ordinal(2008).should == Date.ordinal(2008, 1)
+    Date.ordinal(2008, 1, 1).should == Date.ordinal(2008, 1)
   end
   
+  it "should not accept more than 3 arguments" do
+    proc{Date.ordinal(2008, 1, 1, 1)}.should raise_error(ArgumentError)
+  end
+
   ruby_version_is "" ... "1.9" do
     it ".new2 should be the same as ordinal" do
       Date.new2(2008, 10).should == Date.ordinal(2008, 10)

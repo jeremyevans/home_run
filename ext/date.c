@@ -1520,7 +1520,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
  *   civil() -> Date <br />
  *   civil(year, month=1, day=1, sg=nil) -> Date
  *
- * If no arguments are given, returns a +Date+ for julian day 0,
+ * If no arguments are given, returns a +Date+ for julian day 0.
  * Otherwise, returns a +Date+ for the year, month, and day given.
  * Ignores the 4th argument.
  */
@@ -1678,6 +1678,14 @@ static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+/* call-seq:
+ *   ordinal() -> Date <br />
+ *   ordinal(year, yday=1, sg=nil) -> Date
+ *
+ * If no arguments are given, returns a +Date+ for julian day 0.
+ * Otherwise, returns a +Date+ for the year and day of year given.
+ * Ignores the 3rd argument.
+ */
 static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   long year;
   long day = 1;
