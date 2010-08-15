@@ -1787,6 +1787,12 @@ static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
   rb_raise(rb_eArgError, "invalid date");
 }
 
+/* call-seq:
+ *   today(sg=nil) -> Date
+ *
+ * Returns a +Date+ representing the current local date.
+ * Ignores an argument if given.
+ */
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
