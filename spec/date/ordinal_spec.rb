@@ -19,6 +19,12 @@ describe "Date.ordinal" do
     proc{Date.ordinal(2008, 1, 1, 1)}.should raise_error(ArgumentError)
   end
 
+  it "raises errors for invalid dates" do
+    lambda { Date.ordinal(2007, 366) }.should raise_error(ArgumentError)
+    lambda { Date.ordinal(2008, 366) }.should_not raise_error(ArgumentError)
+    lambda { Date.ordinal(2008, 367) }.should raise_error(ArgumentError)
+  end
+
   ruby_version_is "" ... "1.9" do
     it ".new2 should be the same as ordinal" do
       Date.new2(2008, 10).should == Date.ordinal(2008, 10)

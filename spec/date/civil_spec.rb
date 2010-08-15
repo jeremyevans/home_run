@@ -36,7 +36,7 @@ describe :date_civil, :shared => true do
   
   end
 
-  it "doesn't create dates for invalid arguments" do
+  it "raises errors for invalid dates" do
     lambda { Date.send(@method, 2000, 13, 31) }.should raise_error(ArgumentError)
     lambda { Date.send(@method, 2000, 12, 32) }.should raise_error(ArgumentError)
     lambda { Date.send(@method, 2000,  2, 30) }.should raise_error(ArgumentError)

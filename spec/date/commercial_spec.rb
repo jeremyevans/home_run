@@ -46,7 +46,7 @@ describe :date_commercial, :shared => true do
     d.cwyear.should == 2004
   end
 
-  it "creates only Date objects for valid weeks" do
+  it "raises errors for invalid dates" do
     lambda { Date.send(@method, 2004, 53, 1) }.should_not raise_error(ArgumentError)
     lambda { Date.send(@method, 2004, 53, 0) }.should raise_error(ArgumentError)
     lambda { Date.send(@method, 2004, 53, 8) }.should raise_error(ArgumentError)
