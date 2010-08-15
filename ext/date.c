@@ -1522,6 +1522,7 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
  *
  * If no arguments are given, returns a +Date+ for julian day 0.
  * Otherwise, returns a +Date+ for the year, month, and day given.
+ * Raises an +ArgumentError+ for invalid dates.
  * Ignores the 4th argument.
  */
 static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
@@ -1565,7 +1566,9 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
  * * ruby 1.9: returns a +Date+ for julian day 0
  *
  * Otherwise, returns a +Date+ for the commercial week year, commercial week, and
- * commercial week day given. Ignores the 4th argument.
+ * commercial week day given.
+ * Raises an +ArgumentError+ for invalid dates.
+ * Ignores the 4th argument.
  */
 static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
@@ -1684,6 +1687,7 @@ static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
  *
  * If no arguments are given, returns a +Date+ for julian day 0.
  * Otherwise, returns a +Date+ for the year and day of year given.
+ * Raises an +ArgumentError+ for invalid dates.
  * Ignores the 3rd argument.
  */
 static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
@@ -1720,7 +1724,7 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
  *
  * If no arguments are given, returns a +Date+ for julian day 0.
  * Other returns a +Date+ for the date represented by the given
- * +string+.  Raises an ArgumentError if the string was not in
+ * +string+.  Raises an +ArgumentError+ if the string was not in
  * a recognized format, or if the recognized format represents
  * an invalid date.
  * Ignores the 3rd argument.
