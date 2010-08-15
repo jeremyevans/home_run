@@ -212,6 +212,18 @@ above, please test and send me a report including:
 * The output of home_run --spec
 * The output of home_run --bench
 
+== Todo
+
+* Get it working on rbx-head and jruby-head.
+* Add RDoc documentation for all ruby methods.
+* Add more specs for greater code coverage and to test
+  boundry conditions.
+* Add way to configure parsing so that you can get 1.9 style
+  dd/mm/yyyy parsing on 1.8 or mm/dd/yyyy parsing on on 1.9.
+* Expand main ragel parser to handle more formats
+* Add ragel versions of the 1.9 date parsing functions
+* Add internal documentation of all C functions
+
 == Author
 
 Jeremy Evans
