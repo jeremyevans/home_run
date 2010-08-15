@@ -20,12 +20,17 @@ describe "Date#parse" do
   end
   
   it "should have defaults and an optional sg value" do
+    Date.parse.should == Date.jd
     Date.parse('2008-10-11').should == Date.civil(2008, 10, 11)
     Date.parse('2008-10-11', true).should == Date.civil(2008, 10, 11)
     Date.parse('2008-10-11', true, 1).should == Date.civil(2008, 10, 11)
-    Date.parse.should == Date.jd
   end
   
+  it "raises errors for invalid dates" do
+    lambda { Date.parse("") }.should raise_error(ArgumentError)
+    lambda { Date.parse("2009-02-29") }.should raise_error(ArgumentError)
+  end
+
   # The space separator is also different, doesn't work for only numbers
   it "can parse a day name into a Date object" do
     d = Date.parse("friday")
@@ -42,10 +47,6 @@ describe "Date#parse" do
     d.should == Date.civil(Date.today.year, Date.today.month, 5)
   end
   
-  it "can't handle a empty string" do
-    lambda{ Date.parse("") }.should raise_error(ArgumentError)
-  end
-
   # Specs using numbers
   it "can't handle a single digit" do
     lambda{ Date.parse("1") }.should raise_error(ArgumentError)

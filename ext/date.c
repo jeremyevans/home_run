@@ -1714,6 +1714,17 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+/* call-seq:
+ *   parse() -> Date <br />
+ *   parse(string, comp=true, sg=nil) -> Date
+ *
+ * If no arguments are given, returns a +Date+ for julian day 0.
+ * Other returns a +Date+ for the date represented by the given
+ * +string+.  Raises an ArgumentError if the string was not in
+ * a recognized format, or if the recognized format represents
+ * an invalid date.
+ * Ignores the 3rd argument.
+ */
 static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
