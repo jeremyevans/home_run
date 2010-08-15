@@ -8,6 +8,11 @@ standard library, while being almost completely compatible.
 
   gem install home_run
 
+The standard gem requires compiling from source, so you need a working
+compiler toolchain.  Since few Windows users have a working compiler
+toolchain, a windows binary gem is available that works on both 1.8
+and 1.9.
+
 == Installing into site_ruby
 
 After installing the gem:
@@ -113,7 +118,7 @@ you use the standard library.
 Any other differences will either be documented here or considered
 bugs, so please report any other differences you find.
 
-== Filing Issues/Bugs
+== Reporting issues/bugs
 
 home_run uses GitHub Issues for tracking issues/bugs:
 
