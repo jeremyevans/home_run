@@ -16,14 +16,16 @@ describe "Date#strptime" do
   end
   
   it "should have defaults and an optional sg value" do
+    Date.strptime.should == Date.jd
     Date.strptime('2008-10-11').should == Date.civil(2008, 10, 11)
     Date.strptime('2008-10-11', '%Y-%m-%d').should == Date.civil(2008, 10, 11)
     Date.strptime('2008-10-11', '%Y-%m-%d', 1).should == Date.civil(2008, 10, 11)
-    Date.strptime.should == Date.jd
   end
 
-  it "returns January 1, 4713 BCE when given no arguments" do
-    Date.strptime.should == Date.jd
+  it "raises errors for invalid dates" do
+    lambda { Date.strptime("") }.should raise_error(ArgumentError)
+    lambda { Date.strptime("", "") }.should raise_error(ArgumentError)
+    lambda { Date.strptime("2009-02-29") }.should raise_error(ArgumentError)
   end
 
   it "uses the default format when not given a date format" do

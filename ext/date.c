@@ -1749,6 +1749,17 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   strptime() -> Date <br />
+ *   strptime(string, format="%F", sg=nil) -> Date
+ *
+ * If no arguments are given, returns a +Date+ for julian day 0.
+ * Other returns a +Date+ for the date represented by the given
+ * +string+, parsed using the given +format+.
+ * Raises an +ArgumentError+ if the string did not match the format
+ * given, or if it did match and it represented an invalid date.
+ * Ignores the 3rd argument.
+ */
 static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
