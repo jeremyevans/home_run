@@ -209,7 +209,7 @@ home_run has been tested on the following:
 If your platform, compiler version, or ruby version is not listed
 above, please test and send me a report including:
 
-* Your operating system and  platform (i386, x86_64/amd64)
+* Your operating system and platform (i386, x86_64/amd64)
 * Your compiler
 * Your ruby version
 * The output of home_run --spec
@@ -217,7 +217,7 @@ above, please test and send me a report including:
 
 == Todo
 
-* Get it working on jruby-head.
+* Get it working on jruby with the cext branch.
 * Add RDoc documentation for all ruby methods.
 * Add more specs for greater code coverage and to test
   boundry conditions.
