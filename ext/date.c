@@ -2044,6 +2044,12 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
 
 /* Ruby Instance Methods */
 
+/* call-seq:
+ *   dump(limit) -> String
+ *
+ * Returns a marshalled representation of the receiver as a +String+.
+ * Generally not called directly, usually called by <tt>Marshal.dump</tt>.
+ */
 static VALUE rhrd__dump(VALUE self, VALUE limit) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2051,6 +2057,14 @@ static VALUE rhrd__dump(VALUE self, VALUE limit) {
   return rb_marshal_dump(LONG2NUM(d->jd), LONG2NUM(NUM2LONG(limit) - 1));
 }
 
+/* call-seq:
+ *   asctime() -> String
+ *
+ * Returns a string representation of the receiver.  Example:
+ * 
+ *   Date.civil(2009, 1, 2).asctime
+ *   # => "Fri Jan  2 00:00:00 2009"
+ */
 static VALUE rhrd_asctime(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -2072,6 +2086,16 @@ static VALUE rhrd_asctime(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   cwday() -> Integer
+ *
+ * Returns the commercial week day as an +Integer+. Example:
+ * 
+ *   Date.civil(2009, 1, 2).cwday
+ *   # => 5
+ *   Date.civil(2010, 1, 2).cwday
+ *   # => 6
+ */
 static VALUE rhrd_cwday(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
@@ -2083,6 +2107,16 @@ static VALUE rhrd_cwday(VALUE self) {
   return LONG2NUM(n.day);
 }
 
+/* call-seq:
+ *   cweek() -> Integer
+ *
+ * Returns the commercial week as an +Integer+. Example:
+ * 
+ *   Date.civil(2009, 1, 2).cweek
+ *   # => 1
+ *   Date.civil(2010, 1, 2).cweek
+ *   # => 53
+ */
 static VALUE rhrd_cweek(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
@@ -2094,6 +2128,16 @@ static VALUE rhrd_cweek(VALUE self) {
   return LONG2NUM(n.month);
 }
 
+/* call-seq:
+ *   cwyear() -> Integer
+ *
+ * Returns the commercial week year as an +Integer+. Example:
+ * 
+ *   Date.civil(2009, 1, 2).cwyear
+ *   # => 2009
+ *   Date.civil(2010, 1, 2).cwyear
+ *   # => 2009
+ */
 static VALUE rhrd_cwyear(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
@@ -2105,6 +2149,14 @@ static VALUE rhrd_cwyear(VALUE self) {
   return LONG2NUM(n.year);
 }
 
+/* call-seq:
+ *   day() -> Integer
+ *
+ * Returns the day of the month as an +Integer+. Example:
+ * 
+ *   Date.civil(2009, 1, 2).day
+ *   # => 2
+ */
 static VALUE rhrd_day(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2112,10 +2164,28 @@ static VALUE rhrd_day(VALUE self) {
   return LONG2NUM(d->day);
 }
 
+/* call-seq:
+ *   day_fraction() -> 0
+ *
+ * +Date+ objects due not hold fractional days, so 0 is always returned.
+ */
 static VALUE rhrd_day_fraction(VALUE self) {
   return LONG2NUM(0);
 }
 
+/* call-seq:
+ *   downto(target){|date|} -> Date
+ *
+ * Equivalent to calling +step+ with the +target+ as the first argument
+ * and <tt>-1</tt> as the second argument. Returns self.
+ * 
+ *   Date.civil(2009, 1, 2).down_to(Date.civil(2009, 1, 1)) do |date|
+ *     puts date
+ *   end
+ *   # Output:
+ *   # 2009-01-02
+ *   # 2009-01-01
+ */
 static VALUE rhrd_downto(VALUE self, VALUE other) {
   VALUE argv[2];
   argv[0] = other;
@@ -2123,6 +2193,23 @@ static VALUE rhrd_downto(VALUE self, VALUE other) {
   return rhrd_step(2, argv, self);
 }
 
+/* call-seq:
+ *   eql?(date) -> true or false
+ *
+ * Returns true only if the +date+ given is the same date as the receiver.
+ * If +date+ is an instance of +DateTime+, returns true only if +date+ is
+ * for the same date as the receiver and has no fractional component.
+ * Otherwise, returns false. Example:
+ *
+ *   Date.civil(2009, 1, 2).eql?(Date.civil(2009, 1, 2))
+ *   # => true
+ *   Date.civil(2009, 1, 2).eql?(Date.civil(2009, 1, 1))
+ *   # => false
+ *   Date.civil(2009, 1, 2).eql?(DateTime.civil(2009, 1, 2))
+ *   # => true
+ *   Date.civil(2009, 1, 2).eql?(DateTime.civil(2009, 1, 2, 1))
+ *   # => false
+ */
 static VALUE rhrd_eql_q(VALUE self, VALUE other) {
   rhrd_t *d, *o;
   rhrdt_t *odt;
