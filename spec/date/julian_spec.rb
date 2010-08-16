@@ -85,9 +85,8 @@ describe "Date.julian_leap?" do
 
 end
 
-ruby_version_is "" ... "1.9" do
-  describe "Date#valid_jd?" do
-
+describe "Date.valid_jd?" do
+  ruby_version_is "" ... "1.9" do
     it "should be able to determine if a day number is a valid Julian day number, true for all numbers" do
       # This might need to check the type of the jd parameter. Date.valid_jd?(:number) is of course
       # bogus but returns itself with the current implementation
@@ -101,13 +100,9 @@ ruby_version_is "" ... "1.9" do
     it "#exist1? should be the same as valid_jd?" do
       Date.exist1?(2454156, 1).should == Date.valid_jd?(2454156, 1)
     end
-
   end
-end
 
-ruby_version_is "1.9" do
-  describe "Date#valid_jd?" do
-
+  ruby_version_is "1.9" do
     it "should be able to determine if a day number is a valid Julian day number, true for all numbers" do
       # This might need to check the type of the jd parameter. Date.valid_jd?(:number) is of course
       # bogus but returns itself with the current implementation
@@ -117,7 +112,6 @@ ruby_version_is "1.9" do
       Date.valid_jd?(2454156).should == true
       Date.valid_jd?(2454156, 1).should == true
     end
-
   end
 end
 

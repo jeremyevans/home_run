@@ -1,14 +1,40 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
-describe "Date#parse" do
-  ruby_version_is "" ... "1.9" do
-    it "#zone_to_diff? should return the offset in seconds if a valid time zone, or 0 if not" do
-      Date.zone_to_diff('-0800').should == -28800
+ruby_version_is "" ... "1.9" do
+  describe "Date.zone_to_diff" do
+    it "should return the offset for the given time zone name" do
+      Date.zone_to_diff('PST').should == -28800
+      Date.zone_to_diff('Tokyo').should == 32400
+    end
+
+    it "should return the offset for the given numeric time zone with colons" do
       Date.zone_to_diff('+08:00').should == 28800
-      Date.zone_to_diff('YY').should == 0
+      Date.zone_to_diff('+08:30').should == 30600
+      Date.zone_to_diff('+08:30:04').should == 30604
+    end
+
+    it "should return the offset for the given numeric time zone with . or ," do
+      Date.zone_to_diff('+08,30').should == 29880
+      Date.zone_to_diff('+08.30').should == 29880
+    end
+
+    it "should return the offset for the given numeric time with all digits" do
+      Date.zone_to_diff('-1').should == -3600
+      Date.zone_to_diff('-10').should == -36000
+      Date.zone_to_diff('-101').should == -3660
+      Date.zone_to_diff('-1010').should == -36600
+      Date.zone_to_diff('-10101').should == -36601
+      Date.zone_to_diff('-101010').should == -36610
+      Date.zone_to_diff('-1010109').should == -36610
+    end
+
+    it "should return 0 if the time zone is not recognized" do
+      Date.zone_to_diff('blah').should == 0
     end
   end
+end
   
+describe "Date.parse" do
   it "._parse should parse the date string and return a hash" do
     Date._parse('2008-10-20 11:12:13.0-08:00').should == {:mon=>10, :zone=>'-08:00', :sec=>13, :sec_fraction=>0.0, :year=>2008, :hour=>11, :offset=>-28800, :mday=>20, :min=>12}
     Date._parse('2008-10-20 11:12:13.0-08:00', true).should == {:mon=>10, :zone=>'-08:00', :sec=>13, :sec_fraction=>0.0, :year=>2008, :hour=>11, :offset=>-28800, :mday=>20, :min=>12}

@@ -1810,6 +1810,18 @@ static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   return rd;
 }
 
+/* call-seq:
+ *   valid_civil?(year, month, day, sg=nil) -> Integer or nil [ruby 1-8] <br />
+ *   valid_civil?(year, month, day, sg=nil) -> true or false [ruby 1-9]
+ *
+ * On ruby 1.8, returns the julian date +Integer+ for the given +year+, +month+,
+ * and +day+, or nil if the given values are not a valid date.
+ *
+ * On ruby 1.9, returns true if the given +year+, +month+, and +day+ represent
+ * a valid date, or false otherwise.
+ *
+ * Ignores the 4th argument.
+ */
 static VALUE rhrd_s_valid_civil_q(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -1838,6 +1850,18 @@ static VALUE rhrd_s_valid_civil_q(int argc, VALUE *argv, VALUE klass) {
 #endif
 }
 
+/* call-seq:
+ *   valid_commercial?(cwyear, cweek, cwday, sg=nil) -> Integer or nil [ruby 1-8] <br />
+ *   valid_commercial?(cwyear, cweek, cwday, sg=nil) -> true or false [ruby 1-9]
+ *
+ * On ruby 1.8, returns the julian date +Integer+ for the given +cwyear+, +cweek+,
+ * and +cwday+, or nil if the given values are not a valid date.
+ *
+ * On ruby 1.9, returns true if the given +cwyear+, +cweek+, and +cwday+ represent
+ * a valid date, or false otherwise.
+ *
+ * Ignores the 4th argument.
+ */
 static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -1865,6 +1889,14 @@ static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
 #endif
 }
 
+/* call-seq:
+ *   valid_jd?(jd, sg=nil) -> Object [ruby 1-8] <br />
+ *   valid_jd?(jd, sg=nil) -> true [ruby 1-9]
+ *
+ * On ruby 1.8, returns the first argument.
+ * On ruby 1.9, returns true.
+ * Ignores the 2nd argument.
+ */
 static VALUE rhrd_s_valid_jd_q(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 1:
@@ -1882,6 +1914,18 @@ static VALUE rhrd_s_valid_jd_q(int argc, VALUE *argv, VALUE klass) {
 #endif
 }
 
+/* call-seq:
+ *   valid_ordinal?(year, yday, sg=nil) -> Integer or nil [ruby 1-8] <br />
+ *   valid_ordinal?(year, yday, sg=nil) -> true or false [ruby 1-9]
+ *
+ * On ruby 1.8, returns the julian date +Integer+ for the given +year+ and +yday+,
+ * or nil if the given values are not a valid date.
+ *
+ * On ruby 1.9, returns true if the given +year+ and +yday+ represent
+ * a valid date, or false otherwise.
+ *
+ * Ignores the 3rd argument.
+ */
 static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -1910,6 +1954,20 @@ static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
 #endif
 }
 
+/* call-seq:
+ *   zone_to_diff(zone) -> Integer <br />
+ *
+ * Returns an +Integer+ representing the number of seconds that the given
+ * zone string is offset from UTC.  For example, 'PDT' is Pacific Daylight Time, which
+ * 7 hours before UTC, so <tt>Date.zone_to_diff('PDT')</tt> will return <tt>-25200</tt>.
+ * 
+ * In addition to handling time zone names, this also handles time zones specified
+ * numerically, such as <tt>"+08:00"</tt> and <tt>"-0800"</tt>.
+ * 
+ * If the time zone is not recognized, returns 0.
+ *
+ * On ruby 1.9, this method is private.
+ */
 static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
   long offset = 0;
   long len, i, j;
@@ -1947,9 +2005,9 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
     for(i=0; i < len; i++) {
       if((s[i] == ',') || (s[i] == '.')) {
         v = rb_funcall(str, rhrd_id_split, 1, rhrd_re_comma_period);
-        e = rb_funcall(rb_ary_entry(v, 1), rhrd_id_to_i, 0); 
-        return LONG2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
-               + NUM2LONG(e * 3600) / (long)pow(10, RSTRING_LEN(e)) * offset));
+        e = rb_ary_entry(v, 1);
+        return LONG2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600)
+               + (NUM2LONG(rb_funcall(e, rhrd_id_to_i, 0)) * 3600) / (long)pow(10, RSTRING_LEN(rb_str_to_str(e))) * offset);
       }
     }
     switch (len) {
