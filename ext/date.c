@@ -2877,6 +2877,22 @@ static VALUE rhrd_s_httpdate(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   iso8601() -> Date <br />
+ *   iso8601(str, sg=nil) -> Date <br />
+ *
+ * If no argument is given, returns a +Date+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_iso8601+, returning a +Date+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the date it represents is not a valid date.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   Date.iso8601("2009-01-02")
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrd_s_iso8601(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
@@ -2895,6 +2911,22 @@ static VALUE rhrd_s_iso8601(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   jisx0301() -> Date <br />
+ *   jisx0301(str, sg=nil) -> Date <br />
+ *
+ * If no argument is given, returns a +Date+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_jisx0301+, returning a +Date+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the date it represents is not a valid date.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   Date.iso8601("H21.01.02")
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrd_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
@@ -2913,6 +2945,22 @@ static VALUE rhrd_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   rfc2822() -> Date <br />
+ *   rfc2822(str, sg=nil) -> Date <br />
+ *
+ * If no argument is given, returns a +Date+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_rfc2822+, returning a +Date+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the date it represents is not a valid date.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   Date.rfc2822("Fri, 2 Jan 2009 00:00:00 +0000")
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrd_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
@@ -2931,6 +2979,22 @@ static VALUE rhrd_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   rfc3339() -> Date <br />
+ *   rfc3339(str, sg=nil) -> Date <br />
+ *
+ * If no argument is given, returns a +Date+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_rfc3339+, returning a +Date+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the date it represents is not a valid date.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   Date.rfc2822("2009-01-02T00:00:00+00:00")
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrd_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
@@ -2949,6 +3013,22 @@ static VALUE rhrd_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   xmlschema() -> Date <br />
+ *   xmlschema(str, sg=nil) -> Date <br />
+ *
+ * If no argument is given, returns a +Date+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_xmlschema+, returning a +Date+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the date it represents is not a valid date.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   Date.xmlschema("2009-01-02")
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrd_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
@@ -2967,7 +3047,7 @@ static VALUE rhrd_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
-/* 1.9 instance methods */
+/* Ruby 1.9 instance methods */
 
 static VALUE rhrd_httpdate(VALUE self) {
   VALUE s;
