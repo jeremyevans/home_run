@@ -518,7 +518,7 @@ class Date
   end
 
 if RUBY_VERSION >= '1.9.0'
-  def self._iso8601(str) # :nodoc:
+  def self._iso8601(str)
     if /\A\s*(([-+]?\d{2,}|-)-\d{2}-\d{2}|
 	      ([-+]?\d{2,})?-\d{3}|
 	      (\d{2}|\d{4})?-w\d{2}-\d|
@@ -543,7 +543,7 @@ if RUBY_VERSION >= '1.9.0'
     end
   end
 
-  def self._rfc3339(str) # :nodoc:
+  def self._rfc3339(str)
     if /\A\s*-?\d{4}-\d{2}-\d{2} # allow minus, anyway
 	(t|\s)
 	\d{2}:\d{2}:\d{2}(\.\d+)?
@@ -552,7 +552,7 @@ if RUBY_VERSION >= '1.9.0'
     end
   end
 
-  def self._xmlschema(str) # :nodoc:
+  def self._xmlschema(str)
     if /\A\s*(-?\d{4,})(?:-(\d{2})(?:-(\d{2}))?)?
 	(?:t
 	  (\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?)?
@@ -596,7 +596,7 @@ if RUBY_VERSION >= '1.9.0'
     end
   end
 
-  def self._rfc2822(str) # :nodoc:
+  def self._rfc2822(str)
     if /\A\s*(?:(?:#{Format::ABBR_DAYS.keys.join('|')})\s*,\s+)?
 	\d{1,2}\s+
 	(?:#{Format::ABBR_MONTHS.keys.join('|')})\s+
@@ -617,7 +617,7 @@ if RUBY_VERSION >= '1.9.0'
 
   class << self; alias_method :_rfc822, :_rfc2822 end
 
-  def self._httpdate(str) # :nodoc:
+  def self._httpdate(str)
     if /\A\s*(#{Format::ABBR_DAYS.keys.join('|')})\s*,\s+
 	\d{2}\s+
 	(#{Format::ABBR_MONTHS.keys.join('|')})\s+
@@ -641,7 +641,7 @@ if RUBY_VERSION >= '1.9.0'
     end
   end
 
-  def self._jisx0301(str) # :nodoc:
+  def self._jisx0301(str)
     if /\A\s*[mtsh]?\d{2}\.\d{2}\.\d{2}
 	(t
 	(\d{2}:\d{2}(:\d{2}([,.]\d*)?)?

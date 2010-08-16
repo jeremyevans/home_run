@@ -2811,7 +2811,7 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 #ifdef RUBY19
 
-/* 1.9 helper methods */
+/* Ruby 1.9 helper methods */
 
 VALUE rhrd__add_years(VALUE self, long n) {
   rhrd_t *d;
@@ -2841,8 +2841,24 @@ VALUE rhrd__day_q(VALUE self, long day) {
   return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
 }
 
-/* 1.9 class methods */
+/* Ruby 1.9 class methods */
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   httpdate() -> Date <br />
+ *   httpdate(str, sg=nil) -> Date <br />
+ *
+ * If no argument is given, returns a +Date+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_httpdate+, returning a +Date+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the date it represents is not a valid date.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   Date.httpdate("Fri, 02 Jan 2009 00:00:00 GMT")
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrd_s_httpdate(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
   VALUE rd;
