@@ -2233,14 +2233,32 @@ static VALUE rhrd_eql_q(VALUE self, VALUE other) {
   return Qfalse;
 }
 
+/* call-seq:
+ *   gregorian() -> Date
+ *
+ * This library does not support modifying the day of calendar
+ * reform, so this always returns self.
+ */
 static VALUE rhrd_gregorian(VALUE self) {
   return self;
 }
 
+/* call-seq:
+ *   gregorian?() -> true
+ *
+ * This library always uses the Gregorian calendar, so this
+ * always returns +true+.
+ */
 static VALUE rhrd_gregorian_q(VALUE self) {
   return Qtrue;
 }
 
+/* call-seq:
+ *   hash() -> Integer
+ *
+ * Return an Integer hash value for the receiver, such that an
+ * equal date will have the same hash value.
+ */
 static VALUE rhrd_hash(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2248,6 +2266,15 @@ static VALUE rhrd_hash(VALUE self) {
   return rb_funcall(LONG2NUM(d->jd), rhrd_id_hash, 0);
 }
 
+/* call-seq:
+ *   inspect() -> String
+ *
+ * Return a developer-friendly string containing the civil
+ * date for the receiver.  Example:
+ *
+ *   Date.civil(2009, 1, 2).inspect
+ *   # => "#<Date 2009-01-02>"
+ */
 static VALUE rhrd_inspect(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -2265,6 +2292,14 @@ static VALUE rhrd_inspect(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   jd() -> Integer
+ *
+ * Return the julian date for the receiver as an +Integer+.
+ *
+ *   Date.civil(2009, 1, 2).jd
+ *   # => 2454834
+ */
 static VALUE rhrd_jd(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2272,10 +2307,25 @@ static VALUE rhrd_jd(VALUE self) {
   return LONG2NUM(d->jd);
 }
 
+/* call-seq:
+ *   julian?() -> false
+ *
+ * This library always uses the Gregorian calendar, so this
+ * always returns +false+.
+ */
 static VALUE rhrd_julian_q(VALUE self) {
   return Qfalse;
 }
 
+/* call-seq:
+ *   ld() -> Integer
+ *
+ * Return the number of days since the day of calendar reform
+ * in Italy.
+ *
+ *   Date.civil(2009, 1, 2).ld
+ *   # => 155674
+ */
 static VALUE rhrd_ld(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2283,6 +2333,17 @@ static VALUE rhrd_ld(VALUE self) {
   return LONG2NUM(d->jd - RHR_JD_LD);
 }
 
+/* call-seq:
+ *   leap?() -> true or false
+ *
+ * Return +true+ if the current year for this date is a leap year
+ * in the Gregorian calendar, +false+ otherwise.
+ *
+ *   Date.civil(2009, 1, 2).leap?
+ *   # => false
+ *   Date.civil(2008, 1, 2).leap?
+ *   # => true
+ */
 static VALUE rhrd_leap_q(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2290,6 +2351,14 @@ static VALUE rhrd_leap_q(VALUE self) {
   return rhrd__leap_year(d->year) ? Qtrue : Qfalse;
 }
 
+/* call-seq:
+ *   mjd() -> Integer
+ *
+ * Return the number of days since 1858-11-17.
+ *
+ *   Date.civil(2009, 1, 2).mjd
+ *   # => 54833
+ */
 static VALUE rhrd_mjd(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2297,6 +2366,14 @@ static VALUE rhrd_mjd(VALUE self) {
   return LONG2NUM(d->jd - RHR_JD_MJD);
 }
 
+/* call-seq:
+ *   month() -> Integer
+ *
+ * Returns the number of the month as an +Integer+. Example:
+ * 
+ *   Date.civil(2009, 1, 2).month
+ *   # => 1
+ */
 static VALUE rhrd_month(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2304,10 +2381,23 @@ static VALUE rhrd_month(VALUE self) {
   return LONG2NUM(d->month);
 }
 
+/* call-seq:
+ *   next() -> Date
+ *
+ * Returns the day after the receiver's date:
+ * 
+ *   Date.civil(2009, 1, 2).next
+ *   # => #<Date 2009-01-03>
+ */
 static VALUE rhrd_next(VALUE self) {
    return rhrd__add_days(self, 1);
 }
 
+/* call-seq:
+ *   new_start(sg=nil) -> Date
+ *
+ * Returns self. Ignores an argument if given.
+ */
 static VALUE rhrd_new_start(int argc, VALUE *argv, VALUE self) {
   switch(argc) {
     case 0:
@@ -2321,10 +2411,39 @@ static VALUE rhrd_new_start(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/* call-seq:
+ *   start() -> Integer
+ *
+ * Returns a number lower than the lowest julian date that can be
+ * correctly handled.  Because this library always uses the Gregorian
+ * calendar, the day of calendar reform is chosen to be less than any
+ * date that this library can handle.
+ */
 static VALUE rhrd_start(VALUE self) {
   return LONG2NUM(RHR_JD_MIN);
 }
 
+/* call-seq:
+ *   step(target, step=1){|date|} -> Date
+ *
+ * Yields +Date+ objects between the receiver and the +target+ date
+ * (inclusive), with +step+ integer days between each yielded date.
+ * +step+ can be negative, in which case the dates are yielded in
+ * reverse chronological order.  Returns self in all cases.
+ *
+ * If +target+ is equal to the receiver, yields self once regardless of
+ * +step+. It +target+ is less than receiver and +step+ is nonnegative, or
+ * +target+ is greater than receiver and +step+ is nonpositive, does not
+ * yield.
+ * 
+ *   Date.civil(2009, 1, 2).step(Date.civil(2009, 1, 6), 2) do |date|
+ *     puts date
+ *   end
+ *   # Output:
+ *   # 2009-01-02
+ *   # 2009-01-04
+ *   # 2009-01-06
+ */
 static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   rhrd_t *d, *n, *newd;
   rhrdt_t *ndt;

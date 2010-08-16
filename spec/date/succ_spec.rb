@@ -13,4 +13,8 @@ describe "Date#succ" do
     ds    = Date.ordinal(2008, 366)
     ds.succ.should == Date.ordinal(2009, 1)
   end
+
+  it "should be aliased as next" do
+    Date.civil(2008, 10, 11).next.should == Date.civil(2008, 10, 12)
+  end
 end

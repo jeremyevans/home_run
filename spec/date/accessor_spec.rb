@@ -19,7 +19,7 @@ describe "Date#day_fraction" do
 end
 
 describe "Date#jd" do
-  it "should be able to determine the month for a date" do
+  it "should be able to determine the julian date for a date" do
     Date.civil(2007,  1, 17).jd.should == 2454118
     Date.civil(2008, 10, 28).jd.should == 2454768
     Date.commercial(2008, 1, 1).jd.should == 2454466

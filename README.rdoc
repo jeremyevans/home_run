@@ -114,6 +114,9 @@ you use the standard library.
 * The marshalling format differs from the one used by the standard
   library.  Note that the 1.8 and 1.9 standard library date
   marshalling formats differ from each other.
+* Date#step treats the step value as an integer, so it cannot handle
+  steps of fractional days.  DateTime#step can handle fractional
+  day steps, though.
 
 Any other differences will either be documented here or considered
 bugs, so please report any other differences you find.
