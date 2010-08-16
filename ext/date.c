@@ -3049,6 +3049,15 @@ static VALUE rhrd_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
 
 /* Ruby 1.9 instance methods */
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   httpdate() -> String <br />
+ *
+ * Returns the receiver as a +String+ in HTTP format. Example:
+ * 
+ *   Date.civil(2009, 1, 2).httpdate
+ *   # => "Fri, 02 Jan 2009 00:00:00 GMT"
+ */
 static VALUE rhrd_httpdate(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -3070,6 +3079,15 @@ static VALUE rhrd_httpdate(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   jisx0301() -> String <br />
+ *
+ * Returns the receiver as a +String+ in JIS X 0301 format. Example:
+ * 
+ *   Date.civil(2009, 1, 2).jisx0301
+ *   # => "H21.01.02"
+ */
 static VALUE rhrd_jisx0301(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -3214,6 +3232,15 @@ static VALUE rhrd_prev_year(int argc, VALUE *argv, VALUE self) {
   return rhrd__add_years(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   rfc2822() -> String <br />
+ *
+ * Returns the receiver as a +String+ in RFC2822 format. Example:
+ * 
+ *   Date.civil(2009, 1, 2).rfc2822
+ *   # => "Fri, 2 Jan 2009 00:00:00 +0000"
+ */
 static VALUE rhrd_rfc2822(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -3235,6 +3262,15 @@ static VALUE rhrd_rfc2822(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   rfc3339() -> String <br />
+ *
+ * Returns the receiver as a +String+ in RFC3339 format. Example:
+ * 
+ *   Date.civil(2009, 1, 2).rfc3339
+ *   # => "2009-01-02T00:00:00+00:00"
+ */
 static VALUE rhrd_rfc3339(VALUE self) {
   VALUE s;
   rhrd_t *d;
