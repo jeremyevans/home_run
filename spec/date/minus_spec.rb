@@ -38,6 +38,10 @@ describe "Date#-" do
     (Date.ordinal(2008, 10) - Date.civil(2009,2,27)).should == -414
   end
 
+  it "should be able to compute the difference between a Date and a DateTime" do
+    (Date.civil(2007, 4, 19) - DateTime.civil(2007, 4, 18, 12)).should == 0.5
+  end
+
   it "should raise an error on non numeric parameters" do
     lambda { Date.civil(2007,2,27) - :hello }.should raise_error(TypeError)
     lambda { Date.civil(2007,2,27) - "hello" }.should raise_error(TypeError)

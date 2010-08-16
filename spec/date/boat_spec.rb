@@ -6,9 +6,16 @@ describe "Date#<=>" do
     (Date.civil(2000, 04, 06) <=> Date.civil(2000, 04, 06)).should == 0
   end
 
-  it "should be able to compute the difference between two dates" do
+  it "should be able to compare two different dates" do
     (Date.civil(2000, 04, 05) <=> Date.civil(2000, 04, 06)).should == -1
     (Date.civil(2001, 04, 05) <=> Date.civil(2000, 04, 06)).should == 1
+  end
+
+  it "should be able to compare a Date to a DateTime" do
+    (Date.civil(2000, 04, 06) <=> DateTime.civil(2000, 04, 06)).should == 0
+    (Date.civil(2000, 04, 05) <=> DateTime.civil(2000, 04, 06)).should == -1
+    (Date.civil(2000, 04, 07) <=> DateTime.civil(2000, 04, 06)).should == 1
+    (Date.civil(2000, 04, 05) <=> DateTime.civil(2000, 04, 05, 1)).should == -1
   end
 
   it "should be able to compare to another numeric" do

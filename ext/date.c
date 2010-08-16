@@ -2632,18 +2632,79 @@ static VALUE rhrd_year(VALUE self) {
 
 /* Ruby instance operator methods */
 
+/* call-seq:
+ *   >>(n) -> Date
+ *
+ * Returns a +Date+ that is +n+ months after the receiver. +n+
+ * can be negative, in which case it returns a +Date+ before
+ * the receiver.
+ * 
+ *   Date.civil(2009, 1, 2) >> 2
+ *   # => #<Date 2009-01-02>
+ *   Date.civil(2009, 1, 2) >> -2
+ *   # => #<Date 2008-11-02>
+ */
 static VALUE rhrd_op_right_shift(VALUE self, VALUE other) {
   return rhrd__add_months(self, NUM2LONG(other));
 }
 
+/* call-seq:
+ *   <<(n) -> Date
+ *
+ * Returns a +Date+ that is +n+ months before the receiver. +n+
+ * can be negative, in which case it returns a +Date+ after
+ * the receiver.
+ * 
+ *   Date.civil(2009, 1, 2) << 2
+ *   # => #<Date 2008-11-02>
+ *   Date.civil(2009, 1, 2) << -2
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrd_op_left_shift(VALUE self, VALUE other) {
   return rhrd__add_months(self, -NUM2LONG(other));
 }
 
+/* call-seq:
+ *   +(n) -> Date
+ *
+ * Returns a +Date+ that is +n+ days after the receiver. +n+
+ * can be negative, in which case it returns a +Date+ before
+ * the receiver.
+ * 
+ *   Date.civil(2009, 1, 2) + 2
+ *   # => #<Date 2009-01-04>
+ *   Date.civil(2009, 1, 2) + -2
+ *   # => #<Date 2008-12-31>
+ */
 static VALUE rhrd_op_plus(VALUE self, VALUE other) {
    return rhrd__add_days(self, NUM2LONG(other));
 }
 
+/* call-seq:
+ *   -(n) -> Date <br />
+ *   -(date) -> Integer <br />
+ *   -(datetime) -> Float
+ *
+ * If a +Numeric+ argument is given, it is treated as an +Integer+,
+ * and the number of days it represents is substracted from the
+ * receiver to return a new +Date+ object. +n+ can be negative, in
+ * which case the +Date+ returned will be after the receiver.
+ *
+ * If a +Date+ argument is given, returns the number of days
+ * between the current date and the argument as an +Integer+.
+ *
+ * If a +DateTime+ argument is given, returns the number of days
+ * between the current date and the argument as a +Float+, and
+ * considers the receiver to be in the same time zone as the
+ * argument.
+ * 
+ *   Date.civil(2009, 1, 2) - 2
+ *   # => #<Date 2008-12-31>
+ *   Date.civil(2009, 1, 2) - Date.civil(2009, 1, 1)
+ *   # => 1
+ *   Date.civil(2009, 1, 2) - DateTime.civil(2009, 1, 3, 12)
+ *   # => -1.5
+ */
 static VALUE rhrd_op_minus(VALUE self, VALUE other) {
   rhrd_t *d;
   rhrd_t *newd;
@@ -2669,6 +2730,19 @@ static VALUE rhrd_op_minus(VALUE self, VALUE other) {
   rb_raise(rb_eTypeError, "expected numeric or date");
 }
 
+/* call-seq:
+ *   ===(other) -> true or false
+ *
+ * If +other+ is a +Date+, returns +true+ if +other+ is the
+ * same date as the receiver, or +false+ otherwise.
+ *
+ * If +other+ is a +DateTime+, return +true+ if +other has the same
+ * julian date as the receiver, or +false+ otherwise.
+ *
+ * If +other+ is a +Numeric+, convert it to an +Integer+ and return
+ * +true+ if it is equal to the receiver's julian date, or +false+
+ * otherwise. 
+ */
 static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
   rhrdt_t *odt;
@@ -2691,6 +2765,22 @@ static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
   return diff == 0 ? Qtrue : Qfalse;
 }
 
+/* call-seq:
+ *   <=>(other) -> -1, 0, or 1
+ *
+ * If +other+ is a +Date+, returns -1 if +other+ is before the
+ * the receiver chronologically, 0 if +other+ is the same date as the receiver,
+ * or 1 if +other+ is after the receiver chronologically.
+ *
+ * If +other+ is a +DateTime+, return 0 if +other+ has the same
+ * julian date as the receiver and no fractional part, -1 if +other+ has a julian date
+ * less than the receiver's, and 1 if +other+ has a julian date
+ * greater than the receiver's or a julian date the same as the
+ * receiver's and a fractional part. 
+ *
+ * If +other+ is a +Numeric+, convert it to an integer and compare
+ * it to the receiver's julian date. 
+ */
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
   rhrdt_t *odt;
