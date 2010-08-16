@@ -1456,7 +1456,7 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
 
 #include "date_parser.c"
 
-/* Ruby Class Methods */
+/* Ruby class methods */
 
 /* call-seq:
  *   _load(string) -> Date
@@ -2042,7 +2042,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
   return LONG2NUM(0);
 }
 
-/* Ruby Instance Methods */
+/* Ruby instance methods */
 
 /* call-seq:
  *   dump(limit) -> String
@@ -2179,7 +2179,7 @@ static VALUE rhrd_day_fraction(VALUE self) {
  * Equivalent to calling +step+ with the +target+ as the first argument
  * and <tt>-1</tt> as the second argument. Returns self.
  * 
- *   Date.civil(2009, 1, 2).down_to(Date.civil(2009, 1, 1)) do |date|
+ *   Date.civil(2009, 1, 2).downto(Date.civil(2009, 1, 1)) do |date|
  *     puts date
  *   end
  *   # Output:
@@ -2538,6 +2538,14 @@ static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
   return rhrd__strftime(&dt, RSTRING_PTR(r), RSTRING_LEN(r));
 }
 
+/* call-seq:
+ *   to_s() -> String
+ *
+ * Returns the receiver as an ISO8601 formatted string.
+ * 
+ *   Date.civil(2009, 1, 2).to_s
+ *   # => "2009-01-02"
+ */
 static VALUE rhrd_to_s(VALUE self) {
   VALUE s;
   rhrd_t *d;
@@ -2555,12 +2563,34 @@ static VALUE rhrd_to_s(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   upto(target){|date|} -> Date
+ *
+ * Equivalent to calling +step+ with the +target+ as the first argument.
+ * Returns self.
+ * 
+ *   Date.civil(2009, 1, 1).upto(Date.civil(2009, 1, 2)) do |date|
+ *     puts date
+ *   end
+ *   # Output:
+ *   # 2009-01-01
+ *   # 2009-01-02
+ */
 static VALUE rhrd_upto(VALUE self, VALUE other) {
   VALUE argv[1];
   argv[0] = other;
   return rhrd_step(1, argv, self);
 }
 
+/* call-seq:
+ *   wday() -> Integer
+ *
+ * Returns the day of the week as an +Integer+, where Sunday
+ * is 0 and Saturday is 6. Example:
+ * 
+ *   Date.civil(2009, 1, 2).wday
+ *   # => 5
+ */
 static VALUE rhrd_wday(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2568,6 +2598,16 @@ static VALUE rhrd_wday(VALUE self) {
   return LONG2NUM(rhrd__jd_to_wday(d->jd));
 }
 
+/* call-seq:
+ *   yday() -> Integer
+ *
+ * Returns the day of the year as an +Integer+, where January
+ * 1st is 1 and December 31 is 365 (or 366 if the year is a leap
+ * year). Example:
+ * 
+ *   Date.civil(2009, 2, 2).yday
+ *   # => 33
+ */
 static VALUE rhrd_yday(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2575,6 +2615,14 @@ static VALUE rhrd_yday(VALUE self) {
   return LONG2NUM(rhrd__ordinal_day(d->year, d->month, d->day));
 }
 
+/* call-seq:
+ *   year() -> Integer
+ *
+ * Returns the year as an +Integer+. Example:
+ * 
+ *   Date.civil(2009, 1, 2).year
+ *   # => 2009
+ */
 static VALUE rhrd_year(VALUE self) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
@@ -2582,7 +2630,7 @@ static VALUE rhrd_year(VALUE self) {
   return LONG2NUM(d->year);
 }
 
-/* Ruby Instance Operator Methods */
+/* Ruby instance operator methods */
 
 static VALUE rhrd_op_right_shift(VALUE self, VALUE other) {
   return rhrd__add_months(self, NUM2LONG(other));
