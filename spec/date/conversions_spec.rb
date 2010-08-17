@@ -193,7 +193,7 @@ describe "Date instance methods" do
 end
 
 ruby_version_is "" ... "1.9" do
-  describe "Date#valid_time?" do
+  describe "Date.valid_time?" do
     it " should return corresponding day fraction if valid and nil if not" do
       Date.valid_time?(12, 0, 0).should == 0.5
       Date.valid_time?(25, 0, 0).should == nil
@@ -210,3 +210,44 @@ describe "Date marshalling" do
     Marshal.load(Marshal.dump(Date.civil(2010, 2, 4))).should == Date.civil(2010, 2, 4)
   end
 end
+
+ruby_version_is "1.9" do
+  describe "Date#to_date" do
+    it " should return the receiver" do
+      Date.new(2009, 1, 2).to_date.should == Date.new(2009, 1, 2)
+    end
+  end
+
+  describe "Date#to_datetime" do
+    it " should return a DateTime equal to the receiver" do
+      Date.new(2009, 1, 2).to_datetime.should == DateTime.new(2009, 1, 2)
+    end
+  end
+
+  describe "Date#to_time" do
+    it " should return a Time in local time with the same year, month, day as the receiver" do
+      Date.new(2009, 1, 2).to_time.should == Time.local(2009, 1, 2)
+    end
+  end
+
+  describe "Time#to_date" do
+    it " should return a Date with the same year, month, and day as the receiver" do
+      Time.local(2009, 1, 2).to_date.should == Date.new(2009, 1, 2)
+    end
+  end
+
+  describe "Time#to_time" do
+    it " should return the receiver in local time" do
+      Time.local(2009, 1, 2).to_time.should == Time.local(2009, 1, 2)
+      Time.local(2009, 1, 2).getutc.to_time.should == Time.local(2009, 1, 2)
+    end
+  end
+
+  describe "Date#to_date" do
+    it " should return the receiver" do
+      Date.new(2009, 1, 2).to_date.should == Date.new(2009, 1, 2)
+    end
+  end
+
+end
+
