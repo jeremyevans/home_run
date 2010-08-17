@@ -96,3 +96,20 @@ describe "DateTime#cwday" do
     DateTime.ordinal(2008, 317).cwday.should == 3
   end  
 end
+
+describe "DateTime#mday and #day" do
+  it "should be able to determine the day of the month for a date" do
+    DateTime.civil(2007,  1, 17).mday.should == 17
+    DateTime.civil(2008, 10, 28).mday.should == 28
+    DateTime.civil(2007,  1, 17).day.should == 17
+    DateTime.civil(2008, 10, 28).day.should == 28
+    DateTime.commercial(2008, 1, 1).day.should == 31
+    DateTime.commercial(2008, 52, 1).day.should == 22
+    DateTime.jd(2454782).day.should == 11
+    DateTime.jd(2454832).day.should == 31
+    DateTime.ordinal(2008, 1).day.should == 1
+    DateTime.ordinal(2008, 359).day.should == 24
+    DateTime.ordinal(2008, 366).day.should == 31
+  end
+end
+

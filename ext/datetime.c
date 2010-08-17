@@ -978,6 +978,14 @@ static VALUE rhrdt_cwyear(VALUE self) {
   return LONG2NUM(n.year);
 }
 
+/* call-seq:
+ *   day() -> Integer
+ *
+ * Returns the day of the month as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).day
+ *   # => 2
+ */
 static VALUE rhrdt_day(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
