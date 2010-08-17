@@ -2403,7 +2403,7 @@ static VALUE rhrd_month(VALUE self) {
 /* call-seq:
  *   next() -> Date
  *
- * Returns the day after the receiver's date:
+ * Returns the +Date+ after the receiver's date:
  * 
  *   Date.civil(2009, 1, 2).next
  *   # => #<Date 2009-01-03>

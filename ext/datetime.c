@@ -1238,7 +1238,6 @@ static VALUE rhrdt_month(VALUE self) {
  *   # => #<DateTime 2009-01-02T12:00:00+12:00>
  *   DateTime.civil(2009, 1, 2).new_offset(0.5)
  *   # => #<DateTime 2009-01-01T12:00:00-12:00>
- *
  */
 static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
   double offset;
@@ -1261,6 +1260,16 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
   return rhrdt__new_offset(self, offset);
 }
 
+/* call-seq:
+ *   next() -> DateTime
+ *
+ * Returns the +DateTime+ after the receiver's date.  If the receiver
+ * has a fractional day component, the result will have the same
+ * fractional day component.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).next
+ *   # => #<DateTime 2009-01-03T12:00:00+00:00>
+ */
 static VALUE rhrdt_next(VALUE self) {
    return rhrdt__add_days(self, 1);
 }
