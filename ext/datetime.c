@@ -1426,6 +1426,15 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/* call-seq:
+ *   strftime() -> String <br />
+ *   strftime(format) -> String
+ *
+ * If no argument is provided, returns a string in ISO8601 format, just like
+ * +to_s+.  If an argument is provided, uses it as a format string and returns
+ * a +String+ based on the format. See <tt>Date#strftime</tt> for the supported
+ * formats.
+ */
 static VALUE rhrdt_strftime(int argc, VALUE *argv, VALUE self) {
   rhrdt_t* dt;
   VALUE r;
@@ -1449,6 +1458,14 @@ static VALUE rhrdt_strftime(int argc, VALUE *argv, VALUE self) {
   return rhrd__strftime(dt, RSTRING_PTR(r), RSTRING_LEN(r));
 }
 
+/* call-seq:
+ *   to_s() -> String
+ *
+ * Returns the receiver as an ISO8601 formatted string.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12, 13, 14, 0.5).to_s
+ *   # => "2009-01-02T12:13:14+12:00"
+ */
 static VALUE rhrdt_to_s(VALUE self) {
   VALUE s;
   rhrdt_t *dt;
