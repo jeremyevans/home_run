@@ -413,6 +413,13 @@ VALUE rhrdt__new_offset(VALUE self, double offset) {
 
 /* Class methods */
 
+/* call-seq:
+ *   _load(string) -> DateTime
+ *
+ * Unmarshal a dumped +DateTime+ object. Note that this does not handle 
+ * the marshalling format used by the stdlib's +DateTime+, it only handles
+ * marshalled versions of this library's +DateTime+ objects.
+ */
 static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   rhrdt_t * d;
   long x;

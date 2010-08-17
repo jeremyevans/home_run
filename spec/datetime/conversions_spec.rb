@@ -11,3 +11,13 @@ describe "DateTime conversions" do
     end
   end
 end
+
+describe "DateTime marshalling" do
+  it "should marshal and unmarshal correctly" do
+    Marshal.load(Marshal.dump(DateTime.jd)).should == DateTime.civil
+    d = DateTime.now
+    Marshal.load(Marshal.dump(d)).should == d
+    Marshal.load(Marshal.dump(DateTime.civil(2010, 2, 4, 1, 2, 4, 4/24.0))).should == DateTime.civil(2010, 2, 4, 1, 2, 4, 4/24.0)
+  end
+end
+
