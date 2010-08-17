@@ -1162,6 +1162,17 @@ static VALUE rhrdt_ld(VALUE self) {
   return LONG2NUM(d->jd - RHR_JD_LD);
 }
 
+/* call-seq:
+ *   leap?() -> true or false
+ *
+ * Return +true+ if the current year for this date is a leap year
+ * in the Gregorian calendar, +false+ otherwise.
+ *
+ *   DateTime.civil(2009, 1, 2).leap?
+ *   # => false
+ *   DateTime.civil(2008, 1, 2).leap?
+ *   # => true
+ */
 static VALUE rhrdt_leap_q(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
