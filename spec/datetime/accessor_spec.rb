@@ -52,3 +52,47 @@ describe "DateTime#zone" do
   end 
 end
 
+describe "DateTime#cwyear" do
+  it "should be able to determine the commercial year for a date" do
+    DateTime.civil(2007,  1, 17).cwyear.should == 2007
+    DateTime.civil(2008, 10, 28).cwyear.should == 2008
+    DateTime.civil(2007, 12, 31).cwyear.should == 2008
+    DateTime.civil(2010,  1,  1).cwyear.should == 2009
+    DateTime.commercial(2008, 1, 1).cwyear.should == 2008
+    DateTime.commercial(2008, 52, 1).cwyear.should == 2008
+    DateTime.jd(2454782).cwyear.should == 2008
+    DateTime.jd(2454832).cwyear.should == 2009
+    DateTime.ordinal(2008, 1).cwyear.should == 2008
+    DateTime.ordinal(2008, 359).cwyear.should == 2008
+    DateTime.ordinal(2008, 366).cwyear.should == 2009
+  end
+end
+
+describe "DateTime#cweek" do
+  it "should be able to determine the commercial week for a date" do
+    DateTime.civil(2007,  1, 17).cweek.should == 3
+    DateTime.civil(2008, 10, 28).cweek.should == 44
+    DateTime.civil(2007, 12, 31).cweek.should == 1
+    DateTime.civil(2010,  1,  1).cweek.should == 53
+    DateTime.commercial(2008, 1, 1).cweek.should == 1
+    DateTime.commercial(2008, 10, 5).cweek.should == 10
+    DateTime.jd(2454782).cweek.should == 46
+    DateTime.jd(2454789).cweek.should == 47
+    DateTime.ordinal(2008, 1).cweek.should == 1
+    DateTime.ordinal(2008, 359).cweek.should == 52
+    DateTime.ordinal(2008, 366).cweek.should == 1
+  end
+end
+
+describe "DateTime#cwday" do
+  it "should be able to determine the commercial week day for a date" do
+    DateTime.civil(2007,  1, 17).cwday.should == 3
+    DateTime.civil(2008, 10, 26).cwday.should == 7
+    DateTime.commercial(2008, 1, 1).cwday.should == 1
+    DateTime.commercial(2008, 10, 5).cwday.should == 5
+    DateTime.jd(2454782).cwday.should == 2
+    DateTime.jd(2454786).cwday.should == 6
+    DateTime.ordinal(2008, 1).cwday.should == 2
+    DateTime.ordinal(2008, 317).cwday.should == 3
+  end  
+end

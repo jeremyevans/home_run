@@ -915,6 +915,16 @@ static VALUE rhrdt_asctime(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   cwday() -> Integer
+ *
+ * Returns the commercial week day as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).cwday
+ *   # => 5
+ *   DateTime.civil(2010, 1, 2).cwday
+ *   # => 6
+ */
 static VALUE rhrdt_cwday(VALUE self) {
   rhrdt_t *d;
   rhrd_t n;
@@ -926,6 +936,16 @@ static VALUE rhrdt_cwday(VALUE self) {
   return LONG2NUM(n.day);
 }
 
+/* call-seq:
+ *   cweek() -> Integer
+ *
+ * Returns the commercial week as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).cweek
+ *   # => 1
+ *   DateTime.civil(2010, 1, 2).cweek
+ *   # => 53
+ */
 static VALUE rhrdt_cweek(VALUE self) {
   rhrdt_t *d;
   rhrd_t n;
@@ -937,6 +957,16 @@ static VALUE rhrdt_cweek(VALUE self) {
   return LONG2NUM(n.month);
 }
 
+/* call-seq:
+ *   cwyear() -> Integer
+ *
+ * Returns the commercial week year as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).cwyear
+ *   # => 2009
+ *   DateTime.civil(2010, 1, 2).cwyear
+ *   # => 2009
+ */
 static VALUE rhrdt_cwyear(VALUE self) {
   rhrdt_t *d;
   rhrd_t n;
