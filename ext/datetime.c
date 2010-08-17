@@ -602,6 +602,14 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+/* call-seq:
+ *   jd(jd=0, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime
+ *
+ * Returns a +DateTime+ for the julian day number,
+ * hour, minute, second, and offset given.
+ * Raises +ArgumentError+ for invalid times.
+ * Ignores the 6th argument.
+ */
 static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   long hour = 0;

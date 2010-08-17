@@ -73,8 +73,13 @@ describe "DateTime constructors" do
   end
   
   it ".jd should have defaults and an optional sg value" do
-    DateTime.jd(2008, 1, 1, 1, 0.5, 1).should == DateTime.jd(2008, 1, 1, 1, 0.5)
     DateTime.jd.should == DateTime.jd(0, 0, 0, 0, 0)
+    DateTime.jd(0).should == DateTime.jd(0, 0, 0, 0, 0)
+    DateTime.jd(0, 0).should == DateTime.jd(0, 0, 0, 0, 0)
+    DateTime.jd(0, 0, 0).should == DateTime.jd(0, 0, 0, 0, 0)
+    DateTime.jd(0, 0, 0, 0).should == DateTime.jd(0, 0, 0, 0, 0)
+    DateTime.jd(0, 0, 0, 0, 0).should == DateTime.jd(0, 0, 0, 0, 0)
+    DateTime.jd(2008, 1, 1, 1, 0.5, 1).should == DateTime.jd(2008, 1, 1, 1, 0.5)
   end
   
   it ".ordinal creates a datetime with arguments" do
