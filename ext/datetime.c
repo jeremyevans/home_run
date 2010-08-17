@@ -1305,6 +1305,15 @@ static VALUE rhrdt_sec(VALUE self) {
   return LONG2NUM(dt->second);
 }
 
+/* call-seq:
+ *   sec_fraction() -> Float
+ *
+ * Returns a +Float+ representing the fraction of the second as a
+ * fraction of the day, which will always be in the range [0.0, 1/86400.0).
+ * 
+ *   (DateTime.civil(2009, 1, 2, 12, 13, 14) + (1.5/86400)).sec_fraction
+ *   # => 0.000005787037
+ */
 static VALUE rhrdt_sec_fraction(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
