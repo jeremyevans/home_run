@@ -56,23 +56,23 @@ You can run the benchmarks after installing the gem:
   home_run --bench
 
 The benchmarks compare home_run's Date/DateTime classes to the
-standard library ones, showing you how much time is taken by each,
-and the number of times home_run is faster or slower. Output is in
-CSV, so an entry like this:
+standard library ones, showing you the amount of time an average
+call to each method takes for both the standard library and
+home_run, and the number of times home_run is faster or slower.
+Output is in CSV, so an entry like this:
 
-  Date._parse,9.14618,0.32827,27.86
+  Date._parse,362562,10235,35.42
 
 means that:
 
-* The standard library Date._parse took 9.14618 seconds
-* home_run's Date._parse took 0.32827 seconds
-* home_run's Date._parse method is 27.86 times faster
+* The standard library's Date._parse averaged 362,562 nanoseconds
+  per call.
+* home_run's Date._parse averaged 10,235 nanoseconds per call.
+* Therefore, home_run's Date._parse method is 35.42 times faster
 
-The --bench option does 100000 iterations for every method it
-tests, and takes a long time to run.  The reason for this is that
-on Windows, the minimum time resolution is about 15 milliseconds,
-so you could not get accurate measurements for a lot of methods
-if you used a lower number of iterations.
+The bench task tries to be fair by ensuring that it runs the
+benchmark for at least two seconds for both the standard
+library and home_run's versions.
 
 == Usage
 

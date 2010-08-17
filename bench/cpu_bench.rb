@@ -1,5 +1,6 @@
 require 'date'
 require 'benchmark'
+
 SD = Date
 SDT = DateTime
 $:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext'))
@@ -10,32 +11,44 @@ require 'ext/date.rb'
 require 'ext/date/format.rb'
 HRD = Date
 HRDT = DateTime
+NANOS_PER_SEC = 1000000000
+N = 10000
 
 def compare(label, datetime=false, &block)
   Object.send(:remove_const, :Date)
   Object.send(:remove_const, :DateTime)
   Object.send(:const_set, :Date, SD)
   Object.send(:const_set, :DateTime, SDT)
-  t = Time.now
-  yield(datetime ? SDT : SD)
-  stdlib = Time.now - t
+  stdlib = 0.0
+  stdlib_times = 0
+  while stdlib < 2
+    t = Time.now
+    yield(datetime ? SDT : SD)
+    stdlib += Time.now - t
+    stdlib_times += 1
+  end
 
   Object.send(:remove_const, :Date)
   Object.send(:remove_const, :DateTime)
   Object.send(:const_set, :Date, HRD)
   Object.send(:const_set, :DateTime, HRDT)
-  t = Time.now
-  yield(datetime ? HRDT : HRD)
-  home_run = Time.now - t
+  home_run = 0.0
+  home_run_times = 0
+  while home_run < 2
+    t = Time.now
+    yield(datetime ? HRDT : HRD)
+    home_run += Time.now - t
+    home_run_times += 1
+  end
   
-  puts sprintf('%s%s,%0.5f,%0.5f,%0.2f', datetime ? 'DateTime' : 'Date', label, stdlib, home_run, stdlib/home_run)
+  puts sprintf('%s%s,%i,%i,%0.2f', datetime ? 'DateTime' : 'Date', label, (stdlib * NANOS_PER_SEC)/(N * stdlib_times),  (home_run * NANOS_PER_SEC)/(N * home_run_times), (stdlib/stdlib_times)/(home_run/home_run_times))
 end
 
 def dt_compare(label, &block)
   compare(label, true, &block)
 end
 
-n = (ARGV.first || 10000).to_i
+n = N
 puts "label,stdlib,home_run,times faster"
 compare("._parse"){|dc| n.times{dc._parse('2010-12-13')}}
 compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 00:00:00 2007', '%c')}}
