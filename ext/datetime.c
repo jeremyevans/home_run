@@ -1089,6 +1089,14 @@ static VALUE rhrdt_hash(VALUE self) {
   return rb_funcall(rb_ary_new3(2, LONG2NUM(d->jd), LL2NUM(d->nanos)), rhrd_id_hash, 0);
 }
 
+/* call-seq:
+ *   hour() -> Integer
+ *
+ * Returns the hour of the day as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2, 12, 13, 14).hour
+ *   # => 12
+ */
 static VALUE rhrdt_hour(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
