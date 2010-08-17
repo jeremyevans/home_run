@@ -3959,7 +3959,6 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
  * date (such as adding a number of days), always return a new +Date+
  * object.
  * */
-
 void Init_date(void) {
   int i;
 

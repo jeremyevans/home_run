@@ -2606,6 +2606,19 @@ static VALUE rhrdt_saturday_q(VALUE self) {
 
 /* Library initialization */
 
+/* +DateTime+ is used to store a single point in time.  It consists of
+ * three main parts:
+ * 
+ * * A single date in the gregorian calendar (similar to +Date+)
+ * * A time component (hour, minute, second, fractional second)
+ * * A time zone offset in minutes from UTC
+ *
+ * In general, +DateTime+ objects are created by calling one of the class
+ * methods: +civil+, +parse+, +strptime+, +now+.  Once created,
+ * +DateTime+ objects are immutable.  Operations that result in a separate
+ * datetime (such as adding a number of days), always return a new +DateTime+
+ * object.
+ * */
 void Init_datetime(void) {
   rhrdt_class = rb_define_class("DateTime", rhrd_class);
   rb_undef_alloc_func(rhrdt_class);
