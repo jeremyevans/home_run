@@ -2339,8 +2339,8 @@ static VALUE rhrd_julian_q(VALUE self) {
 /* call-seq:
  *   ld() -> Integer
  *
- * Return the number of days since the day of calendar reform
- * in Italy.
+ * Return the number of days since the Lilian Date (the day of calendar reform
+ * in Italy).
  *
  *   Date.civil(2009, 1, 2).ld
  *   # => 155674

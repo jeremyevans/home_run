@@ -128,3 +128,33 @@ describe "DateTime#jd" do
   end 
 end
 
+describe "DateTime#ajd" do
+  it "should be a float of the astronomical julian day" do
+    DateTime.jd(2008).ajd.should == 2007.5
+    DateTime.jd(2008, 12).ajd.should == 2008
+    DateTime.jd(2008, 0, 0, 0, -0.5).ajd.should == 2008
+    DateTime.jd(2008, 12, 0, 0, -0.5).ajd.should == 2008.5
+  end
+end
+
+describe "DateTime#amjd" do
+  it "#amjd should be a float of the astronomical julian day" do
+    DateTime.jd(2008).amjd.should == -2397993.0
+    DateTime.jd(2008, 12).amjd.should == -2397992.5
+    DateTime.jd(2008, 0, 0, 0, -0.5).amjd.should == -2397992.5
+    DateTime.jd(2008, 12, 0, 0, -0.5).amjd.should == -2397992.0
+  end
+end
+
+describe "DateTime#mjd" do
+  it "should be able to determine the Modified Julian day for a date" do
+    DateTime.civil(2007, 1, 17).mjd.should == 54117
+  end 
+end
+
+describe "DateTime#ld" do
+  it "should be able to determine the Modified Julian day for a date" do
+    DateTime.civil(2007, 1, 17).ld.should == 154958
+  end 
+end
+

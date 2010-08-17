@@ -1146,6 +1146,15 @@ static VALUE rhrdt_jd(VALUE self) {
   return LONG2NUM(d->jd);
 }
 
+/* call-seq:
+ *   ld() -> Integer
+ *
+ * Return the number of days since the Lilian Date (the day of calendar reform
+ * in Italy).
+ *
+ *   DateTime.civil(2009, 1, 2).ld
+ *   # => 155674
+ */
 static VALUE rhrdt_ld(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
@@ -1167,6 +1176,14 @@ static VALUE rhrdt_min(VALUE self) {
   return LONG2NUM(dt->minute);
 }
 
+/* call-seq:
+ *   mjd() -> Integer
+ *
+ * Return the number of days since 1858-11-17.
+ *
+ *   DateTime.civil(2009, 1, 2).mjd
+ *   # => 54833
+ */
 static VALUE rhrdt_mjd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
