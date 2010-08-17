@@ -1104,6 +1104,15 @@ static VALUE rhrdt_hour(VALUE self) {
   return LONG2NUM(dt->hour);
 }
 
+/* call-seq:
+ *   inspect() -> String
+ *
+ * Return a developer-friendly string containing the civil
+ * date and time for the receiver.  Example:
+ *
+ *   DateTime.civil(2009, 1, 2, 3, 4, 5, 0.5).inspect
+ *   # => "#<DateTime 2009-01-02T03:04:05+12:00>"
+ */
 static VALUE rhrdt_inspect(VALUE self) {
   VALUE s;
   rhrdt_t *dt;
