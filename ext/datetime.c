@@ -1550,6 +1550,16 @@ static VALUE rhrdt_year(VALUE self) {
   return LONG2NUM(dt->year);
 }
 
+/* call-seq:
+ *   zone() -> String
+ *
+ * Returns the time zone as a formatted string.  This always uses
+ * a numeric representation based on the offset, as +DateTime+ instances
+ * do not keep information about named timezones. 
+ * 
+ *   DateTime.civil(2009, 1, 2, 12, 13, 14, 0.5).zone
+ *   # => "+12:00"
+ */
 static VALUE rhrdt_zone(VALUE self) {
   VALUE s;
   rhrdt_t *dt;
