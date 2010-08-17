@@ -108,6 +108,16 @@ describe "Date#strptime" do
     Date.strptime("04", "%m").should == Date.civil(d.year, 4, 1)
   end
   
+  it "should be able to parse the number of seconds since the unix epoch" do
+    Date.strptime("954979200000", "%Q").should == Date.civil(2000, 4, 6)
+    Date.strptime("32511888000000", "%Q").should == Date.civil(3000, 4, 6)
+  end
+  
+  it "should be able to parse the number of seconds since the unix epoch" do
+    Date.strptime("954979200", "%s").should == Date.civil(2000, 4, 6)
+    Date.strptime("32511888000", "%s").should == Date.civil(3000, 4, 6)
+  end
+  
   it "should be able to pase the commercial day" do
     Date.strptime("1", "%u").should == Date.commercial(Date.today.year, 1, 1)
     Date.strptime("15 3", "%V %u").should == Date.commercial(Date.today.year, 15, 3)

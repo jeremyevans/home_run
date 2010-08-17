@@ -306,7 +306,7 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
   long second = 0;
   long offset = 0;
   long long nanos = 0;
-  long time_set = 0;
+  long long time_set = 0;
   int r;
   VALUE rhour, rmin, rsec, runix, roffset, rsecf;
 
@@ -326,9 +326,9 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
 
   runix = rb_hash_aref(hash, rhrd_sym_seconds);
   if (RTEST(runix)) {
-    time_set = NUM2LONG(runix);
+    time_set = NUM2LL(runix);
     dt->jd = rhrd__unix_to_jd(time_set);
-    time_set = rhrd__mod(time_set, 86400);
+    time_set = rhrd__modll(time_set, 86400);
     dt->nanos = time_set*RHR_NANOS_PER_SECOND + nanos;
     dt->hour = time_set/3600;
     dt->minute = (time_set - dt->hour * 3600)/60;

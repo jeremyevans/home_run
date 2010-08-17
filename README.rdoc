@@ -117,6 +117,9 @@ you use the standard library.
 * Date#step treats the step value as an integer, so it cannot handle
   steps of fractional days.  DateTime#step can handle fractional
   day steps, though.
+* When parsing the %Q modifier in _strptime, the hash returned
+  includes an Integer :seconds value and a Float :sec_fraction
+  value instead of a single Rational :seconds value.
 
 Any other differences will either be documented here or considered
 bugs, so please report any other differences you find.

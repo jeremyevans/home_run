@@ -43,11 +43,31 @@ describe "DateTime.strptime" do
     DateTime.strptime(" 4 pm", '%l %P').should == DateTime.civil(@t.year, @t.mon, @t.day, 16, 0, 0)
   end
   
+  it "should be able to parse the number of milliseconds of the second" do
+    DateTime.strptime("10 000", '%M %L').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0)
+    DateTime.strptime("10 500", '%M %L').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0) + (0.5/86400)
+  end
+  
   it "should be able to parse the minute with leading zero" do
     DateTime.strptime("10", '%M').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0)
     DateTime.strptime("09", '%M').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 9, 0)
   end
  
+  it "should be able to parse the number of nanoseconds of the second" do
+    DateTime.strptime("10 000000000", '%M %N').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0)
+    DateTime.strptime("10 500000000", '%M %N').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0) + (0.5/86400)
+  end
+  
+  it "should be able to parse the number of seconds since the unix epoch" do
+    Date.strptime("954979200", "%s").should == Date.civil(2000, 4, 6)
+  end
+  
+  it "should be able to parse the number of milliseconds since the unix epoch" do
+    DateTime.strptime("1226527410000", '%Q').should == DateTime.civil(2008, 11, 12, 22, 3, 30, 0)
+    DateTime.strptime("1226527411000", '%Q').should == DateTime.civil(2008, 11, 12, 22, 3, 31, 0)
+    DateTime.strptime("32511888001500", "%Q").should == DateTime.civil(3000, 4, 6, 0, 0, 1) + (0.5/86400)
+  end
+  
   it "should be able to parse the second with leading zero" do
     DateTime.strptime("10", '%S').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 0, 10)
     DateTime.strptime("10 09", '%H %S').should == DateTime.civil(@t.year, @t.mon, @t.day, 10, 0, 9)
@@ -56,6 +76,7 @@ describe "DateTime.strptime" do
   it "should be able to parse the number of seconds since the unix epoch" do
     DateTime.strptime("1226527410", '%s').should == DateTime.civil(2008, 11, 12, 22, 3, 30, 0)
     DateTime.strptime("1226527411", '%s').should == DateTime.civil(2008, 11, 12, 22, 3, 31, 0)
+    DateTime.strptime("32511888001", "%s").should == DateTime.civil(3000, 4, 6, 0, 0, 1)
   end
   
   it "should be able to parse the time zone offset as a string of hours and minutes" do

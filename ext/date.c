@@ -87,6 +87,7 @@ so that no calculations can overflow.
 #define RHRR_MERIDIAN_SET 0x10000
 #define RHRR_ZONE_SET 0x20000
 #define RHRR_OFFSET_SET 0x40000
+#define RHRR_UNIXM_SET 0x80000
 
 #define RHR_HAS_JD(d) (((d)->flags & RHR_HAVE_JD) == RHR_HAVE_JD)
 #define RHR_HAS_CIVIL(d) (((d)->flags & RHR_HAVE_CIVIL) == RHR_HAVE_CIVIL)
@@ -228,6 +229,15 @@ void rhrdt__hms_to_nanos(rhrdt_t *d);
 /* C Helper Methods */
 
 long rhrd__mod(long a, long b) {
+  long c;
+  c = a % b;
+  if (c < 0) {
+    c += b;
+  }
+  return c;
+}
+
+long rhrd__modll(long long a, long b) {
   long c;
   c = a % b;
   if (c < 0) {
@@ -575,7 +585,7 @@ long long rhrd__jd_to_unix(long long jd) {
   return (jd - RHR_UNIX_EPOCH) * RHR_SECONDS_PER_DAY;
 }
 
-long rhrd__unix_to_jd(long t) {
+long rhrd__unix_to_jd(long long t) {
   return t/RHR_SECONDS_PER_DAY + RHR_UNIX_EPOCH;
 }
 
@@ -655,7 +665,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   }
   runix = rb_hash_aref(hash, rhrd_sym_seconds);
   if (RTEST(runix)) {
-    d->jd = rhrd__unix_to_jd(NUM2LONG(runix));
+    d->jd = rhrd__unix_to_jd(NUM2LL(runix));
     d->flags |= RHR_HAVE_JD;
     return 0;
   }
@@ -956,7 +966,8 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
   long hour = 0;
   long minute = 0;
   long second = 0;
-  long seconds = 0;
+  long long seconds = 0;
+  long long milliseconds = 0;
   long sec_fraction_num = 0;
   double sec_fraction = 0.0;
   long meridian = 0;
@@ -1178,14 +1189,13 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
           RHR_PARSE_p
           break;
         case 'Q':
-          if (sscanf(str + pos, "%ld%n", &seconds, &scan_len) != 1) {
+          if (sscanf(str + pos, "%lld%n", &milliseconds, &scan_len) != 1) {
             return Qnil;
           }
-          seconds /= 1000;
-          state |= RHRR_UNIX_SET;
+          state |= RHRR_UNIXM_SET;
           break;
         case 's':
-          if (sscanf(str + pos, "%ld%n", &seconds, &scan_len) != 1) {
+          if (sscanf(str + pos, "%lld%n", &seconds, &scan_len) != 1) {
             return Qnil;
           }
           state |= RHRR_UNIX_SET;
@@ -1432,7 +1442,11 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
     rb_hash_aset(hash, rhrd_sym_sec_fraction, rb_float_new(sec_fraction));
   } 
   if(state & RHRR_UNIX_SET) {
-    rb_hash_aset(hash, rhrd_sym_seconds, LONG2NUM(seconds));
+    rb_hash_aset(hash, rhrd_sym_seconds, LL2NUM(seconds));
+  } 
+  if(state & RHRR_UNIXM_SET) {
+    rb_hash_aset(hash, rhrd_sym_seconds, LL2NUM(milliseconds/1000));
+    rb_hash_aset(hash, rhrd_sym_sec_fraction, rb_float_new((milliseconds % 1000)/1000.0));
   } 
   if(RTEST(zone)) {
     rb_hash_aset(hash, rhrd_sym_zone, zone);
