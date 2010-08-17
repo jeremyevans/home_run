@@ -13,14 +13,14 @@ describe "Date constants" do
   # Fixes in 1.8.7
   ruby_bug "#", "1.8.6" do
     it "should define JULIAN" do
-      (Date::JULIAN <=> 2**30).should == -1
+      (Date::JULIAN <=> 2**30).should == 1
     end
   end
 
   # Fixed in 1.8.7
   ruby_bug "#", "1.8.6" do
     it "should define GREGORIAN" do
-      (Date::GREGORIAN <=> -(2**30)).should == 1
+      (Date::GREGORIAN <=> -(2**30)).should == -1
     end
   end
 

@@ -3945,10 +3945,14 @@ void Init_date(void) {
   rb_undef_alloc_func(rhrd_class);
   rhrd_s_class = rb_singleton_class(rhrd_class);
 
+  /* The julian day number for the day of calendar reform in Italy */
   rb_define_const(rhrd_class, "ITALY", LONG2NUM(RHR_JD_ITALY));
+  /* The julian day number for the day of calendar reform in England */
   rb_define_const(rhrd_class, "ENGLAND", LONG2NUM(RHR_JD_ENGLAND));
-  rb_define_const(rhrd_class, "JULIAN", LONG2NUM(RHR_JD_MIN - 1));
-  rb_define_const(rhrd_class, "GREGORIAN", LONG2NUM(RHR_JD_MAX + 1));
+  /* An integer lower than the lowest supported julian day number */
+  rb_define_const(rhrd_class, "GREGORIAN", LONG2NUM(RHR_JD_MIN - 1));
+  /* An integer higher than the highest supported julian day number */
+  rb_define_const(rhrd_class, "JULIAN", LONG2NUM(RHR_JD_MAX + 1));
 
   /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
@@ -4227,9 +4231,13 @@ void Init_date(void) {
   rhrd_zone_sign_re = rb_reg_new(rhrd__zone_sign_re_str, strlen(rhrd__zone_sign_re_str), 1);
   rb_define_const(rhrd_s_class, "ZONE_SIGN_RE", rhrd_zone_sign_re);
 
+  /* An array of month names<br />MONTHNAMES[1] => 'January' */
   rb_define_const(rhrd_class, "MONTHNAMES", rhrd_monthnames);
+  /* An array of abbreviated month names<br />ABBR_MONTHNAMES[1] => 'Jan' */
   rb_define_const(rhrd_class, "ABBR_MONTHNAMES", rhrd_abbr_monthnames);
+  /* An array of day names<br />DAYNAMES[0] => 'Sunday' */
   rb_define_const(rhrd_class, "DAYNAMES", rhrd_daynames);
+  /* An array of abbreviated day names<br />ABBR_DAYNAMES[0] => 'Sun' */
   rb_define_const(rhrd_class, "ABBR_DAYNAMES", rhrd_abbr_daynames);
 
 #ifdef RUBY19
