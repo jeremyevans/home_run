@@ -1225,6 +1225,21 @@ static VALUE rhrdt_month(VALUE self) {
   return LONG2NUM(dt->month);
 }
 
+/* call-seq:
+ *   new_offset() -> DateTime
+ *
+ * Returns a +DateTime+ with the same absolute time as the current
+ * time, but a potentially different local time.  The returned value will
+ * be equal to the receiver.
+ * Raises +ArgumentError+ if an invalid offset is specified.
+ * Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).new_offset(0.5)
+ *   # => #<DateTime 2009-01-02T12:00:00+12:00>
+ *   DateTime.civil(2009, 1, 2).new_offset(0.5)
+ *   # => #<DateTime 2009-01-01T12:00:00-12:00>
+ *
+ */
 static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
   double offset;
 
