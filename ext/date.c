@@ -3361,7 +3361,7 @@ static VALUE rhrd_rfc3339(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   to_datetime -> DateTime
+ *   to_datetime() -> DateTime
  *
  * Returns a +DateTime+ equal to the receiver.
  * 
@@ -3390,7 +3390,7 @@ static VALUE rhrd_to_datetime(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   to_time -> Time
+ *   to_time() -> Time
  *
  * Returns a +Time+ in local time with the same year, month, and day
  * as the receiver.
@@ -3407,7 +3407,7 @@ static VALUE rhrd_to_time(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   to_date -> Date
+ *   to_date() -> Date
  *
  * Returns a +Date+ with the same year, month, and day
  * as the receiver in local time.
@@ -3427,7 +3427,7 @@ static VALUE rhrd_time_to_date(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   to_time -> Time
+ *   to_time() -> Time
  *
  * Returns a copy of the receiver in local time.
  * 
@@ -3444,7 +3444,7 @@ static VALUE rhrd_time_to_time(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   sunday? -> true or false
+ *   sunday?() -> true or false
  *
  * Returns +true+ if the receiver is a Sunday, +false+ otherwise.
  */
@@ -3454,7 +3454,7 @@ static VALUE rhrd_sunday_q(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   monday? -> true or false
+ *   monday?() -> true or false
  *
  * Returns +true+ if the receiver is a Monday, +false+ otherwise.
  */
@@ -3464,7 +3464,7 @@ static VALUE rhrd_monday_q(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   tuesday? -> true or false
+ *   tuesday?() -> true or false
  *
  * Returns +true+ if the receiver is a Tuesday, +false+ otherwise.
  */
@@ -3474,7 +3474,7 @@ static VALUE rhrd_tuesday_q(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   wednesday? -> true or false
+ *   wednesday?() -> true or false
  *
  * Returns +true+ if the receiver is a Wednesday, +false+ otherwise.
  */
@@ -3484,7 +3484,7 @@ static VALUE rhrd_wednesday_q(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   thursday? -> true or false
+ *   thursday?() -> true or false
  *
  * Returns +true+ if the receiver is a Thursday, +false+ otherwise.
  */
@@ -3494,7 +3494,7 @@ static VALUE rhrd_thursday_q(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   friday? -> true or false
+ *   friday?() -> true or false
  *
  * Returns +true+ if the receiver is a Friday, +false+ otherwise.
  */
@@ -3504,7 +3504,7 @@ static VALUE rhrd_friday_q(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   saturday? -> true or false
+ *   saturday?() -> true or false
  *
  * Returns +true+ if the receiver is a Saturday, +false+ otherwise.
  */
@@ -3514,12 +3514,27 @@ static VALUE rhrd_saturday_q(VALUE self) {
 
 #else
 
-/* 1.8 class methods */
+/* Ruby 1.8 class methods */
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   ajd_to_amjd(ajd) -> Integer
+ *
+ * Converts the given astronomical julian date (+Integer+) into an
+ * astronomical modified julian date.
+ */
 static VALUE rhrd_s_ajd_to_amjd(VALUE klass, VALUE ajd) {
   return LONG2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(ajd)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   ajd_to_jd(ajd) -> [jd, 0.5]
+ *
+ * Converts the given astronomical julian date (+Integer+) into an
+ * an array of two elements, where the first element is the julian
+ * date +Integer+ and the second is a +Float+ with value 0.5.
+ */
 static VALUE rhrd_s_ajd_to_jd(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 1:
@@ -3533,10 +3548,24 @@ static VALUE rhrd_s_ajd_to_jd(int argc, VALUE *argv, VALUE klass) {
   return rb_ary_new3(2, argv[0], rb_float_new(0.5));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   amjd_to_ajd(ajd) -> Integer
+ *
+ * Converts the given astronomical modified julian date (+Integer+) into an
+ * astronomical julian date.
+ */
 static VALUE rhrd_s_amjd_to_ajd(VALUE klass, VALUE amjd) {
   return LONG2NUM(rhrd__safe_add_long(RHR_JD_MJD - 1, NUM2LONG(amjd)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   civil_to_jd(year, month, day, sg=nil) -> Integer
+ *
+ * Converts the given year, month, and day into a julian date +Integer+.
+ * Ignores the 4th argument.
+ */
 static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -3558,6 +3587,13 @@ static VALUE rhrd_s_civil_to_jd(int argc, VALUE *argv, VALUE klass) {
   return LONG2NUM(d.jd);
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   civil_to_jd(cwyear, cweek, cwday, sg=nil) -> Integer
+ *
+ * Converts the given cwyear, cweek, and cwday into a julian date +Integer+.
+ * Ignores the 4th argument.
+ */
 static VALUE rhrd_s_commercial_to_jd(int argc, VALUE *argv, VALUE klass) {
   long jd;
 
@@ -3574,6 +3610,16 @@ static VALUE rhrd_s_commercial_to_jd(int argc, VALUE *argv, VALUE klass) {
   return LONG2NUM(jd);
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   day_fraction_to_time(float) -> [hour, minute, second, sec_fraction]
+ *
+ * Converts the given float (which should be in the range [0.0, 1.0))
+ * into an array of 4 elements: +hour+ (+Integer+), +minute+ (+Integer+),
+ * +second+ (+Integer+), and +sec_fraction+ (+Float+).  Note that
+ * +sec_fraction+ is the fraction of the second as a fraction of the day,
+ * so it will be in the range [0.0, 1.0/86400.0).
+ */
 static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
   double f;
   int h, m, s;
@@ -3588,6 +3634,14 @@ static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
   return rb_ary_new3(4, LONG2NUM(h), LONG2NUM(m), LONG2NUM(s), rb_float_new(f));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   gregorian?(jd, sg) -> true or false
+ *
+ * If +sg+ is +nil+ or +false+, returns +false+.  If +sg+ is +Numeric+,
+ * returns +true+ if +jd+ is greater than or equal to +sg+, and +false+
+ * otherwise.  If +sg+ is not +Numeric+, +nil+, or +false+, returns +true+.
+ */
 static VALUE rhrd_s_gregorian_q(VALUE klass, VALUE jd, VALUE sg) {
   if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
     return rb_funcall(jd, rhrd_id_op_gte, 1, sg);
@@ -3596,6 +3650,12 @@ static VALUE rhrd_s_gregorian_q(VALUE klass, VALUE jd, VALUE sg) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   jd_to_ajd(jd, rf, of=nil) -> Integer
+ *
+ * Returns +jd+. Ignores the 2nd and 3rd arguments.
+ */
 static VALUE rhrd_s_jd_to_ajd(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 2:
@@ -3608,6 +3668,13 @@ static VALUE rhrd_s_jd_to_ajd(int argc, VALUE *argv, VALUE klass) {
   return argv[0];
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   jd_to_civil(jd, sg=nil) -> [year, month, day]
+ *
+ * Converts +jd+ to an array with 3 +Integer+ values: +year+, +month+,
+ * and +day+.  Ignores the 2nd argument.
+ */
 static VALUE rhrd_s_jd_to_civil(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -3625,6 +3692,13 @@ static VALUE rhrd_s_jd_to_civil(int argc, VALUE *argv, VALUE klass) {
   return rb_ary_new3(3, LONG2NUM(d.year), LONG2NUM(d.month), LONG2NUM(d.day));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   jd_to_commercial(jd, sg=nil) -> [cwyear, cweek, cwday]
+ *
+ * Converts +jd+ to an array with 3 +Integer+ values: +cwyear+, +cweek+,
+ * and +cwday+.  Ignores the 2nd argument.
+ */
 static VALUE rhrd_s_jd_to_commercial(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -3642,14 +3716,34 @@ static VALUE rhrd_s_jd_to_commercial(int argc, VALUE *argv, VALUE klass) {
   return rb_ary_new3(3, LONG2NUM(d.year), LONG2NUM(d.month), LONG2NUM(d.day));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   jd_to_ld(jd) -> Integer
+ *
+ * Converts +jd+ to a Lilian Date (the number of days since the day of calendar
+ * reform in Italy).
+ */
 static VALUE rhrd_s_jd_to_ld(VALUE klass, VALUE jd) {
   return LONG2NUM(rhrd__safe_add_long(-RHR_JD_LD, NUM2LONG(jd)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   jd_to_mjd(jd) -> Integer
+ *
+ * Converts +jd+ to a modified julian date +Integer+.
+ */
 static VALUE rhrd_s_jd_to_mjd(VALUE klass, VALUE jd) {
   return LONG2NUM(rhrd__safe_add_long(-RHR_JD_MJD, NUM2LONG(jd)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   jd_to_ordinal(jd, sg=nil) -> [year, yday]
+ *
+ * Converts +jd+ to an array with 2 +Integer+ values: +year+ and +yday+ (day of year).
+ * Ignores the 2nd argument.
+ */
 static VALUE rhrd_s_jd_to_ordinal(int argc, VALUE *argv, VALUE klass) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -3668,10 +3762,25 @@ static VALUE rhrd_s_jd_to_ordinal(int argc, VALUE *argv, VALUE klass) {
   return rb_ary_new3(2, LONG2NUM(d.year), LONG2NUM(rhrd__ordinal_day(d.year, d.month, d.day)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   jd_to_wday(jd) -> Integer
+ *
+ * Converts +jd+ to an +Integer+ day of the week, where 0 represents Sunday
+ * and 6 represents Saturday.
+ */
 static VALUE rhrd_s_jd_to_wday(VALUE klass, VALUE jd) {
   return LONG2NUM(rhrd__jd_to_wday(NUM2LONG(jd)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   julian?(jd, sg) -> true or false
+ *
+ * If +sg+ is +nil+ or +false+, returns +true+.  If +sg+ is +Numeric+,
+ * returns +true+ if +jd+ is less than +sg+, and +false+
+ * otherwise.  If +sg+ is not +Numeric+, +nil+, or +false+, returns +false+.
+ */
 static VALUE rhrd_s_julian_q(VALUE klass, VALUE jd, VALUE sg) {
   if (RTEST((rb_obj_is_kind_of(sg, rb_cNumeric)))) {
     return rb_funcall(jd, rhrd_id_op_lt, 1, sg);
@@ -3680,14 +3789,33 @@ static VALUE rhrd_s_julian_q(VALUE klass, VALUE jd, VALUE sg) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   ld_to_jd(ld) -> Integer
+ *
+ * Converts +ld+ (a Lilian Date) to a julian day +Integer+.
+ */
 static VALUE rhrd_s_ld_to_jd(VALUE klass, VALUE ld) {
   return LONG2NUM(rhrd__safe_add_long(RHR_JD_LD, NUM2LONG(ld)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   mjd_to_jd(mjd) -> Integer
+ *
+ * Converts a modified julian date number to a julian day +Integer+.
+ */
 static VALUE rhrd_s_mjd_to_jd(VALUE klass, VALUE mjd) {
   return LONG2NUM(rhrd__safe_add_long(RHR_JD_MJD, NUM2LONG(mjd)));
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   ordinal_to_jd(year, yday, sg=nil) -> Integer
+ *
+ * Converts the given +year+ and +yday+ (day of year) into a julian day +Integer+.
+ * Ignores the 3rd argument.
+ */
 static VALUE rhrd_s_ordinal_to_jd(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 2:
@@ -3700,10 +3828,26 @@ static VALUE rhrd_s_ordinal_to_jd(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   time_to_day_fraction(hour, minute, second) -> Float
+ *
+ * Converts the given +hour+, +minute+, and +second+ into a single +Float+ representing
+ * the fraction of the day, such that 12 hours, 0 minutes, and 0 seconds would return
+ * 0.5.
+ */
 static VALUE rhrd_s_time_to_day_fraction(VALUE klass, VALUE h, VALUE m, VALUE s) {
   return rb_float_new(NUM2DBL(h)/24.0 + NUM2DBL(m)/1440.0 + NUM2DBL(s)/86400.0);
 }
 
+/* call-seq:
+ *   [ruby 1-8 only] <br />
+ *   valid_time?(hour, minute, second) -> Float
+ *
+ * Checks that the hour, minute, and second are a valid time.  This handles negative
+ * values for all 3 arguments, so that -10 minutes is treated as 50 minutes.  It returns
+ * a +Float+ representing the fraction of the day for the given values.
+ */
 static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
   long h, m, s;
   h = NUM2LONG(rh);
