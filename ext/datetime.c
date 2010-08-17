@@ -1180,6 +1180,14 @@ static VALUE rhrdt_leap_q(VALUE self) {
   return rhrd__leap_year(d->year) ? Qtrue : Qfalse;
 }
 
+/* call-seq:
+ *   min() -> Integer
+ *
+ * Returns the minute of the hour as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2, 12, 13, 14).min
+ *   # => 13
+ */
 static VALUE rhrdt_min(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -1240,6 +1248,14 @@ static VALUE rhrdt_offset(VALUE self) {
   return rb_float_new(dt->offset/1440.0);
 }
 
+/* call-seq:
+ *   sec() -> Integer
+ *
+ * Returns the second of the minute as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2, 12, 13, 14).sec
+ *   # => 14
+ */
 static VALUE rhrdt_sec(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
