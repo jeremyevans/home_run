@@ -11,13 +11,13 @@ require 'ext/date/format.rb'
 HRD = Date
 HRDT = DateTime
 
-def compare(label, &block)
+def compare(label, datetime=false, &block)
   Object.send(:remove_const, :Date)
   Object.send(:remove_const, :DateTime)
   Object.send(:const_set, :Date, SD)
   Object.send(:const_set, :DateTime, SDT)
   t = Time.now
-  yield SD
+  yield(datetime ? SDT : SD)
   stdlib = Time.now - t
 
   Object.send(:remove_const, :Date)
@@ -25,30 +25,14 @@ def compare(label, &block)
   Object.send(:const_set, :Date, HRD)
   Object.send(:const_set, :DateTime, HRDT)
   t = Time.now
-  yield HRD
+  yield(datetime ? HRDT : HRD)
   home_run = Time.now - t
   
-  puts sprintf('Date%s,%0.5f,%0.5f,%0.2f', label, stdlib, home_run, stdlib/home_run)
+  puts sprintf('%s%s,%0.5f,%0.5f,%0.2f', datetime ? 'DateTime' : 'Date', label, stdlib, home_run, stdlib/home_run)
 end
 
 def dt_compare(label, &block)
-  Object.send(:remove_const, :Date)
-  Object.send(:remove_const, :DateTime)
-  Object.send(:const_set, :Date, SD)
-  Object.send(:const_set, :DateTime, SDT)
-  t = Time.now
-  yield SDT
-  stdlib = Time.now - t
-
-  Object.send(:remove_const, :Date)
-  Object.send(:remove_const, :DateTime)
-  Object.send(:const_set, :Date, HRD)
-  Object.send(:const_set, :DateTime, HRDT)
-  t = Time.now
-  yield HRDT
-  home_run = Time.now - t
-  
-  puts sprintf('DateTime%s,%0.5f,%0.5f,%0.2f', label, stdlib, home_run, stdlib/home_run)
+  compare(label, true, &block)
 end
 
 n = (ARGV.first || 10000).to_i
@@ -70,8 +54,8 @@ compare(".valid_commercial?"){|dc| n.times{dc.valid_commercial?(2010, 1, 1)}}
 compare(".valid_jd?"){|dc| n.times{dc.valid_jd?(2010)}}
 compare(".valid_ordinal?"){|dc| n.times{dc.valid_jd?(2010, 100)}}
 
-dt_compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 13:43:37 2007', '%c')}}
 dt_compare("._parse"){|dc| n.times{dc._parse('2010-12-13 10:20:30-07:00')}}
+dt_compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 13:43:37 2007', '%c')}}
 dt_compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".jd"){|dc| n.times{dc.jd(2010, 13, 43, 57)}}
