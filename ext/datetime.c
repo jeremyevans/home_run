@@ -808,6 +808,17 @@ static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+/* call-seq:
+ *   strptime() -> DateTime <br />
+ *   strptime(string, format="%FT%T%z", sg=nil) -> DateTime
+ *
+ * If no arguments are given, returns a +DateTime+ for julian day 0.
+ * Other returns a +DateTime+ for the date and time represented by the given
+ * +string+, parsed using the given +format+.
+ * Raises an +ArgumentError+ if the string did not match the format
+ * given, or if it did match and it represented an invalid date or time.
+ * Ignores the 3rd argument.
+ */
 static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
