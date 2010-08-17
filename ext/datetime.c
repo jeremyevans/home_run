@@ -1866,8 +1866,24 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
   return len + l;
 }
 
-/* 1.9 class methods */
+/* Ruby 1.9 class methods */
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   httpdate() -> DateTime <br />
+ *   httpdate(str, sg=nil) -> DateTime
+ *
+ * If no argument is given, returns a +DateTime+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_httpdate+, returning a +DateTime+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the datetime it represents is not a valid date or time.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   DateTime.httpdate("Fri, 02 Jan 2009 03:04:05 GMT")
+ *   # => #<DateTime 2009-01-02T03:04:05+00:00>
+ */
 static VALUE rhrdt_s_httpdate(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
@@ -1887,6 +1903,22 @@ static VALUE rhrdt_s_httpdate(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   iso8601() -> DateTime <br />
+ *   iso8601(str, sg=nil) -> DateTime
+ *
+ * If no argument is given, returns a +DateTime+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_iso8601+, returning a +DateTime+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the datetime it represents is not a valid date or time.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   DateTime.iso8601("2009-01-02T03:04:05+12:00")
+ *   # => #<DateTime 2009-01-02T03:04:05+12:00>
+ */
 static VALUE rhrdt_s_iso8601(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
@@ -1906,6 +1938,22 @@ static VALUE rhrdt_s_iso8601(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   jisx0301() -> DateTime <br />
+ *   jisx0301(str, sg=nil) -> DateTime
+ *
+ * If no argument is given, returns a +DateTime+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_jisx0301+, returning a +DateTime+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the datetime it represents is not a valid date or time.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   DateTime.iso8601("H21.01.02T03:04:05+12:00")
+ *   # => #<DateTime 2009-01-02T03:04:05+12:00>
+ */
 static VALUE rhrdt_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
@@ -1925,6 +1973,22 @@ static VALUE rhrdt_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   rfc2822() -> DateTime <br />
+ *   rfc2822(str, sg=nil) -> DateTime
+ *
+ * If no argument is given, returns a +DateTime+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_rfc2822+, returning a +DateTime+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the datetime it represents is not a valid date or time.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   DateTime.rfc2822("Fri, 2 Jan 2009 03:04:05 +1200")
+ *   # => #<DateTime 2009-01-02T03:04:05+12:00>
+ */
 static VALUE rhrdt_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
@@ -1944,6 +2008,22 @@ static VALUE rhrdt_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   rfc3339() -> DateTime <br />
+ *   rfc3339(str, sg=nil) -> DateTime
+ *
+ * If no argument is given, returns a +DateTime+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_rfc3339+, returning a +DateTime+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the datetime it represents is not a valid date or time.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   DateTime.rfc3339("2009-01-02T03:04:05+12:00")
+ *   # => #<DateTime 2009-01-02T03:04:05+12:00>
+ */
 static VALUE rhrdt_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
@@ -1963,6 +2043,22 @@ static VALUE rhrdt_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   xmlschema() -> DateTime <br />
+ *   xmlschema(str, sg=nil) -> DateTime
+ *
+ * If no argument is given, returns a +DateTime+ for julian day 0.
+ * If an argument is given, it should be a string that is
+ * parsed using +_xmlschema+, returning a +DateTime+ or raising
+ * an +ArgumentError+ if the string is not in a valid format
+ * or the datetime it represents is not a valid date or time.
+ * Ignores the 2nd argument.
+ * Example:
+ * 
+ *   DateTime.xmlschema("2009-01-02T03:04:05+12:00")
+ *   # => #<DateTime 2009-01-02T03:04:05+12:00>
+ */
 static VALUE rhrdt_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;

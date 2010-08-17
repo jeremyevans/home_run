@@ -3069,7 +3069,7 @@ static VALUE rhrd_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
  * Ignores the 2nd argument.
  * Example:
  * 
- *   Date.rfc2822("2009-01-02T00:00:00+00:00")
+ *   Date.rfc3339("2009-01-02T00:00:00+00:00")
  *   # => #<Date 2009-01-02>
  */
 static VALUE rhrd_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
