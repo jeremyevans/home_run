@@ -720,6 +720,16 @@ static VALUE rhrdt_s_now(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+/* call-seq:
+ *   ordinal() -> DateTime <br />
+ *   ordinal(year, yday=1, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime
+ *
+ * If no arguments are given, returns a +DateTime+ for julian day 0.
+ * Otherwise, returns a +DateTime+ for the year, day of year,
+ * hour, minute, second, and offset given.
+ * Raises an +ArgumentError+ for invalid dates.
+ * Ignores the 7th argument.
+ */
 static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   long year;
   long day = 1;
