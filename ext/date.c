@@ -1461,9 +1461,12 @@ VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
 /* call-seq:
  *   _load(string) -> Date
  *
- * Unmarshal a dumped +Date+ object. Note that this does not handle 
- * the marshalling format used by the stdlib's +Date+, it only handles
- * marshalled versions of this library's +Date+ objects.
+ * Unmarshal a dumped +Date+ object. Not generally called directly,
+ * usually called by <tt>Marshal.load</tt>.
+ *
+ * Note that this does not handle the marshalling format used by
+ * the stdlib's +Date+, it only handles marshalled versions of
+ * this library's +Date+ objects.
  */
 static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   rhrd_t * d;
@@ -2510,6 +2513,60 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/* call-seq:
+ *   strftime() -> String <br />
+ *   strftime(format) -> String
+ *
+ * If no argument is provided, returns a string in ISO8601 format, just like
+ * +to_s+.  If an argument is provided, uses it as a format string and returns
+ * a +String+ based on the format.  The following formats parts are supported:
+ *
+ * %a :: The abbreviated day name (e.g. Fri)
+ * %A :: The full day name (e.g. Friday)
+ * %b, %h :: The abbreviated month name (e.g. Jan)
+ * %B :: The full month name (e.g. January)
+ * %c :: A full date and time representation (e.g. Fri Jan 02 13:29:39 2009)
+ * %C :: The century of the year (e.g. 20)
+ * %d :: The day of the month, with a leading zero if necessary (e.g. 02)
+ * %e :: The day of the month, with a leading space if necessary (e.g.  2)
+ * %F :: An ISO8601 date representation (e.g.  2009-01-02)
+ * %g :: The last 2 digits of the commercial week year (e.g. 09)
+ * %G :: The commercial week year (e.g. 2009)
+ * %H :: The hour of the day in 24 hour format, with a leading zero if necessary (e.g. 13)
+ * %I :: The hour of the day in 12 hour format (e.g. 01)
+ * %j :: The day of the year (e.g. 002)
+ * %k :: The hour of the day in 24 hour format, with a leading space if necessary (e.g. 13)
+ * %l :: The hour of the day in 12 hour format, with a leading space if necessary (e.g. 13)
+ * %L :: The number of milliseconds in the fractional second, with leading zeros if necessary (e.g. 079) 
+ * %m :: The month of the year (e.g. 01)
+ * %M :: The minute of the hour (e.g. 29)
+ * %n :: A newline (e.g. "\n")
+ * %N :: The number of nanoseconds in the fractional second, with leading zeros if necessary (e.g. 079013023) 
+ * %p :: The meridian indicator, upcased (e.g. PM)
+ * %P :: The meridian indicator, downcased (e.g. pm)
+ * %Q :: The number of milliseconds since the unix epoch (e.g. 1230902979079)
+ * %r :: A full time representation in 12 hour format (e.g.  1:29:39 PM)
+ * %R :: An hour and minute representation in 24 hour format (e.g. 13:29)
+ * %s :: The number of seconds since the unix epoch (e.g. 1230902979)
+ * %S :: The second of the minute (e.g. 39)
+ * %t :: A tab (e.g. "\t")
+ * %T, %X :: A full time representation in 24 hour format (e.g. 13:29:39)
+ * %u :: The commercial week day (e.g. 5)
+ * %U :: The week number of the current year, with Sunday as the first day of the first week (e.g. 0)
+ * %v :: A full date representation (e.g.  2-Jan-2009)
+ * %V :: The commercial week (e.g. 01)
+ * %w :: The day of the week, with Sunday as 0 and Saturday as 6 (e.g. 5)
+ * %W :: The week number of the current year, with Monday as the first day of the first week (e.g. 0)
+ * %x, %D :: A full date representation in month/day/year format (e.g. 01/02/2009)
+ * %y :: The last two digits of the year (e.g. 09)
+ * %Y :: The year (e.g. 2009)
+ * %z :: The offset from UTC, without a colon (e.g. +0000)
+ * %Z :: The offset from UTC, with a colon (e.g. +00:00)
+ * %+ :: A full date and time representation, including the offset (e.g. Fri Jan  2 13:29:39 +00:00 2009)
+ *
+ * All other formats (e.g. %f, %%) are handled by removing the leading percent sign.  All other text is
+ * passed through literally.
+ */
 static VALUE rhrd_strftime(int argc, VALUE *argv, VALUE self) {
   rhrd_t *d;
   rhrdt_t dt;
