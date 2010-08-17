@@ -3529,7 +3529,7 @@ static VALUE rhrd_s_ajd_to_amjd(VALUE klass, VALUE ajd) {
 
 /* call-seq:
  *   [ruby 1-8 only] <br />
- *   ajd_to_jd(ajd) -> [jd, 0.5]
+ *   ajd_to_jd(ajd) -> [jd, Float(1)/2]
  *
  * Converts the given astronomical julian date (+Integer+) into an
  * an array of two elements, where the first element is the julian
