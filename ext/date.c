@@ -570,7 +570,7 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
-long rhrd__jd_to_unix(long jd) {
+long long rhrd__jd_to_unix(long long jd) {
   return (jd - RHR_UNIX_EPOCH) * RHR_SECONDS_PER_DAY;
 }
 
@@ -864,7 +864,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, d->hour >= 12 ? "pm" : "am");
           break;
         case 'Q':
-          cp += sprintf(str + cp, "%li", rhrd__jd_to_unix(d->jd) * 1000);
+          cp += sprintf(str + cp, "%lli", (rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60) * 1000);
           break;
         case 'r':
           cp += sprintf(str + cp, "%2hhi:%02hhi:%02hhi %s", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12, d->minute, d->second, d->hour >= 12 ? "PM" : "AM");
@@ -873,7 +873,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%02hhi:%02hhi", d->hour, d->minute);
           break;
         case 's':
-          cp += sprintf(str + cp, "%li", (long)(rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60));
+          cp += sprintf(str + cp, "%lli", rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60);
           break;
         case 'S':
           cp += sprintf(str + cp, "%02hhi", d->second);
@@ -2557,7 +2557,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
  * %V :: The commercial week (e.g. 01)
  * %w :: The day of the week, with Sunday as 0 and Saturday as 6 (e.g. 5)
  * %W :: The week number of the current year, with Monday as the first day of the first week (e.g. 0)
- * %x, %D :: A full date representation in month/day/year format (e.g. 01/02/2009)
+ * %x, %D :: A full date representation in month/day/year format (e.g. 01/02/09)
  * %y :: The last two digits of the year (e.g. 09)
  * %Y :: The year (e.g. 2009)
  * %z :: The offset from UTC, without a colon (e.g. +0000)

@@ -67,6 +67,10 @@ describe "Date#strftime" do
     Date.civil(2000, 4, 6).strftime("%l").should == "12"
   end
   
+  it "should be able to print the milliseconds of the second with leading zeroes" do
+    Date.civil(2000, 4, 6).strftime("%L").should == "000"
+  end
+  
   it "should be able to print the minutes with leading zeroes" do
     Date.civil(2000, 4, 6).strftime("%M").should == "00"
   end
@@ -75,6 +79,10 @@ describe "Date#strftime" do
     Date.civil(2000, 4, 6).strftime("%m").should == "04"
   end
 
+  it "should be able to print the nanoseconds of the second with leading zeroes" do
+    Date.civil(2000, 4, 6).strftime("%N").should == "000000000"
+  end
+  
   it "should be able to add a newline" do
     Date.civil(2000, 4, 6).strftime("%n").should == "\n"
   end
@@ -87,16 +95,18 @@ describe "Date#strftime" do
     Date.civil(2000, 4, 6).strftime("%p").should == "AM"
   end
 
-  it "should be able to show the number of seconds with leading zeroes" do
-    Date.civil(2000, 4, 6).strftime("%S").should == "00"
+  it "should be able to show the number of milliseconds since the unix epoch" do
+    Date.civil(2000, 4, 6).strftime("%Q").should == "954979200000"
+    Date.civil(3000, 4, 6).strftime("%Q").should == "32511888000000"
   end
-
+  
   it "should be able to show the number of seconds with leading zeroes" do
     Date.civil(2000, 4, 6).strftime("%S").should == "00"
   end
 
   it "should be able to show the number of seconds since the unix epoch" do
     Date.civil(2000, 4, 6).strftime("%s").should == "954979200"
+    Date.civil(3000, 4, 6).strftime("%s").should == "32511888000"
   end
   
   it "should be able to add a tab" do
@@ -147,9 +157,13 @@ describe "Date#strftime" do
     Date.civil(2000, 4,  9).strftime("%%").should == "%"
   end
   
-  it "should leave %X sequences alone if it doesn't have a conversion" do
+  it "should remove % from other %X sequences if it doesn't have a conversion" do
     Date.civil(2000, 4,  9).strftime("%5").should == "5"
     Date.civil(2000, 4,  9).strftime("%f").should == "f"
+  end
+  
+  it "should leave other text alone if it doesn't have a conversion" do
+    Date.civil(2000, 4,  9).strftime("15").should == "15"
   end
   
   ############################
