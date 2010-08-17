@@ -482,7 +482,7 @@ static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
 
 /* call-seq:
  *   civil() -> DateTime <br />
- *   civil(year, month=1, day=1, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime
+ *   civil(year, month=1, day=1, hour=0, minute=0, second=0, offset=0, sg=nil) -> DateTime
  *
  * If no arguments are given, returns a +DateTime+ for julian day 0.
  * Otherwise, returns a +DateTime+ for the year, month, day, hour, minute, second
@@ -539,8 +539,8 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
 
 /* call-seq:
  *   commercial() -> DateTime <br />
- *   commercial(cwyear, cweek=41, cwday=5, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime [ruby 1-8] <br />
- *   commercial(cwyear, cweek=1, cwday=1, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime [ruby 1-9]
+ *   commercial(cwyear, cweek=41, cwday=5, hour=0, minute=0, second=0, offset=0, sg=nil) -> DateTime [ruby 1-8] <br />
+ *   commercial(cwyear, cweek=1, cwday=1, hour=0, minute=0, second=0, offset=0, sg=nil) -> DateTime [ruby 1-9]
  *
  * If no arguments are given:
  * * ruby 1.8: returns a +DateTime+ for 1582-10-15 (the Day of Calendar Reform in Italy)
@@ -603,7 +603,7 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
 }
 
 /* call-seq:
- *   jd(jd=0, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime
+ *   jd(jd=0, hour=0, minute=0, second=0, offset=0, sg=nil) -> DateTime
  *
  * Returns a +DateTime+ for the julian day number,
  * hour, minute, second, and offset given.
@@ -649,7 +649,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
 }
 
 /* call-seq:
- *   new!(ajd=0, offset=0.0, sg=nil) -> Date
+ *   new!(ajd=0, offset=0, sg=nil) -> DateTime
  *
  * Returns a +DateTime+ for the astronomical julian day number and offset given.
  * To include a fractional day, +ajd+ can be a +Float+. The date is assumed
@@ -722,7 +722,7 @@ static VALUE rhrdt_s_now(int argc, VALUE *argv, VALUE klass) {
 
 /* call-seq:
  *   ordinal() -> DateTime <br />
- *   ordinal(year, yday=1, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime
+ *   ordinal(year, yday=1, hour=0, minute=0, second=0, offset=0, sg=nil) -> DateTime
  *
  * If no arguments are given, returns a +DateTime+ for julian day 0.
  * Otherwise, returns a +DateTime+ for the year, day of year,
