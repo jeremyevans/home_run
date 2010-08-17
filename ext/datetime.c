@@ -1740,6 +1740,28 @@ static VALUE rhrdt_op_relationship(VALUE self, VALUE other) {
   return dt->jd == jd ? Qtrue : Qfalse;
 }
 
+/* call-seq:
+ *   <=>(other) -> -1, 0, 1, or nil
+ *
+ * If +other+ is a +DateTime+, returns -1 if the absolute date and time of
+ * +other+ is before the absolute time of the receiver chronologically,
+ * 0 if +other+ is the same absolute date and time as the receiver,
+ * or 1 if the absolute date and time of +other+ is before the receiver
+ * chronologically.  Absolute date and time in this case means after taking
+ * account the time zone offset.
+ *
+ * If +other+ is a +Date+, return 0 if +other+ has the same
+ * julian date as the receiver and the receiver has no fractional part,
+ * 1 if +other+ has a julian date greater than the receiver's, or
+ * -1 if +other+ has a julian date less than the receiver's or
+ * a julian date the same as the receiver's and the receiver has a
+ * fractional part. 
+ *
+ * If +other+ is a +Numeric+, convert it to an +Float+ and compare
+ * it to the receiver's julian date plus the fractional part. 
+ *
+ * For an unrecognized type, return +nil+.
+ */
 static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *od;

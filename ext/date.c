@@ -2841,7 +2841,7 @@ static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
 }
 
 /* call-seq:
- *   <=>(other) -> -1, 0, or 1
+ *   <=>(other) -> -1, 0, 1, or nil
  *
  * If +other+ is a +Date+, returns -1 if +other+ is before the
  * the receiver chronologically, 0 if +other+ is the same date as the receiver,
@@ -2855,6 +2855,8 @@ static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
  *
  * If +other+ is a +Numeric+, convert it to an integer and compare
  * it to the receiver's julian date. 
+ *
+ * For an unrecognized type, return +nil+.
  */
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
   rhrd_t *d, *o;
