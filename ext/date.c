@@ -2846,7 +2846,7 @@ VALUE rhrd__day_q(VALUE self, long day) {
 /* call-seq:
  *   [ruby 1-9 only] <br />
  *   httpdate() -> Date <br />
- *   httpdate(str, sg=nil) -> Date <br />
+ *   httpdate(str, sg=nil) -> Date
  *
  * If no argument is given, returns a +Date+ for julian day 0.
  * If an argument is given, it should be a string that is
@@ -2880,7 +2880,7 @@ static VALUE rhrd_s_httpdate(int argc, VALUE *argv, VALUE klass) {
 /* call-seq:
  *   [ruby 1-9 only] <br />
  *   iso8601() -> Date <br />
- *   iso8601(str, sg=nil) -> Date <br />
+ *   iso8601(str, sg=nil) -> Date
  *
  * If no argument is given, returns a +Date+ for julian day 0.
  * If an argument is given, it should be a string that is
@@ -2914,7 +2914,7 @@ static VALUE rhrd_s_iso8601(int argc, VALUE *argv, VALUE klass) {
 /* call-seq:
  *   [ruby 1-9 only] <br />
  *   jisx0301() -> Date <br />
- *   jisx0301(str, sg=nil) -> Date <br />
+ *   jisx0301(str, sg=nil) -> Date
  *
  * If no argument is given, returns a +Date+ for julian day 0.
  * If an argument is given, it should be a string that is
@@ -2948,7 +2948,7 @@ static VALUE rhrd_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
 /* call-seq:
  *   [ruby 1-9 only] <br />
  *   rfc2822() -> Date <br />
- *   rfc2822(str, sg=nil) -> Date <br />
+ *   rfc2822(str, sg=nil) -> Date
  *
  * If no argument is given, returns a +Date+ for julian day 0.
  * If an argument is given, it should be a string that is
@@ -2982,7 +2982,7 @@ static VALUE rhrd_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
 /* call-seq:
  *   [ruby 1-9 only] <br />
  *   rfc3339() -> Date <br />
- *   rfc3339(str, sg=nil) -> Date <br />
+ *   rfc3339(str, sg=nil) -> Date
  *
  * If no argument is given, returns a +Date+ for julian day 0.
  * If an argument is given, it should be a string that is
@@ -3016,7 +3016,7 @@ static VALUE rhrd_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
 /* call-seq:
  *   [ruby 1-9 only] <br />
  *   xmlschema() -> Date <br />
- *   xmlschema(str, sg=nil) -> Date <br />
+ *   xmlschema(str, sg=nil) -> Date
  *
  * If no argument is given, returns a +Date+ for julian day 0.
  * If an argument is given, it should be a string that is
@@ -3051,7 +3051,7 @@ static VALUE rhrd_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   httpdate() -> String <br />
+ *   httpdate() -> String
  *
  * Returns the receiver as a +String+ in HTTP format. Example:
  * 
@@ -3081,7 +3081,7 @@ static VALUE rhrd_httpdate(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   jisx0301() -> String <br />
+ *   jisx0301() -> String
  *
  * Returns the receiver as a +String+ in JIS X 0301 format. Example:
  * 
@@ -3124,6 +3124,18 @@ static VALUE rhrd_jisx0301(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   next_day(n=1) -> Date
+ *
+ * Returns a +Date+ +n+ days after the receiver.  If +n+ is negative,
+ * returns a +Date+ before the receiver.
+ * 
+ *   Date.civil(2009, 1, 2).next_day
+ *   # => #<Date 2009-01-03>
+ *   Date.civil(2009, 1, 2).next_day(2)
+ *   # => #<Date 2009-01-04>
+ */
 static VALUE rhrd_next_day(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -3142,6 +3154,18 @@ static VALUE rhrd_next_day(int argc, VALUE *argv, VALUE self) {
    return rhrd__add_days(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   next_month(n=1) -> Date
+ *
+ * Returns a +Date+ +n+ months after the receiver.  If +n+ is negative,
+ * returns a +Date+ before the receiver.
+ * 
+ *   Date.civil(2009, 1, 2).next_month
+ *   # => #<Date 2009-02-02>
+ *   Date.civil(2009, 1, 2).next_month(2)
+ *   # => #<Date 2009-03-02>
+ */
 static VALUE rhrd_next_month(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -3160,6 +3184,18 @@ static VALUE rhrd_next_month(int argc, VALUE *argv, VALUE self) {
   return rhrd__add_months(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   next_year(n=1) -> Date
+ *
+ * Returns a +Date+ +n+ years after the receiver.  If +n+ is negative,
+ * returns a +Date+ before the receiver.
+ * 
+ *   Date.civil(2009, 1, 2).next_year
+ *   # => #<Date 2010-01-02>
+ *   Date.civil(2009, 1, 2).next_year(2)
+ *   # => #<Date 2011-01-02>
+ */
 static VALUE rhrd_next_year(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -3178,6 +3214,18 @@ static VALUE rhrd_next_year(int argc, VALUE *argv, VALUE self) {
   return rhrd__add_years(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   prev_day(n=1) -> Date
+ *
+ * Returns a +Date+ +n+ days before the receiver.  If +n+ is negative,
+ * returns a +Date+ after the receiver.
+ * 
+ *   Date.civil(2009, 1, 2).prev_day
+ *   # => #<Date 2009-01-01>
+ *   Date.civil(2009, 1, 2).prev_day(2)
+ *   # => #<Date 2008-12-31>
+ */
 static VALUE rhrd_prev_day(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -3196,6 +3244,18 @@ static VALUE rhrd_prev_day(int argc, VALUE *argv, VALUE self) {
    return rhrd__add_days(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   prev_month(n=1) -> Date
+ *
+ * Returns a +Date+ +n+ months before the receiver.  If +n+ is negative,
+ * returns a +Date+ after the receiver.
+ * 
+ *   Date.civil(2009, 1, 2).prev_month
+ *   # => #<Date 2008-12-02>
+ *   Date.civil(2009, 1, 2).prev_month(2)
+ *   # => #<Date 2008-11-02>
+ */
 static VALUE rhrd_prev_month(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -3214,6 +3274,18 @@ static VALUE rhrd_prev_month(int argc, VALUE *argv, VALUE self) {
   return rhrd__add_months(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   prev_year(n=1) -> Date
+ *
+ * Returns a +Date+ +n+ years before the receiver.  If +n+ is negative,
+ * returns a +Date+ after the receiver.
+ * 
+ *   Date.civil(2009, 1, 2).prev_year
+ *   # => #<Date 2008-01-02>
+ *   Date.civil(2009, 1, 2).prev_year(2)
+ *   # => #<Date 2007-01-02>
+ */
 static VALUE rhrd_prev_year(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -3234,7 +3306,7 @@ static VALUE rhrd_prev_year(int argc, VALUE *argv, VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   rfc2822() -> String <br />
+ *   rfc2822() -> String
  *
  * Returns the receiver as a +String+ in RFC2822 format. Example:
  * 
@@ -3264,7 +3336,7 @@ static VALUE rhrd_rfc2822(VALUE self) {
 
 /* call-seq:
  *   [ruby 1-9 only] <br />
- *   rfc3339() -> String <br />
+ *   rfc3339() -> String
  *
  * Returns the receiver as a +String+ in RFC3339 format. Example:
  * 
