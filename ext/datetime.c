@@ -416,9 +416,12 @@ VALUE rhrdt__new_offset(VALUE self, double offset) {
 /* call-seq:
  *   _load(string) -> DateTime
  *
- * Unmarshal a dumped +DateTime+ object. Note that this does not handle 
- * the marshalling format used by the stdlib's +DateTime+, it only handles
- * marshalled versions of this library's +DateTime+ objects.
+ * Unmarshal a dumped +DateTime+ object. Not generally called directly,
+ * usually called by <tt>Marshal.load</tt>.
+ *
+ * Note that this does not handle the marshalling format used by
+ * the stdlib's +DateTime+, it only handles marshalled versions of
+ * this library's +DateTime+ objects.
  */
 static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   rhrdt_t * d;
@@ -449,6 +452,14 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   return rd;
 }
 
+/* call-seq:
+ *   _strptime(string, format='%FT%T%z') -> Hash
+ *
+ * Attemps to parse the string using the given format, returning
+ * a hash if there is a match (or +nil+ if no match).
+ *
+ * +_strptime+ supports the same formats that <tt>DateTime#strftime</tt> does.
+ */
 static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
   char * fmt_str = "%FT%T%z";
   long fmt_len = 7;
