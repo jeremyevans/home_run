@@ -773,6 +773,18 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+/* call-seq:
+ *   parse() -> DateTime <br />
+ *   parse(string, comp=true, sg=nil) -> DateTime
+ *
+ * If no arguments are given, returns a +DateTime+ for julian day 0.
+ * Otherwise returns a +DateTime+ for the date represented by the given
+ * +string+.  Raises an +ArgumentError+ if the string was not in
+ * a recognized format, or if the recognized format represents
+ * an invalid date or time.
+ * If +comp+ is true, expands 2-digit years to 4-digits years.
+ * Ignores the 3rd argument.
+ */
 static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
