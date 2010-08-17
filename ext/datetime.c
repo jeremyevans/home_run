@@ -1075,6 +1075,12 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
   return Qfalse;
 }
 
+/* call-seq:
+ *   hash() -> Integer
+ *
+ * Return an +Integer+ hash value for the receiver, such that an
+ * equal date and time will have the same hash value.
+ */
 static VALUE rhrdt_hash(VALUE self) {
   rhrdt_t *d;
 
