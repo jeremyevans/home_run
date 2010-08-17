@@ -25,3 +25,30 @@ describe "DateTime marshalling" do
   end
 end
 
+ruby_version_is "1.9" do
+  describe "DateTime#to_datetime" do
+    it " should return the receiver" do
+      DateTime.new(2009, 1, 2, 3, 4, 5, 0.5).to_datetime.should == DateTime.new(2009, 1, 2, 3, 4, 5, 0.5)
+    end
+  end
+
+  describe "DateTime#to_date" do
+    it " should return a Date with the same date as receiver" do
+      DateTime.new(2009, 1, 2, 12).to_date.should == Date.new(2009, 1, 2)
+    end
+  end
+
+  describe "DateTime#to_time" do
+    it " should return a Time in local time with the same year, month, day as the receiver" do
+      DateTime.new(2009, 1, 2, 3, 4, 5).to_time.should == Time.utc(2009, 1, 2, 3, 4, 5).getlocal
+    end
+  end
+
+  describe "Time#to_datetime" do
+    it " should return a Date with the same year, month, and day as the receiver" do
+      Time.utc(2009, 1, 2, 3, 4, 5).to_datetime.should == DateTime.new(2009, 1, 2, 3, 4, 5)
+      Time.utc(2009, 1, 2, 3, 4, 5).getlocal.to_datetime.should == DateTime.new(2009, 1, 2, 3, 4, 5)
+    end
+  end
+end
+

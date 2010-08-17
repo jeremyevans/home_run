@@ -242,12 +242,5 @@ ruby_version_is "1.9" do
       Time.local(2009, 1, 2).getutc.to_time.should == Time.local(2009, 1, 2)
     end
   end
-
-  describe "Date#to_date" do
-    it " should return the receiver" do
-      Date.new(2009, 1, 2).to_date.should == Date.new(2009, 1, 2)
-    end
-  end
-
 end
 

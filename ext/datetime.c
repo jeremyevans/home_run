@@ -2443,6 +2443,16 @@ static VALUE rhrdt_rfc2822(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   to_date() -> Date
+ *
+ * Returns a +Date+ with the same date as the receiver, ignoring
+ * any fractional parts or offsets.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).to_date
+ *   # => #<Date 2009-01-02>
+ */
 static VALUE rhrdt_to_date(VALUE self) {
   rhrd_t *d;
   rhrdt_t *dt;
@@ -2463,6 +2473,16 @@ static VALUE rhrdt_to_date(VALUE self) {
   return rd;
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   to_time() -> Time
+ *
+ * Returns a +Time+ in local time with the same year, month, day,
+ * hour, minute, and second as the receiver (in absoute time).
+ * 
+ *   DateTime.civil(2009, 1, 2, 5).to_time
+ *   # => 2009-01-01 21:00:00 -0800
+ */
 static VALUE rhrdt_to_time(VALUE self) {
   long h, m, s;
   rhrdt_t *dt;
@@ -2480,6 +2500,16 @@ static VALUE rhrdt_to_time(VALUE self) {
   return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, LONG2NUM(dt->year), LONG2NUM(dt->month), LONG2NUM(dt->day), LONG2NUM(h), LONG2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   to_datetime() -> DateTime
+ *
+ * Returns a +DateTime+ with the same year, month, day,
+ * hour, minute, and second as the receiver in local time.
+ * 
+ *   Time.local(2009, 1, 2, 12).to_datetime
+ *   # => #<DateTime 2009-01-02T12:00:00-08:00>
+ */
 static VALUE rhrdt_time_to_datetime(VALUE self) {
   rhrdt_t *dt;
   VALUE rd;
