@@ -696,6 +696,13 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+/* call-seq:
+ *   now(sg=nil) -> DateTime
+ *
+ * Returns a +DateTime+ representing the current local date
+ * and time.
+ * Ignores an argument if given.
+ */
 static VALUE rhrdt_s_now(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);

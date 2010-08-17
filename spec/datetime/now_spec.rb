@@ -12,8 +12,7 @@ describe "DateTime.now" do
     d.sec.should == t.sec
   end
   
-  it "should have an optional sg value" do
+  it "should accept an optional sg value" do
     DateTime.now(1).to_s.should == DateTime.now.to_s
   end
-
 end
