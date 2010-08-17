@@ -2216,9 +2216,9 @@ static VALUE rhrd_downto(VALUE self, VALUE other) {
  *   eql?(date) -> true or false
  *
  * Returns true only if the +date+ given is the same date as the receiver.
- * If +date+ is an instance of +DateTime+, returns true only if +date+ is
+ * If +date+ is an instance of +DateTime+, returns +true+ only if +date+ is
  * for the same date as the receiver and has no fractional component.
- * Otherwise, returns false. Example:
+ * Otherwise, returns +false+. Example:
  *
  *   Date.civil(2009, 1, 2).eql?(Date.civil(2009, 1, 2))
  *   # => true

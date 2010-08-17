@@ -1032,6 +1032,23 @@ static VALUE rhrdt_downto(VALUE self, VALUE other) {
   return rhrdt_step(2, argv, self);
 }
 
+/* call-seq:
+ *   eql?(datetime) -> true or false
+ *
+ * Returns true only if the +datetime+ given is the same date and time as the receiver.
+ * If +date+ is an instance of +Date+, returns +true+ only if +date+ is
+ * for the same date as the receiver and the receiver has no fractional component.
+ * Otherwise, returns +false+. Example:
+ *
+ *   DateTime.civil(2009, 1, 2, 12).eql?(DateTime.civil(2009, 1, 2, 12))
+ *   # => true
+ *   DateTime.civil(2009, 1, 2, 12).eql?(DateTime.civil(2009, 1, 2, 11))
+ *   # => false
+ *   DateTime.civil(2009, 1, 2).eql?(Date.civil(2009, 1, 2))
+ *   # => true
+ *   DateTime.civil(2009, 1, 2, 1).eql?(Date.civil(2009, 1, 2))
+ *   # => false
+ */
 static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *o;
