@@ -1,6 +1,6 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
-describe "DateTimeTime#-" do
+describe "DateTime#-" do
 
   it "should substract a number of days from a DateTime" do
     (DateTime.civil(2008, 1, 8) - 315).should == DateTime.civil(2007,2,27)
@@ -54,6 +54,18 @@ describe "DateTimeTime#-" do
     (DateTime.civil(2007,2,27, 0, 0, 0, 0.5) - DateTime.civil(2007,2,27,0,0,0)).should be_close(-0.5, 0.00000001)
     (DateTime.civil(2007,2,27, 0, 0, 0, -0.5) - DateTime.civil(2007,2,27,12,0,0)).should be_close(0.0, 0.00000001)
     (DateTime.civil(2007,2,27,0,0,0,-0.5) - DateTime.civil(2007,2,27,0,0,0,0.5)).should be_close(1.0, 0.00000001)
+  end
+
+  it "should be able to subtract a Date from a DateTime" do
+    (DateTime.ordinal(2008, 10) - Date.commercial(2008,2,1)).should be_close(3.0, 0.00000001)
+    (DateTime.ordinal(2008, 10) - Date.jd(2454782)).should be_close(-306.0, 0.00000001)
+    (DateTime.ordinal(2008, 10) - Date.civil(2009,2,27)).should be_close(-414.0, 0.00000001)
+  end
+
+  it "should assume a Date is in the same offset as the receiver" do
+    (DateTime.ordinal(2008, 10, 0, 0, 0, 0.5) - Date.commercial(2008,2,1)).should be_close(3.0, 0.00000001)
+    (DateTime.ordinal(2008, 10, 0, 0, 0, 0.1) - Date.jd(2454782)).should be_close(-306.0, 0.00000001)
+    (DateTime.ordinal(2008, 10, 0, 0, 0, -0.5) - Date.civil(2009,2,27)).should be_close(-414.0, 0.00000001)
   end
 
   it "should raise an error on non numeric parameters" do

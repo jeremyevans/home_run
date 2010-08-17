@@ -1575,20 +1575,95 @@ static VALUE rhrdt_zone(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
-/* Operator methods */ 
+/* Ruby instance operator methods */ 
 
+/* call-seq:
+ *   >>(n) -> DateTime
+ *
+ * Returns a +DateTime+ that is +n+ months after the receiver. +n+
+ * can be negative, in which case it returns a +DateTime+ before
+ * the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2) >> 2
+ *   # => #<DateTime 2009-03-02T00:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2) >> -2
+ *   # => #<DateTime 2008-11-02T00:00:00+00:00>
+ */
 static VALUE rhrdt_op_right_shift(VALUE self, VALUE other) {
   return rhrdt__add_months(self, NUM2LONG(other));
 }
 
+/* call-seq:
+ *   <<(n) -> DateTime
+ *
+ * Returns a +DateTime+ that is +n+ months before the receiver. +n+
+ * can be negative, in which case it returns a +DateTime+ after
+ * the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2) << 2
+ *   # => #<DateTime 2008-11-02T00:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2) << -2
+ *   # => #<DateTime 2009-03-02T00:00:00+00:00>
+ */
 static VALUE rhrdt_op_left_shift(VALUE self, VALUE other) {
   return rhrdt__add_months(self, -NUM2LONG(other));
 }
 
+/* call-seq:
+ *   +(n) -> DateTime
+ *
+ * Returns a +DateTime+ that is +n+ days after the receiver. +n+
+ * can be negative, in which case it returns a +DateTime+ before
+ * the receiver.  +n+ can be a +Float+ including a fractional part,
+ * in which case it is added as a partial day.
+ * 
+ *   DateTime.civil(2009, 1, 2, 6, 0, 0) + 2
+ *   # => #<DateTime 2009-01-04T06:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 6, 0, 0) + -2
+ *   # => #<DateTime 2008-12-31T06:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 6, 0, 0) + 0.5
+ *   # => #<DateTime 2009-01-02T18:00:00+00:00>
+ */
 static VALUE rhrdt_op_plus(VALUE self, VALUE other) {
    return rhrdt__add_days(self, NUM2DBL(other));
 }
 
+/* call-seq:
+ *   -(n) -> DateTime <br />
+ *   -(date) -> Float <br />
+ *   -(datetime) -> Float
+ *
+ * If a +Numeric+ argument is given, it is treated as an +Float+,
+ * and the number of days it represents is substracted from the
+ * receiver to return a new +DateTime+ object. +n+ can be negative, in
+ * which case the +DateTime+ returned will be after the receiver.
+ *
+ * If a +Date+ argument is given, returns the number of days
+ * between the current date and the argument as an +Float+. If
+ * the receiver has no fractional component, will return a +Float+
+ * with no fractional component.  The +Date+ argument is assumed to
+ * have the same time zone offset as the receiver.
+ *
+ * If a +DateTime+ argument is given, returns the number of days
+ * between the receiver and the argument as a +Float+.  This
+ * handles differences in the time zone offsets between the
+ * receiver and the argument.
+ * 
+ *   DateTime.civil(2009, 1, 2) - 2
+ *   # => #<DateTime 2008-12-31T00:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2) - 2.5
+ *   # => #<DateTime 2008-12-30T12:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2) - Date.civil(2009, 1, 1)
+ *   # => 1.0
+ *   DateTime.civil(2009, 1, 2, 12, 0, 0) - Date.civil(2009, 1, 1)
+ *   # => 1.5
+ *   DateTime.civil(2009, 1, 2, 12, 0, 0, 0.5) - Date.civil(2009, 1, 1)
+ *   # => 1.5
+ *   DateTime.civil(2009, 1, 2) - DateTime.civil(2009, 1, 3, 12)
+ *   # => -1.5
+ *   DateTime.civil(2009, 1, 2, 0, 0, 0, 0.5) - DateTime.civil(2009, 1, 3, 12, 0, 0, -0.5)
+ *   # => -2.5
+ */
 static VALUE rhrdt_op_minus(VALUE self, VALUE other) {
   rhrdt_t *dt;
   rhrdt_t *newdt;
