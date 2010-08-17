@@ -2532,30 +2532,72 @@ static VALUE rhrdt_time_to_datetime(VALUE self) {
 
 /* 1.9 day? instance methods */
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   sunday?() -> true or false
+ *
+ * Returns +true+ if the receiver is a Sunday, +false+ otherwise.
+ */
 static VALUE rhrdt_sunday_q(VALUE self) {
   return rhrdt__day_q(self, 0);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   monday?() -> true or false
+ *
+ * Returns +true+ if the receiver is a Monday, +false+ otherwise.
+ */
 static VALUE rhrdt_monday_q(VALUE self) {
   return rhrdt__day_q(self, 1);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   tuesday?() -> true or false
+ *
+ * Returns +true+ if the receiver is a Tuesday, +false+ otherwise.
+ */
 static VALUE rhrdt_tuesday_q(VALUE self) {
   return rhrdt__day_q(self, 2);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   wednesday?() -> true or false
+ *
+ * Returns +true+ if the receiver is a Wednesday, +false+ otherwise.
+ */
 static VALUE rhrdt_wednesday_q(VALUE self) {
   return rhrdt__day_q(self, 3);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   thursday?() -> true or false
+ *
+ * Returns +true+ if the receiver is a Thursday, +false+ otherwise.
+ */
 static VALUE rhrdt_thursday_q(VALUE self) {
   return rhrdt__day_q(self, 4);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   friday?() -> true or false
+ *
+ * Returns +true+ if the receiver is a Friday, +false+ otherwise.
+ */
 static VALUE rhrdt_friday_q(VALUE self) {
   return rhrdt__day_q(self, 5);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   saturday?() -> true or false
+ *
+ * Returns +true+ if the receiver is a Saturday, +false+ otherwise.
+ */
 static VALUE rhrdt_saturday_q(VALUE self) {
   return rhrdt__day_q(self, 6);
 }
