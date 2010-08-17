@@ -8,6 +8,13 @@ describe "DateTime conversions" do
     DateTime.jd(2008, 12, 0, 0, -0.5).ajd.should == 2008.5
   end
 
+  it "#amjd should be a float of the astronomical julian day" do
+    DateTime.jd(2008).amjd.should == -2397993.0
+    DateTime.jd(2008, 12).amjd.should == -2397992.5
+    DateTime.jd(2008, 0, 0, 0, -0.5).amjd.should == -2397992.5
+    DateTime.jd(2008, 12, 0, 0, -0.5).amjd.should == -2397992.0
+  end
+
   it "#new_offset should be a separate datetime with a modified offset" do
     DateTime.new(2008, 1, 1).new_offset(0.5).should == DateTime.new(2008, 1, 1, 12, 0, 0, 0.5)
   end

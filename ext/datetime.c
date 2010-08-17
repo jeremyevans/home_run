@@ -871,10 +871,17 @@ static VALUE rhrdt_ajd(VALUE self) {
   return rb_float_new(d->jd + d->nanos/RHR_NANOS_PER_DAYD - d->offset/1440.0 - 0.5);
 }
 
+/* call-seq:
+ *   amjd() -> Float
+ *
+ * Returns the date and time represented by the receiver as a
+ * astronomical modified julian day +Float+.
+ */
 static VALUE rhrdt_amjd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
+  RHRDT_FILL_NANOS(d)
   return rb_float_new(d->jd + d->nanos/RHR_NANOS_PER_DAYD - d->offset/1440.0 - RHR_JD_MJD);
 }
 
