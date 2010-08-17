@@ -843,6 +843,12 @@ static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
 
 /* Instance methods */
 
+/* call-seq:
+ *   _dump(limit) -> String
+ *
+ * Returns a marshalled representation of the receiver as a +String+.
+ * Generally not called directly, usually called by <tt>Marshal.dump</tt>.
+ */
 static VALUE rhrdt__dump(VALUE self, VALUE limit) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
@@ -851,11 +857,18 @@ static VALUE rhrdt__dump(VALUE self, VALUE limit) {
   return rb_marshal_dump(rb_ary_new3(3, LONG2NUM(d->jd), LL2NUM(d->nanos), LONG2NUM(d->offset)), LONG2NUM(NUM2LONG(limit) - 1));
 }
 
+/* call-seq:
+ *   ajd() -> Float
+ *
+ * Returns the date and time represented by the receiver as a
+ * astronomical julian day +Float+.
+ */
 static VALUE rhrdt_ajd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
-  return rb_float_new(d->jd + d->nanos/RHR_NANOS_PER_DAYD - d->offset/1440.0 + 0.5);
+  RHRDT_FILL_NANOS(d)
+  return rb_float_new(d->jd + d->nanos/RHR_NANOS_PER_DAYD - d->offset/1440.0 - 0.5);
 }
 
 static VALUE rhrdt_amjd(VALUE self) {

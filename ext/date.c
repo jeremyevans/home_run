@@ -2064,7 +2064,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
 /* Ruby instance methods */
 
 /* call-seq:
- *   dump(limit) -> String
+ *   _dump(limit) -> String
  *
  * Returns a marshalled representation of the receiver as a +String+.
  * Generally not called directly, usually called by <tt>Marshal.dump</tt>.
