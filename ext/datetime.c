@@ -480,6 +480,16 @@ static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
   return rhrd__strptime(argv[0], fmt_str, fmt_len);
 }
 
+/* call-seq:
+ *   civil() -> DateTime <br />
+ *   civil(year, month=1, day=1, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime
+ *
+ * If no arguments are given, returns a +DateTime+ for julian day 0.
+ * Otherwise, returns a +DateTime+ for the year, month, day, hour, minute, second
+ * and offset given.
+ * Raises an +ArgumentError+ for invalid dates or times.
+ * Ignores the 8th argument.
+ */
 static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   long year;

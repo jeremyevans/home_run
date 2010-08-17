@@ -13,8 +13,15 @@ describe "DateTime constructors" do
   end
   
   it ".civil should have defaults and an optional sg value" do
-    DateTime.civil(2008, 1, 1, 1, 1, 1, 0.5, 1).should == DateTime.civil(2008, 1, 1, 1, 1, 1, 0.5)
     DateTime.civil.should == DateTime.jd
+    DateTime.civil(2008).should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0)
+    DateTime.civil(2008, 1).should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0)
+    DateTime.civil(2008, 1, 1).should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0)
+    DateTime.civil(2008, 1, 1, 0).should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0)
+    DateTime.civil(2008, 1, 1, 0, 0).should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0)
+    DateTime.civil(2008, 1, 1, 0, 0, 0).should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0)
+    DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0).should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.0)
+    DateTime.civil(2008, 1, 1, 1, 1, 1, 0.5, 1).should == DateTime.civil(2008, 1, 1, 1, 1, 1, 0.5)
   end
 
   it ".commercial creates a datetime with arguments" do
