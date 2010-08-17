@@ -1012,6 +1012,19 @@ static VALUE rhrdt_day_fraction(VALUE self) {
   return rb_float_new(dt->nanos/RHR_NANOS_PER_DAYD);
 }
 
+/* call-seq:
+ *   downto(target){|datetime|} -> DateTime
+ *
+ * Equivalent to calling +step+ with the +target+ as the first argument
+ * and <tt>-1</tt> as the second argument. Returns self.
+ * 
+ *   DateTime.civil(2009, 1, 2).downto(DateTime.civil(2009, 1, 1)) do |datetime|
+ *     puts datetime
+ *   end
+ *   # Output:
+ *   # 2009-01-02T00:00:00+00:00
+ *   # 2009-01-01T00:00:00+00:00
+ */
 static VALUE rhrdt_downto(VALUE self, VALUE other) {
   VALUE argv[2];
   argv[0] = other;
@@ -1165,6 +1178,30 @@ static VALUE rhrdt_sec_fraction(VALUE self) {
   return rb_float_new((dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_DAYD);
 } 
 
+/* call-seq:
+ *   step(target, step=1){|datetime|} -> DateTime
+ *
+ * Yields +DateTime+ objects between the receiver and the +target+ date
+ * (inclusive), with +step+ days between each yielded date.
+ * +step+ may be a an +Integer+, in which case whole days are added,
+ * or it can be a +Float+, in which case fractional days are added.
+ * +step+ can be negative, in which case the dates are yielded in
+ * reverse chronological order.  Returns self in all cases.
+ *
+ * If +target+ is equal to the receiver, yields self once regardless of
+ * +step+. It +target+ is less than receiver and +step+ is nonnegative, or
+ * +target+ is greater than receiver and +step+ is nonpositive, does not
+ * yield.
+ * 
+ *   DateTime.civil(2009, 1, 2).step(DateTime.civil(2009, 1, 6), 2) do |datetime|
+ *     puts datetime
+ *   end
+ *   # Output:
+ *   # 2009-01-02T00:00:00+00:00
+ *   # 2009-01-04T00:00:00+00:00
+ *   # 2009-01-06T00:00:00+00:00
+ *   # 
+ */
 static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   rhrdt_t *d, *ndt, *d0;
   rhrd_t *nd;
@@ -1221,7 +1258,7 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   new = rhrdt__from_jd_nanos(current_jd, current_nanos, d->offset);
   if (limit_jd > current_jd || (limit_jd == current_jd && limit_nanos > current_nanos)) {
     if (step_jd > 0 || (step_jd == 0 && step_nanos > 0)) {
-      while (limit_jd >= current_jd || (limit_jd == current_jd && limit_nanos >= current_nanos)) {
+      while (limit_jd > current_jd || (limit_jd == current_jd && limit_nanos >= current_nanos)) {
         rb_yield(new);
         new = rhrdt__from_jd_nanos(current_jd + step_jd, current_nanos + step_nanos, d->offset);
         Data_Get_Struct(new, rhrdt_t, ndt);
@@ -1231,7 +1268,7 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
     }
   } else if (limit_jd < current_jd || (limit_jd == current_jd && limit_nanos < current_nanos)) {
     if (step_jd < 0 || (step_jd == 0 && step_nanos < 0)) {
-      while (limit_jd <= current_jd || (limit_jd == current_jd && limit_nanos <= current_nanos)) {
+      while (limit_jd < current_jd || (limit_jd == current_jd && limit_nanos <= current_nanos)) {
         rb_yield(new);
         new = rhrdt__from_jd_nanos(current_jd + step_jd, current_nanos + step_nanos, d->offset);
         Data_Get_Struct(new, rhrdt_t, ndt);
@@ -1287,6 +1324,18 @@ static VALUE rhrdt_to_s(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   upto(target){|datetime|} -> DateTime
+ *
+ * Equivalent to calling +step+ with the +target+ as the first argument. Returns self.
+ * 
+ *   DateTime.civil(2009, 1, 1).upto(DateTime.civil(2009, 1, 2)) do |datetime|
+ *     puts datetime
+ *   end
+ *   # Output:
+ *   # 2009-01-01T00:00:00+00:00
+ *   # 2009-01-02T00:00:00+00:00
+ */
 static VALUE rhrdt_upto(VALUE self, VALUE other) {
   VALUE argv[1];
   argv[0] = other;

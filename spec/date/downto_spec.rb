@@ -6,7 +6,7 @@ describe "Date#downto" do
     ds    = Date.civil(2000, 4, 14)
     de    = Date.civil(2000, 3, 29)
     count = 0
-    ds.step(de, -1) do |d|
+    ds.downto(de) do |d|
       d.should <= ds
       d.should >= de
       count += 1
