@@ -1210,6 +1210,14 @@ static VALUE rhrdt_mjd(VALUE self) {
   return LONG2NUM(d->jd - RHR_JD_MJD);
 }
 
+/* call-seq:
+ *   month() -> Integer
+ *
+ * Returns the number of the month as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).month
+ *   # => 1
+ */
 static VALUE rhrdt_month(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
@@ -1434,6 +1442,15 @@ static VALUE rhrdt_upto(VALUE self, VALUE other) {
   return rhrdt_step(1, argv, self);
 }
 
+/* call-seq:
+ *   wday() -> Integer
+ *
+ * Returns the day of the week as an +Integer+, where Sunday
+ * is 0 and Saturday is 6. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).wday
+ *   # => 5
+ */
 static VALUE rhrdt_wday(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
@@ -1441,6 +1458,16 @@ static VALUE rhrdt_wday(VALUE self) {
   return LONG2NUM(rhrd__jd_to_wday(d->jd));
 }
 
+/* call-seq:
+ *   yday() -> Integer
+ *
+ * Returns the day of the year as an +Integer+, where January
+ * 1st is 1 and December 31 is 365 (or 366 if the year is a leap
+ * year). Example:
+ * 
+ *   DateTime.civil(2009, 2, 2).yday
+ *   # => 33
+ */
 static VALUE rhrdt_yday(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
@@ -1448,6 +1475,14 @@ static VALUE rhrdt_yday(VALUE self) {
   return LONG2NUM(rhrd__ordinal_day(d->year, d->month, d->day));
 }
 
+/* call-seq:
+ *   year() -> Integer
+ *
+ * Returns the year as an +Integer+. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).year
+ *   # => 2009
+ */
 static VALUE rhrdt_year(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);

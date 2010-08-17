@@ -158,3 +158,61 @@ describe "DateTime#ld" do
   end 
 end
 
+describe "DateTime#wday" do
+  it "should be able to determine the week day for a date" do
+    DateTime.civil(2007,  1, 17).wday.should == 3
+    DateTime.civil(2008, 10, 26).wday.should == 0
+    DateTime.commercial(2008, 1, 1).wday.should == 1
+    DateTime.commercial(2008, 52, 1).wday.should == 1
+    DateTime.jd(2454782).wday.should == 2
+    DateTime.jd(2454832).wday.should == 3
+    DateTime.ordinal(2008, 1).wday.should == 2
+    DateTime.ordinal(2008, 170).wday.should == 3
+    DateTime.ordinal(2008, 366).wday.should == 3
+  end
+end
+
+describe "DateTime#year" do
+  it "should be able to determine the year for a date" do
+    DateTime.civil(2007, 1, 17).year.should == 2007
+    DateTime.civil(2008, 1, 17).year.should == 2008
+    DateTime.commercial(2008, 1, 1).year.should == 2007
+    DateTime.commercial(2008, 52, 1).year.should == 2008
+    DateTime.jd(2454782).year.should == 2008
+    DateTime.jd(2454833).year.should == 2009
+    DateTime.ordinal(2008, 1).year.should == 2008
+    DateTime.ordinal(2008, 170).year.should == 2008
+    DateTime.ordinal(2008, 366).year.should == 2008
+  end 
+end
+
+describe "DateTime#yday" do
+  it "should be able to determine the year for a date" do
+    DateTime.civil(2007,  1, 17).yday.should == 17
+    DateTime.civil(2008, 10, 28).yday.should == 302
+    DateTime.commercial(2008, 1, 1).yday.should == 365
+    DateTime.commercial(2008, 52, 1).yday.should == 357
+    DateTime.jd(2454782).yday.should == 316
+    DateTime.jd(2454832).yday.should == 366
+    DateTime.ordinal(2008, 1).yday.should == 1
+    DateTime.ordinal(2008, 170).yday.should == 170
+    DateTime.ordinal(2008, 366).yday.should == 366
+  end 
+end
+
+describe "DateTime#mon and #month" do
+  it "should be able to determine the month for a date" do
+    DateTime.civil(2007,  1, 17).mon.should == 1
+    DateTime.civil(2008, 10, 28).mon.should == 10
+    DateTime.civil(2007,  1, 17).month.should == 1
+    DateTime.civil(2008, 10, 28).month.should == 10
+    DateTime.commercial(2008, 1, 1).mon.should == 12
+    DateTime.commercial(2008, 52, 1).mon.should == 12
+    DateTime.jd(2454782).mon.should == 11
+    DateTime.jd(2454832).mon.should == 12
+    DateTime.ordinal(2008, 1).mon.should == 1
+    DateTime.ordinal(2008, 170).mon.should == 6
+    DateTime.ordinal(2008, 366).mon.should == 12
+  end 
+end
+
