@@ -48,5 +48,12 @@ describe "DateTime formatting methods" do
     it "#xmlschema should use an ISO8601 format" do
       DateTime.new(2009, 1, 2, 3, 4, 5, 0.5).xmlschema.should ==  "2009-01-02T03:04:05+12:00"
     end
+
+    it "should handle fractional seconds if given an argument for iso8601, jisx0301, rfc3339, and xmlschema" do
+      DateTime.new(2009, 1, 2, 3, 4, 5, 0.5).iso8601(4).should ==  "2009-01-02T03:04:05.0000+12:00"
+      DateTime.new(2009, 1, 2, 3, 4, 5, 0.5).jisx0301(4).should ==  "H21.01.02T03:04:05.0000+12:00"
+      DateTime.new(2009, 1, 2, 3, 4, 5, 0.5).rfc3339(4).should ==  "2009-01-02T03:04:05.0000+12:00"
+      DateTime.new(2009, 1, 2, 3, 4, 5, 0.5).xmlschema(4).should ==  "2009-01-02T03:04:05.0000+12:00"
+    end
   end
 end

@@ -2078,8 +2078,17 @@ static VALUE rhrdt_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
   }
 }
 
-/* 1.9 instance methods */
+/* Ruby 1.9 instance methods */
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   httpdate() -> String
+ *
+ * Returns the receiver as a +String+ in HTTP format. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2, 3, 4, 5).httpdate
+ *   # => "Fri, 02 Jan 2009 03:04:05 GMT"
+ */
 static VALUE rhrdt_httpdate(VALUE self) {
   VALUE s;
   rhrdt_t *d;
@@ -2103,6 +2112,20 @@ static VALUE rhrdt_httpdate(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   iso8601(n=0) -> String
+ *
+ * Returns the receiver as a +String+ in ISO8601 format.
+ * If an argument is given, it should be an +Integer+ representing
+ * the number of decimal places to use for the fractional seconds.
+ * Example:
+ * 
+ *   DateTime.civil(2009, 1, 2, 3, 4, 5, 0.5).iso8601
+ *   # => "2009-01-02T03:04:05+12:00"
+ *   DateTime.civil(2009, 1, 2, 3, 4, 5, 0.5).iso8601(4)
+ *   # => "2009-01-02T03:04:05.0000+12:00"
+ */
 static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
   long i;
   VALUE s;
@@ -2136,6 +2159,20 @@ static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   jisx0301(n=0) -> String
+ *
+ * Returns the receiver as a +String+ in JIS X 0301 format.
+ * If an argument is given, it should be an +Integer+ representing
+ * the number of decimal places to use for the fractional seconds.
+ * Example:
+ * 
+ *   Date.civil(2009, 1, 2, 3, 4, 5, 0.5).jisx0301
+ *   # => "H21.01.02T03:04:05+12:00"
+ *   Date.civil(2009, 1, 2, 3, 4, 5, 0.5).jisx0301(4)
+ *   # => "H21.01.02T03:04:05.0000+12:00"
+ */
 static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
   VALUE s;
   rhrdt_t *d;
@@ -2297,6 +2334,15 @@ static VALUE rhrdt_prev_year(int argc, VALUE *argv, VALUE self) {
   return rhrdt__add_years(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   rfc2822() -> String
+ *
+ * Returns the receiver as a +String+ in RFC2822 format. Example:
+ * 
+ *   DateTime.civil(2009, 1, 2, 3, 4, 5, 0.5).rfc2822
+ *   # => "Fri, 2 Jan 2009 03:04:05 +1200"
+ */
 static VALUE rhrdt_rfc2822(VALUE self) {
   VALUE s;
   rhrdt_t *d;
