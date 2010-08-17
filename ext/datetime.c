@@ -993,6 +993,18 @@ static VALUE rhrdt_day(VALUE self) {
   return LONG2NUM(dt->day);
 }
 
+/* call-seq:
+ *   day_fraction() -> Float
+ *
+ * Returns the fraction of the day as a +Float+.  Example:
+ * 
+ *   DateTime.civil(2009, 1, 2).day_fraction
+ *   # => 0.0
+ *   DateTime.civil(2009, 1, 2, 12).day_fraction
+ *   # => 0.5
+ *   DateTime.civil(2009, 1, 2, 6).day_fraction
+ *   # => 0.25
+ */
 static VALUE rhrdt_day_fraction(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);

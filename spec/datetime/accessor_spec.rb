@@ -4,6 +4,7 @@ describe "DateTime#day_fraction" do
   it "should be able to determine the fraction of the day" do
     DateTime.new(2008, 1, 1).day_fraction.should == 0.0
     DateTime.new(2008, 1, 1, 12).day_fraction.should == 0.5
+    DateTime.new(2008, 1, 1, 6).day_fraction.should == 0.25
   end 
 end
 
