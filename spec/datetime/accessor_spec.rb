@@ -114,3 +114,17 @@ describe "DateTime#mday and #day" do
   end
 end
 
+describe "DateTime#jd" do
+  it "should be able to determine the julian date for a date" do
+    DateTime.civil(2007,  1, 17).jd.should == 2454118
+    DateTime.civil(2008, 10, 28).jd.should == 2454768
+    DateTime.commercial(2008, 1, 1).jd.should == 2454466
+    DateTime.commercial(2008, 52, 1).jd.should == 2454823
+    DateTime.jd(2454782).jd.should == 2454782
+    DateTime.jd(2454832).jd.should == 2454832
+    DateTime.ordinal(2008, 1).jd.should == 2454467
+    DateTime.ordinal(2008, 359).jd.should == 2454825
+    DateTime.ordinal(2008, 366).jd.should == 2454832
+  end 
+end
+

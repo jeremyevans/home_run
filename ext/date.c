@@ -2314,7 +2314,7 @@ static VALUE rhrd_inspect(VALUE self) {
 /* call-seq:
  *   jd() -> Integer
  *
- * Return the julian date for the receiver as an +Integer+.
+ * Return the julian day number for the receiver as an +Integer+.
  *
  *   Date.civil(2009, 1, 2).jd
  *   # => 2454834

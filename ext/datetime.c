@@ -1131,6 +1131,14 @@ static VALUE rhrdt_inspect(VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   jd() -> Integer
+ *
+ * Return the julian day number for the receiver as an +Integer+.
+ *
+ *   DateTime.civil(2009, 1, 2).jd
+ *   # => 2454834
+ */
 static VALUE rhrdt_jd(VALUE self) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
