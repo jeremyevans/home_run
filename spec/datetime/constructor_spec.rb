@@ -82,6 +82,43 @@ describe "DateTime constructors" do
     DateTime.jd(2008, 1, 1, 1, 0.5, 1).should == DateTime.jd(2008, 1, 1, 1, 0.5)
   end
   
+  it ".new! creates a datetime with arguments" do
+    d = DateTime.new!(2422222)
+    d.jd.should == 2422222
+    d.hour.should == 12
+    d.min.should == 0
+    d.sec.should == 0
+    d.offset.should == 0
+
+    d = DateTime.new!(2422222.5)
+    d.jd.should == 2422223
+    d.hour.should == 0
+    d.min.should == 0
+    d.sec.should == 0
+    d.offset.should == 0
+
+    d = DateTime.new!(2422222, 0.5)
+    d.jd.should == 2422223
+    d.hour.should == 0
+    d.min.should == 0
+    d.sec.should == 0
+    d.offset.should == 0.5
+
+    d = DateTime.new!(2422222.5, 0.5)
+    d.jd.should == 2422223
+    d.hour.should == 12
+    d.min.should == 0
+    d.sec.should == 0
+    d.offset.should == 0.5
+  end
+  
+  it ".new! should have defaults and an optional sg value" do
+    DateTime.new!.should == DateTime.jd
+    DateTime.new!(0).should == DateTime.new!(0, 0)
+    DateTime.new!(0, 0).should == DateTime.new!(0, 0)
+    DateTime.new!(2008, 0.5, 1).should == DateTime.new!(2008, 0.5)
+  end
+  
   it ".ordinal creates a datetime with arguments" do
     d = DateTime.ordinal(2000, 100, 6, 7, 8, 1/24.0)
     d.year.should == 2000

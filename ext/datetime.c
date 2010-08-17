@@ -648,6 +648,24 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+/* call-seq:
+ *   new!(ajd=0, offset=0.0, sg=nil) -> Date
+ *
+ * Returns a +DateTime+ for the astronomical julian day number and offset given.
+ * To include a fractional day, +ajd+ can be a +Float+. The date is assumed
+ * to be based at noon UTC, so if +ajd+ is an +Integer+ and +offset+ is 0,
+ * the hour will be 12.
+ * Ignores the 3rd argument. Example:
+ *
+ *   DateTime.new!(2422222).to_s
+ *   # => "1919-09-20T12:00:00+00:00"
+ *   DateTime.new!(2422222.5).to_s
+ *   # => "1919-09-21T00:00:00+00:00"
+ *   DateTime.new!(2422222, 0.5).to_s
+ *   # => "1919-09-21T00:00:00+12:00"
+ *   DateTime.new!(2422222.5, 0.5).to_s
+ *   # => "1919-09-21T12:00:00+12:00"
+ */
 static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
   double offset = 0;
   rhrdt_t *dt;
