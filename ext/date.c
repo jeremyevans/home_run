@@ -61,6 +61,7 @@ so that no calculations can overflow.
 #define RHR_HAVE_NANOS 4
 #define RHR_HAVE_HMS 8
 
+#define RHR_NANOS_PER_MILLISECOND 1000000LL
 #define RHR_NANOS_PER_SECOND 1000000000LL
 #define RHR_NANOS_PER_MINUTE 60000000000LL
 #define RHR_NANOS_PER_DAY 86400000000000LL
@@ -864,7 +865,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
           cp += sprintf(str + cp, d->hour >= 12 ? "pm" : "am");
           break;
         case 'Q':
-          cp += sprintf(str + cp, "%lli", (rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60) * 1000);
+          cp += sprintf(str + cp, "%lli", rhrd__jd_to_unix(d->jd) * 1000 + d->nanos/RHR_NANOS_PER_MILLISECOND - d->offset * 60000);
           break;
         case 'r':
           cp += sprintf(str + cp, "%2hhi:%02hhi:%02hhi %s", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12, d->minute, d->second, d->hour >= 12 ? "PM" : "AM");

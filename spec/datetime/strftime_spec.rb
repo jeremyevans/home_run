@@ -27,9 +27,19 @@ describe "DateTime#strftime" do
     DateTime.civil(2000, 4, 6, 13, 11, 12).strftime('%l').should == " 1"
   end
   
+  it "should be able to print the number of milliseconds of the second" do
+    DateTime.civil(2008, 11, 12, 14, 3, 30, -8/24.0).strftime('%L').should == "000"
+    (DateTime.civil(2008, 11, 12, 14, 3, 31, 8/24.0) + (0.5/86400)).strftime('%L').should == "500"
+  end
+  
   it "should be able to print the minute with leading zero" do
     DateTime.civil(2000, 4, 6, 10, 11, 12).strftime('%M').should == "11"
     DateTime.civil(2000, 4, 6, 10, 14, 12).strftime('%M').should == "14"
+  end
+  
+  it "should be able to print the number of nanoseconds of the second" do
+    DateTime.civil(2008, 11, 12, 14, 3, 30, -8/24.0).strftime('%N').should == "000000000"
+    (DateTime.civil(2008, 11, 12, 14, 3, 31, 8/24.0) + (0.5/86400)).strftime('%N').should == "500000000"
   end
   
   it "should be able to print the meridian indicator in lower case" do
@@ -40,6 +50,11 @@ describe "DateTime#strftime" do
   it "should be able to print the meridian indicator in upper case" do
     DateTime.civil(2000, 4, 6, 10, 11, 12).strftime('%p').should == "AM"
     DateTime.civil(2000, 4, 6, 13, 11, 12).strftime('%p').should == "PM"
+  end
+  
+  it "should be able to print the number of milliseconds since the unix epoch" do
+    DateTime.civil(2008, 11, 12, 14, 3, 30, -8/24.0).strftime('%Q').should == "1226527410000"
+    (DateTime.civil(2008, 11, 12, 14, 3, 31, 8/24.0) + (0.5/86400)).strftime('%Q').should == "1226469811500"
   end
   
   it "should be able to print the second with leading zero" do
