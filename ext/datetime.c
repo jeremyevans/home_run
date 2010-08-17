@@ -537,6 +537,20 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   return rdt;
 }
 
+/* call-seq:
+ *   commercial() -> DateTime <br />
+ *   commercial(cwyear, cweek=41, cwday=5, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime [ruby 1-8] <br />
+ *   commercial(cwyear, cweek=1, cwday=1, hour=0, minute=0, second=0, offset=0.0, sg=nil) -> DateTime [ruby 1-9]
+ *
+ * If no arguments are given:
+ * * ruby 1.8: returns a +DateTime+ for 1582-10-15 (the Day of Calendar Reform in Italy)
+ * * ruby 1.9: returns a +DateTime+ for julian day 0
+ *
+ * Otherwise, returns a +DateTime+ for the commercial week year, commercial week, 
+ * commercial week day, hour, minute, second, and offset given.
+ * Raises an +ArgumentError+ for invalid dates or times.
+ * Ignores the 8th argument.
+ */
 static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
   long cwyear = RHR_DEFAULT_CWYEAR;
