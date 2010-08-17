@@ -885,6 +885,14 @@ static VALUE rhrdt_amjd(VALUE self) {
   return rb_float_new(d->jd + d->nanos/RHR_NANOS_PER_DAYD - d->offset/1440.0 - RHR_JD_MJD);
 }
 
+/* call-seq:
+ *   asctime() -> String
+ *
+ * Returns a string representation of the receiver.  Example:
+ * 
+ *   DateTime.civil(2009, 1, 2, 3, 4, 5).asctime
+ *   # => "Fri Jan  2 03:04:05 2009"
+ */
 static VALUE rhrdt_asctime(VALUE self) {
   VALUE s;
   rhrdt_t *d;
