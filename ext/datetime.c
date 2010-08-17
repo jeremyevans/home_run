@@ -2226,6 +2226,19 @@ static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
   RHR_RETURN_RESIZED_STR(s, len)
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   next_day(n=1) -> DateTime
+ *
+ * Returns a +DateTime+ +n+ days after the receiver.  If +n+ is negative,
+ * returns a +DateTime+ before the receiver.
+ * The new +DateTime+ is returned with the same fractional part and offset as the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).next_day
+ *   # => #<DateTime 2009-01-03T12:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 12).next_day(2)
+ *   # => #<DateTime 2009-01-04T12:00:00+00:00>
+ */
 static VALUE rhrdt_next_day(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -2244,6 +2257,19 @@ static VALUE rhrdt_next_day(int argc, VALUE *argv, VALUE self) {
    return rhrdt__add_days(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   next_month(n=1) -> DateTime
+ *
+ * Returns a +DateTime+ +n+ months after the receiver.  If +n+ is negative,
+ * returns a +DateTime+ before the receiver.
+ * The new +DateTime+ is returned with the same fractional part and offset as the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).next_month
+ *   # => #<DateTime 2009-02-02T12:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 12).next_month(2)
+ *   # => #<DateTime 2009-03-02T12:00:00+00:00>
+ */
 static VALUE rhrdt_next_month(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -2262,6 +2288,19 @@ static VALUE rhrdt_next_month(int argc, VALUE *argv, VALUE self) {
   return rhrdt__add_months(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   next_year(n=1) -> DateTime
+ *
+ * Returns a +DateTime+ +n+ years after the receiver.  If +n+ is negative,
+ * returns a +DateTime+ before the receiver.
+ * The new +DateTime+ is returned with the same fractional part and offset as the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).next_year
+ *   # => #<DateTime 2010-01-02T12:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 12).next_year(2)
+ *   # => #<DateTime 2011-01-02T12:00:00+00:00>
+ */
 static VALUE rhrdt_next_year(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -2280,6 +2319,19 @@ static VALUE rhrdt_next_year(int argc, VALUE *argv, VALUE self) {
   return rhrdt__add_years(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   prev_day(n=1) -> DateTime
+ *
+ * Returns a +DateTime+ +n+ days before the receiver.  If +n+ is negative,
+ * returns a +DateTime+ after the receiver.
+ * The new +DateTime+ is returned with the same fractional part and offset as the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).prev_day
+ *   # => #<DateTime 2009-01-01T12:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 12).prev_day(2)
+ *   # => #<DateTime 2008-12-31T12:00:00+00:00>
+ */
 static VALUE rhrdt_prev_day(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -2298,6 +2350,19 @@ static VALUE rhrdt_prev_day(int argc, VALUE *argv, VALUE self) {
    return rhrdt__add_days(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   prev_month(n=1) -> DateTime
+ *
+ * Returns a +DateTime+ +n+ months before the receiver.  If +n+ is negative,
+ * returns a +DateTime+ after the receiver.
+ * The new +DateTime+ is returned with the same fractional part and offset as the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).prev_month
+ *   # => #<DateTime 2008-12-02T12:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 12).prev_month(2)
+ *   # => #<DateTime 2008-11-02T12:00:00+00:00>
+ */
 static VALUE rhrdt_prev_month(int argc, VALUE *argv, VALUE self) {
   long i;
 
@@ -2316,6 +2381,19 @@ static VALUE rhrdt_prev_month(int argc, VALUE *argv, VALUE self) {
   return rhrdt__add_months(self, i);
 }
 
+/* call-seq:
+ *   [ruby 1-9 only] <br />
+ *   prev_year(n=1) -> DateTime
+ *
+ * Returns a +DateTime+ +n+ years before the receiver.  If +n+ is negative,
+ * returns a +DateTime+ after the receiver.
+ * The new +DateTime+ is returned with the same fractional part and offset as the receiver.
+ * 
+ *   DateTime.civil(2009, 1, 2, 12).prev_year
+ *   # => #<DateTime 2008-01-02T12:00:00+00:00>
+ *   DateTime.civil(2009, 1, 2, 12).prev_year(2)
+ *   # => #<DateTime 2007-01-02T12:00:00+00:00>
+ */
 static VALUE rhrdt_prev_year(int argc, VALUE *argv, VALUE self) {
   long i;
 
