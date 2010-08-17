@@ -1274,6 +1274,16 @@ static VALUE rhrdt_next(VALUE self) {
    return rhrdt__add_days(self, 1);
 }
 
+/* call-seq:
+ *   offset() -> Float
+ *
+ * Returns a +Float+ representing the offset from UTC as a fraction
+ * of the day, where 0.5 would be 12 hours ahead of UTC ("+12:00"),
+ * and -0.5 would be 12 hours behind UTC ("-12:00").
+ * 
+ *   DateTime.civil(2009, 1, 2, 12, 13, 14, -0.5).offset
+ *   # => -0.5
+ */
 static VALUE rhrdt_offset(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);

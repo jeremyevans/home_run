@@ -20,7 +20,7 @@ describe "DateTime#min" do
   end
 end
 
-describe "DateTime#offset and #utc_offset" do
+describe "DateTime#offset" do
   it "should be able to determine the offset of the day from UTC" do
     DateTime.jd(2007, 1, 2, 3, 6/24.0).offset.should == 6/24.0
     DateTime.parse('2008-01-01 00:00:00+12:00').offset.should == 0.5
