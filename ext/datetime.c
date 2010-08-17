@@ -1649,6 +1649,8 @@ static VALUE rhrdt_op_plus(VALUE self, VALUE other) {
  * handles differences in the time zone offsets between the
  * receiver and the argument.
  * 
+ * Other types of arguments raise a +TypeError+.
+ *
  *   DateTime.civil(2009, 1, 2) - 2
  *   # => #<DateTime 2008-12-31T00:00:00+00:00>
  *   DateTime.civil(2009, 1, 2) - 2.5
@@ -1701,6 +1703,19 @@ static VALUE rhrdt_op_minus(VALUE self, VALUE other) {
   rb_raise(rb_eTypeError, "expected numeric or date");
 }
 
+/* call-seq:
+ *   ===(other) -> true or false
+ *
+ * If +other+ is a +Date+, returns +true+ if +other+ is the
+ * same date as the receiver, or +false+ otherwise.
+ *
+ * If +other+ is a +DateTime+, return +true+ if +other has the same
+ * julian date as the receiver, or +false+ otherwise.
+ *
+ * If +other+ is a +Numeric+, convert it to an +Integer+ and return
+ * +true+ if it is equal to the receiver's julian date, or +false+
+ * otherwise. 
+ */
 static VALUE rhrdt_op_relationship(VALUE self, VALUE other) {
   rhrdt_t *dt, *odt;
   rhrd_t *o;

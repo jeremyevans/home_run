@@ -2771,6 +2771,8 @@ static VALUE rhrd_op_plus(VALUE self, VALUE other) {
  * considers the receiver to be in the same time zone as the
  * argument.
  * 
+ * Other types of arguments raise a +TypeError+.
+ * 
  *   Date.civil(2009, 1, 2) - 2
  *   # => #<Date 2008-12-31>
  *   Date.civil(2009, 1, 2) - Date.civil(2009, 1, 1)
