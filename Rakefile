@@ -21,7 +21,7 @@ end
 desc "Run the specs with mspec"
 task :default => :spec
 task :spec do
-  sh %{mspec -I ext -rdate spec/*/*_spec.rb}
+  sh %{mspec}
 end
 
 desc "Build the gem"
