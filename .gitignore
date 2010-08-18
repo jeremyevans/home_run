@@ -1,6 +1,6 @@
 *.rbc
 /ext/Makefile
-/ext/date.*o
+/ext/date_ext.*o
 /ext/date_parser.c
 /rdoc
 /*.gem

@@ -1,7 +1,7 @@
 require "rake"
 require "rake/clean"
 
-CLEAN.include %w'Makefile ext/date.*o **/*.rbc *.core' 
+CLEAN.include %w'Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
 RUBY=ENV['RUBY'] || 'ruby'
 IRBPROG=ENV['IRB'] || 'irb'
 
@@ -36,7 +36,7 @@ begin
   ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
   load('home_run.gemspec')
   Rake::ExtensionTask.new('home_run', HOME_RUN_GEMSPEC) do |ext|
-    ext.name = 'date'
+    ext.name = 'date_ext'
     ext.ext_dir = 'ext' 
     ext.lib_dir = 'ext' 
     ext.cross_compile = true
@@ -45,15 +45,26 @@ begin
   end
 
   # FIXME: Incredibly hacky, should figure out how to get
-  # rake compiler to do this.
+  # rake compiler to do this correctly
   desc "Build the cross compiled windows binary gem"
-  task :windows_gem do
-    sh %{rm -rf tmp}
-    sh %{rm -rf home_run-*.gem}
-    sh %{rake cross native gem}
-    sh %{rm -rf home_run-*.gem}
+  task :windows_gem => :clean do
+    sh %{rm -rf tmp pkg home_run-*.gem ext/1.*}
+    system %{rake cross native gem}
+    unless File.directory?('pkg')
+      sh %{cp ext/*.c tmp/i386-mswin32/date_ext/1.8.6}
+      system %{rake cross native gem}
+      sh %{cp ext/*.c tmp/i386-mswin32/date_ext/1.9.1}
+      system %{rake cross native gem}
+      sh %{rake cross native gem}
+    end
+    sh %{rm -rf home_run-*.gem tmp ext/1.*}
     sh %{mv pkg/home_run-*.gem .}
     sh %{rmdir pkg}
+  end
+
+  desc "Build the cross compiled windows binary gem"
+  task :windows_gem_clean do
+    sh %{rm -rf tmp ext/1.{8,9}}
   end
 rescue LoadError
 end
