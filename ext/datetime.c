@@ -461,7 +461,7 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
  * +_strptime+ supports the same formats that <tt>DateTime#strftime</tt> does.
  */
 static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
-  char * fmt_str = "%FT%T%z";
+  const char * fmt_str = "%FT%T%z";
   long fmt_len = 7;
   VALUE r;
 

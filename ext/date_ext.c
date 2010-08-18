@@ -772,7 +772,7 @@ VALUE rhrd__from_hash(VALUE hash) {
   }
 }
 
-VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
+VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
   int i;
   int cp = 0;
   int str_len = 128;
@@ -951,7 +951,7 @@ VALUE rhrd__strftime(rhrdt_t *d, char * fmt, int fmt_len) {
   RHR_RETURN_RESIZED_STR(s, cp)
 }
 
-VALUE rhrd__strptime(VALUE rstr, char *fmt_str, long fmt_len) {
+VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
   char * str;
   long len;
   long year = 0;
@@ -1515,7 +1515,7 @@ static VALUE rhrd_s__ragel_parse(VALUE klass, VALUE s) {
  * +_strptime+ supports the same formats that <tt>Date#strftime</tt> does.
  */
 static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
-  char * fmt_str = "%F";
+  const char * fmt_str = "%F";
   long fmt_len = 2;
   VALUE r;
 
