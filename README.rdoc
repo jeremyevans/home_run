@@ -224,7 +224,6 @@ above, please test and send me a report including:
 == Todo
 
 * Get it working on jruby with the cext branch.
-* Add RDoc documentation for all ruby methods.
 * Add more specs for greater code coverage and to test
   boundry conditions.
 * Add way to configure parsing so that you can get 1.9 style
