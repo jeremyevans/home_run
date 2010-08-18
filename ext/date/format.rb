@@ -6,6 +6,13 @@ require 'date' unless defined?(Date)
 class Date
 
   module Format # :nodoc:
+    if RUBY_VERSION < '1.8.7'
+      STYLE = {:dot=>:mdy, :slash=>:mdy}
+    elsif RUBY_VERSION >= '1.9.0'
+      STYLE = {:dot=>:ymd, :slash=>:ymd}
+    else
+      STYLE = {:dot=>:ymd, :slash=>:mdy}
+    end
 
     MONTHS = {
       'january'  => 1, 'february' => 2, 'march'    => 3, 'april'    => 4,
@@ -270,10 +277,13 @@ class Date
 
   def self._parse_sla(str, e) # :nodoc:
     if str.sub!(%r|('?-?\d+)/\s*('?\d+)(?:\D\s*('?-?\d+))?|, ' ') # '
-      if RUBY_VERSION >= '1.9.0'
-        s3e(e, $1, $2, $3)
-      else
+      case Format::STYLE[:slash]
+      when :mdy
         s3e(e, $3, $1, $2)
+      when :dmy
+        s3e(e, $3, $2, $1)
+      else
+        s3e(e, $1, $2, $3)
       end
       true
     end
@@ -281,10 +291,13 @@ class Date
 
   def self._parse_dot(str, e) # :nodoc:
     if str.sub!(%r|('?-?\d+)\.\s*('?\d+)\.\s*('?-?\d+)|, ' ') # '
-      if RUBY_VERSION >= '1.8.7'
-        s3e(e, $1, $2, $3)
-      else
+      case Format::STYLE[:dot]
+      when :mdy
         s3e(e, $3, $1, $2)
+      when :dmy
+        s3e(e, $3, $2, $1)
+      else
+        s3e(e, $1, $2, $3)
       end
       true
     end

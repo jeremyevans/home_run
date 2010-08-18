@@ -390,3 +390,53 @@ ruby_version_is "1.8.7" do
     end
   end
 end
+
+describe "Date::Format::STYLE" do
+  before do
+    @style = Date::Format::STYLE.dup
+  end
+  after do
+    Date::Format::STYLE.replace(@style)
+  end
+
+  it "Can change DD/DD/DD parsing by modifying Format::STYLE[:slash]" do
+    Date::Format::STYLE[:slash] = :ymd
+    d = Date.parse("10/01/07")
+    d.year.should  == 2010
+    d.month.should == 1
+    d.day.should   == 7
+
+    Date::Format::STYLE[:slash] = :mdy
+    d = Date.parse("10/01/07")
+    d.year.should  == 2007
+    d.month.should == 10
+    d.day.should   == 1
+
+    Date::Format::STYLE[:slash] = :dmy
+    d = Date.parse("10/01/07")
+    d.year.should  == 2007
+    d.month.should == 1
+    d.day.should   == 10
+  end
+
+  it "Can change DD.DD.DD parsing by modifying Format::STYLE[:dot]" do
+    Date::Format::STYLE[:dot] = :ymd
+    d = Date.parse("10.01.07")
+    d.year.should  == 2010
+    d.month.should == 1
+    d.day.should   == 7
+
+    Date::Format::STYLE[:dot] = :mdy
+    d = Date.parse("10.01.07")
+    d.year.should  == 2007
+    d.month.should == 10
+    d.day.should   == 1
+
+    Date::Format::STYLE[:dot] = :dmy
+    d = Date.parse("10.01.07")
+    d.year.should  == 2007
+    d.month.should == 1
+    d.day.should   == 10
+  end
+end
+
