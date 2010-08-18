@@ -120,6 +120,10 @@ you use the standard library.
 * When parsing the %Q modifier in _strptime, the hash returned
   includes an Integer :seconds value and a Float :sec_fraction
   value instead of a single Rational :seconds value.
+* You can use the Date::Format::STYLE hash to change how to parse
+  DD/DD/DD and DD.DD.DD date formats, allowing you to get ruby 1.9
+  behavior on 1.8 or vice-versa.  This is probably the only new
+  feature in that isn't in the standard library.
 
 Any other differences will either be documented here or considered
 bugs, so please report any other differences you find.
@@ -149,9 +153,7 @@ There are a few requirements:
   Ragel if you are working with a git checkout.
 * MSpec (not RSpec) for running the specs.  The specs are based on
   the rubyspec specs, which is why they use MSpec.
-* RDoc 2.5.10+ (not yet released) or trunk from RubyForge.  The
-  documentation will not display class methods correctly with RDoc
-  2.5.9 and previous versions.
+* RDoc 2.5.10+ if you want to build the documentation.
 
 The directory layout is slightly unusual in that there is no
 lib directory and there are .rb files in the ext directory. This may
@@ -197,7 +199,7 @@ home_run has been tested on the following:
 
 * Linux (i386)
 * OpenBSD (amd64, i386)
-* Windows (i386)
+* Windows XP (i386)
 
 === Compiler Versions
 
