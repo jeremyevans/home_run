@@ -304,7 +304,6 @@ above, please test and send me a report including:
   boundry conditions
 * Expand main ragel parser to handle more formats
 * Add ragel versions of the 1.9 date parsing functions
-* Add internal documentation of all C functions
 
 == Author
 

@@ -1,6 +1,11 @@
 
 /* Helper methods */
 
+/* Identical for rhrd__valid_civil, but for rhrdt_t.  Not very
+ * DRY, but the arguments get modified by the method and then
+ * used to populate the rhrdt_t. Because the rhrd_t field structure
+ * has a different layout from the rhrdt_t field structure, you
+ * need separate functions (no duck typing in C). */
 int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
   if (month < 0 && month >= -12) {
     month += 13;
@@ -43,6 +48,8 @@ int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
   return 1;
 }
 
+/* Check if the given offset is valid.  If so, set the offset field
+ * in the rhrdt_t and return 1.  Otherwise, return 0. */
 int rhrdt__valid_offset(rhrdt_t *dt, double offset) {
   if (offset < RHR_MIN_OFFSET_FRACT || offset > RHR_MAX_OFFSET_FRACT) {
     return 0;
@@ -52,6 +59,12 @@ int rhrdt__valid_offset(rhrdt_t *dt, double offset) {
   return 1;
 }
 
+/* Check if the time information consistutes a valid time.  If not, return
+ * 0.  If so, fill in the fields in the rhrdt_t and return 1.  This handles
+ * wrap around for negative hour, minute, and second arguments, and handles
+ * an hour of 24 with no minute or second value as the 0th hour of the next
+ * day, so either the julian day or civil day fields in the rhrdt_t should
+ * be filled out before calling this method. */
 int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   if (h < 0) {
     h += 24;
@@ -82,11 +95,13 @@ int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   return 1;
 }
 
+/* Same as rhrd__civil_to_jd for rhrdt_t. */
 void rhrdt__civil_to_jd(rhrdt_t *d) {
   d->jd = rhrd__ymd_to_jd(d->year, d->month, d->day);
   d->flags |= RHR_HAVE_JD;
 }
 
+/* Same as rhrd__jd_to_civil for rhrdt_t. */
 void rhrdt__jd_to_civil(rhrdt_t *date) {
   long x, a, b, c, d, e;
   x = (long)floor((date->jd - 1867216.25) / 36524.25);
@@ -106,6 +121,9 @@ void rhrdt__jd_to_civil(rhrdt_t *date) {
   date->flags |= RHR_HAVE_CIVIL;
 }
 
+/* Using the stored nanos field, fill in the hour, minute,
+ * and second fields for the rhrdt_t.  This assumes the
+ * nanos field has already been filled in. */
 void rhrdt__nanos_to_hms(rhrdt_t *d) {
   unsigned int seconds;
   seconds = d->nanos/RHR_NANOS_PER_SECOND;
@@ -115,11 +133,15 @@ void rhrdt__nanos_to_hms(rhrdt_t *d) {
   d->flags |= RHR_HAVE_HMS;
 }
 
+/* Using the stored hour, minute, and second fields, fill in
+ * the nanos field for th rhrdt_t. This assumes the hour, minute
+ * and second fields have already been filled in. */
 void rhrdt__hms_to_nanos(rhrdt_t *d) {
   d->nanos = (d->hour*RHR_SECONDS_PER_HOUR + d->minute*60 + d->second)*RHR_NANOS_PER_SECOND;
   d->flags |= RHR_HAVE_NANOS;
 }
 
+/* Same as rhrd__valid_commercial, for rhrdt_t. */
 int rhrdt__valid_commercial(rhrdt_t *d, long cwyear, long cweek, long cwday) {
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
@@ -158,6 +180,7 @@ int rhrdt__valid_commercial(rhrdt_t *d, long cwyear, long cweek, long cwday) {
   return 1;
 }
 
+/* Same as rhrd__valid_ordinal, for rhrdt_t. */
 int rhrdt__valid_ordinal(rhrdt_t *d, long year, long yday) {
   int leap;
   long month, day;
@@ -196,6 +219,10 @@ int rhrdt__valid_ordinal(rhrdt_t *d, long year, long yday) {
   return 1;
 }
 
+/* Fill the rhrdt_t with the current time information. On
+ * ruby 1.9, this is accurate to nanoseconds if the platform
+ * supports it, while on ruby 1.8 is is accurate to microseconds.
+ * On Windows, it's only accurate to within about 15 milliseconds. */
 void rhrdt__now(rhrdt_t * dt) {
   long t;
   long offset;
@@ -214,6 +241,12 @@ void rhrdt__now(rhrdt_t * dt) {
   RHR_CHECK_JD(dt);
 }
 
+/* Return a new ruby DateTime object using the given jd, nanos,
+ * and offset.  The offset should already be in minutes-from-UTC
+ * format. This handles negative nanos or nanos greater than
+ * the number per day by subtracting from or adding to the jd.
+ * It should ensure that the stored nanos value is in the range
+ * [0, RHR_NANOS_PER_DAY). */
 VALUE rhrdt__from_jd_nanos(long jd, long long nanos, short offset) {
   long t;
   rhrdt_t *dt;
@@ -236,6 +269,10 @@ VALUE rhrdt__from_jd_nanos(long jd, long long nanos, short offset) {
   return new;
 }
 
+/* Similar to rhrd__spaceship.  Unlike that, we
+ * don't try to speed up by checking which fields
+ * are already stored, we just fill the jd and
+ * nanos fields for both and compare them.*/
 long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_JD(odt)
@@ -254,6 +291,8 @@ long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt) {
   return 1;
 }
 
+/* Similar to rhrd__add_days, but n is a double in
+ * order to handle fractional days. */
 VALUE rhrdt__add_days(VALUE self, double n) {
   long l;
   long long nanos;
@@ -266,6 +305,8 @@ VALUE rhrdt__add_days(VALUE self, double n) {
   return rhrdt__from_jd_nanos(rhrd__safe_add_long(dt->jd, l), dt->nanos + nanos, dt->offset);
 }
 
+/* Similar to rhrd__add_months, but for ruby DateTime
+ * values. */
 VALUE rhrdt__add_months(VALUE self, long n) {
   rhrdt_t *d;
   rhrdt_t *newd;
@@ -299,6 +340,8 @@ VALUE rhrdt__add_months(VALUE self, long n) {
   return new;
 }
 
+/* Similar to rhrd__fill_from_hash for rhrdt_t, except instead of
+ * returning 1 or 0, this raises ruby ArgumentErrors. */
 void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
   rhrd_t d;
   long hour = 0;
@@ -397,6 +440,9 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
   }
 }
 
+/* Return a new ruby DateTime object with the same
+ * absolute time as the given one, but with a different
+ * offset. */
 VALUE rhrdt__new_offset(VALUE self, double offset) {
   rhrdt_t *dt;
   long offset_min;
@@ -1809,8 +1855,9 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
 
 #ifdef RUBY19
 
-/* 1.9 helper methods */
+/* Ruby 1.9 helper methods */
 
+/* Same as rhrd__add_years, but for ruby DateTime values. */
 VALUE rhrdt__add_years(VALUE self, long n) {
   rhrdt_t *d;
   rhrdt_t *newd;
@@ -1831,6 +1878,7 @@ VALUE rhrdt__add_years(VALUE self, long n) {
   return new;
 }
 
+/* Same as rhrd__day_q, but for ruby DateTime values. */
 VALUE rhrdt__day_q(VALUE self, long day) {
   rhrdt_t *d;
   Data_Get_Struct(self, rhrdt_t, d);
@@ -1838,6 +1886,8 @@ VALUE rhrdt__day_q(VALUE self, long day) {
   return rhrd__jd_to_wday(d->jd) == day ? Qtrue : Qfalse;
 }
 
+/* Add i given fractional second decimal places to the string,
+ * starting at the given offset len in the string. */
 long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
   int l;
 

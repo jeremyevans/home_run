@@ -35,7 +35,7 @@ store a civil date where converting it to a jd would cause an overflow.
 */
 #if __LP64__
 /* 
-On 64-bit systems, the limits depends on the number of significant digits in
+On 64-bit systems, the limits depend on the number of significant digits in
 a double (15).  These are slightly below the maximum so that all numbers used
 in calculations have fewer than 15 digits.
 */
@@ -241,8 +241,10 @@ void rhrdt__jd_to_civil(rhrdt_t *date);
 void rhrdt__nanos_to_hms(rhrdt_t *d);
 void rhrdt__hms_to_nanos(rhrdt_t *d);
 
-/* C Helper Methods */
+/* C helper methods */
 
+/* C % operator can (must in C99) return negative number for negative
+ * dividend, this always returns a positive number, similar to ruby. */
 long rhrd__mod(long a, long b) {
   long c;
   c = a % b;
@@ -252,6 +254,7 @@ long rhrd__mod(long a, long b) {
   return c;
 }
 
+/* Same as above but for long long dividend. */
 long rhrd__modll(long long a, long b) {
   long c;
   c = a % b;
@@ -261,6 +264,8 @@ long rhrd__modll(long long a, long b) {
   return c;
 }
 
+/* Return 0 if the year, month, day provided are greater than
+ * the allowed limits, 1 otherwise. */
 int rhrd__valid_civil_limits(long year, long month, long day) {
   if (year > RHR_YEAR_MAX || year < RHR_YEAR_MIN) {
     return 0;
@@ -285,6 +290,8 @@ int rhrd__valid_civil_limits(long year, long month, long day) {
   return 1;
 }
 
+/* Add two numbers, raising a RangeError on
+ * overflow. */
 long rhrd__safe_add_long(long a, long b) {
   if ((a > 0 && b > 0 && (a > LONG_MAX - b)) ||
       (a < 0 && b < 0 && (a < LONG_MIN - b))) {
@@ -293,6 +300,7 @@ long rhrd__safe_add_long(long a, long b) {
   return a + b;
 }
 
+/* Convert a year, month, day to a julian date. */
 long rhrd__ymd_to_jd(long year, long month, long day) {
   long a;
   if (month <= 2) {
@@ -308,11 +316,17 @@ long rhrd__ymd_to_jd(long year, long month, long day) {
   }
 }
 
+/* Fill the jd field rhrd_t with the info from the year,
+ * month, and day fields.  This assumes the year,
+ * month, and day fields have already been filled in. */
 void rhrd__civil_to_jd(rhrd_t *d) {
   d->jd = rhrd__ymd_to_jd(d->year, d->month, d->day);
   d->flags |= RHR_HAVE_JD;
 }
 
+/* Fill in the year, month, and day fields for an
+ * rhrd_t, using the jd field.  This assumes the jd
+ * field has already been filled in. */
 void rhrd__jd_to_civil(rhrd_t *date) {
   long x, a, b, c, d, e;
   x = (long)floor((date->jd - 1867216.25) / 36524.25);
@@ -332,6 +346,8 @@ void rhrd__jd_to_civil(rhrd_t *date) {
   date->flags |= RHR_HAVE_CIVIL;
 }
 
+/* Returns 1 if the given year is a leap year in the Gregorian
+ * calendar, 0 if not. */
 int rhrd__leap_year(long year) {
   if (year % 400 == 0) {
     return 1;
@@ -344,6 +360,11 @@ int rhrd__leap_year(long year) {
   }
 }
 
+/* Check if the year, month, and day given are a valid date
+ * in the Gregorian calendar, filling in the appropriate
+ * fields in the rhrd_t and returning 1 if so.  If the fields
+ * given are not a valid date, return 0. 
+ * This also handles wrap around if the month or day is negative. */
 int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
   if (month < 0 && month >= -12) {
     month += 13;
@@ -386,6 +407,7 @@ int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
   return 1;
 }
 
+/* Return the number of days in the given month in the given year */
 unsigned char rhrd__days_in_month(long year, unsigned char month) {
   if (month == 2) {
     return rhrd__leap_year(year) ? 29 : 28;
@@ -394,6 +416,9 @@ unsigned char rhrd__days_in_month(long year, unsigned char month) {
   }
 }
 
+/* Add n days to the the given Date object.  n can be negative if
+ * you want to subtract days from the object.  Returns a new ruby
+ * Date object. */
 VALUE rhrd__add_days(VALUE self, long n) {
   rhrd_t *d;
   rhrd_t *newd;
@@ -421,6 +446,9 @@ VALUE rhrd__add_days(VALUE self, long n) {
   return new;
 }
 
+/* Add n months to the given ruby Date object.  n can be negative
+ * if you want to subtract months from the object.  Returns a new
+ * ruby Date object. */
 VALUE rhrd__add_months(VALUE self, long n) {
   rhrd_t *d;
   rhrd_t *newd;
@@ -452,6 +480,9 @@ VALUE rhrd__add_months(VALUE self, long n) {
   return new;
 }
 
+/* Return 0 if the given two rhrd_t objects have the
+ * same julian or civil dates, -1 if the first is
+ * less than the second, or 1 otherwise. */
 long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
   long diff;
   if (RHR_HAS_JD(d) && RHR_HAS_JD(o)) {
@@ -472,6 +503,8 @@ long rhrd__spaceship(rhrd_t *d, rhrd_t *o) {
   return diff;
 }
 
+/* Convert the given cwyear, cweek, and cwday arguments to
+ * a julian date. */
 long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
@@ -483,6 +516,7 @@ long rhrd__commercial_to_jd(long cwyear, long cweek, long cwday) {
   return n.jd - rhrd__mod(n.jd, 7) + 7 * (cweek - 1) + (cwday - 1);
 }
 
+/* Convert the given julian date to a cwday (range: [1-7]). */
 long rhrd__jd_to_cwday(long jd) {
   long day;
   day = (jd + 1) % 7; 
@@ -492,12 +526,19 @@ long rhrd__jd_to_cwday(long jd) {
   return day;
 }
 
+/* Convert the given julian date to a weekday number
+ * (range: [0-6], 0 is Sunday). */
 long rhrd__jd_to_wday(long jd) {
   return rhrd__mod(jd + 1, 7);
 }
 
-/* Abuses the year, month, and day fields to store
- * cwyear, cweek, and cwday */
+
+/* Fill the given rhrd_t with the commercial week
+ * information specified by its julian date.
+ * Abuses the year, month, and day fields to store
+ * cwyear, cweek, and cwday, so it should not be
+ * used on a ruby Date object that has its civil
+ * date filled in. */
 void rhrd__fill_commercial(rhrd_t *d) {
   long a;
   rhrd_t n;
@@ -511,6 +552,10 @@ void rhrd__fill_commercial(rhrd_t *d) {
   d->day = (unsigned char)rhrd__jd_to_cwday(d->jd);
 }
 
+/* Fill in the jd field for the given rhrd_t using the cwyear, cweek,
+ * and cwday arguments, if the date is valid, and return 1.  If the
+ * date is not valid, return 0.  This also handles wrap around if
+ * the cweek or cwday arguments is negative. */
 int rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
@@ -549,6 +594,7 @@ int rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
   return 1;
 }
 
+/* Return the ordinal day number for the given civil day fields. */
 long rhrd__ordinal_day(long year, unsigned char month, unsigned char day) {
   long yday;
   yday = rhrd_cumulative_days_in_month[month] + day;
@@ -558,6 +604,10 @@ long rhrd__ordinal_day(long year, unsigned char month, unsigned char day) {
   return yday;
 }
 
+/* Fill in the civil date fields in the rhrd_t with the
+ * given ordinal day fields, if they are valid.  Returns
+ * 1 if the date is valid, 0 if not.  This also handles
+ * wrap around for a negative yday argument. */
 int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   int leap;
   long month, day;
@@ -596,14 +646,21 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   return 1;
 }
 
+/* Convert the given jd to the unix time integer
+ * for the given day at midnight UTC. */
 long long rhrd__jd_to_unix(long long jd) {
   return (jd - RHR_UNIX_EPOCH) * RHR_SECONDS_PER_DAY;
 }
 
+/* Convert the given unix time integer into a
+ * julian date, losing any information about
+ * fractional days. */
 long rhrd__unix_to_jd(long long t) {
   return t/RHR_SECONDS_PER_DAY + RHR_UNIX_EPOCH;
 }
 
+/* Fill the given rhrt_d's jd field based on the
+ * current local time. */
 void rhrd__today(rhrd_t * d) {
   VALUE t;
   t = rb_funcall(rb_cTime, rhrd_id_now, 0);
@@ -612,6 +669,7 @@ void rhrd__today(rhrd_t * d) {
   RHR_CHECK_JD(d);
 }
 
+/* Return the current year. */
 long rhrd__current_year(void) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -620,6 +678,7 @@ long rhrd__current_year(void) {
   return d.year;
 }
 
+/* Return the current month. */
 long rhrd__current_month(void) {
   rhrd_t d;
   memset(&d, 0, sizeof(rhrd_t));
@@ -628,6 +687,8 @@ long rhrd__current_month(void) {
   return d.month;
 }
 
+/* Return the julian date of the first day of the
+ * given year. */
 long rhrd__yday1_jd(long year) {
   rhrd_t d;
 
@@ -641,6 +702,13 @@ long rhrd__yday1_jd(long year) {
   return d.jd;
 }
 
+/* Convert the given julian date to a week number given that
+ * f is a number representing a week day (Sunday = 0) such that
+ * the week 1 of the year starts on first week day of that year
+ * (with days before then as week 0).
+ * So if January 1st is a Monday and f = 1, January 1-7 would be
+ * in week 1.  However, if f = 0, January 1-6 would be in week 0,
+ * and January 7-13 would be in week 1. */
 long rhrd__jd_to_weeknum(long jd, int f) {
   long yday1_jd;
   rhrd_t d;
@@ -654,13 +722,16 @@ long rhrd__jd_to_weeknum(long jd, int f) {
   return (jd - (yday1_jd - (rhrd__mod(yday1_jd - f + 1, 7) + 7))) / 7;
 }
 
+/* Convert a given week number and week day to a julian day given
+ * that f means the same as it does in the prior function. */
 long rhrd__weeknum_to_jd(long year, long week, long wday, int f) {
   long yday1_jd;
   yday1_jd = rhrd__yday1_jd(year) + 6;
   return (yday1_jd - rhrd__mod(yday1_jd - f + 1, 7) - 7) + 7 * week + wday;
 }
 
-/* Fills the date structure with information from the hash, returns:
+/* Using the values in the given ruby hash, fill the appropriate date fields
+ * in the given rhrd_t. Returns:
  *  0: No errors (i.e. jd and/or year, month, day filled)
  *  1: Bad date information given (e.g. 2009-02-29)
  * -1: No date information given */
@@ -775,6 +846,9 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   return 0;
 }
 
+/* Returns a new ruby object filled with information from
+ * the given hash, or raises an error if the given hash
+ * did not contain valid date information. */
 VALUE rhrd__from_hash(VALUE hash) {
   rhrd_t *d;
   VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
@@ -787,6 +861,8 @@ VALUE rhrd__from_hash(VALUE hash) {
   }
 }
 
+/* Return a ruby string using the information in the given
+ * rhrdt_t and the given format string information. */
 VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
   int i;
   int cp = 0;
@@ -966,6 +1042,8 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
   RHR_RETURN_RESIZED_STR(s, cp)
 }
 
+/* Return a ruby hash using the given ruby string and the format
+ * string information. */
 VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
   char * str;
   long len;
@@ -1484,6 +1562,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
   return hash;
 }
 
+/* Set the commercial week cached instance variables. */
 void rhrd__set_cw_ivs(VALUE self, rhrd_t *d) {
   rb_ivar_set(self, rhrd_id_cwyear, LONG2NUM(d->year));
   rb_ivar_set(self, rhrd_id_cweek, LONG2NUM(d->month));
@@ -2918,6 +2997,9 @@ static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
 
 /* Ruby 1.9 helper methods */
 
+/* Add n number of years to the given ruby Date object.  n can
+ * be negative to subtract years.  Returns a new ruby Date
+ * object */
 VALUE rhrd__add_years(VALUE self, long n) {
   rhrd_t *d;
   rhrd_t *newd;
@@ -2939,6 +3021,8 @@ VALUE rhrd__add_years(VALUE self, long n) {
   return new;
 }
 
+/* Return ruby true if the given date falls on the given
+ * week day number, or ruby false otherwise. */
 VALUE rhrd__day_q(VALUE self, long day) {
   rhrd_t *d;
   Data_Get_Struct(self, rhrd_t, d);
