@@ -4,7 +4,6 @@ require 'rbconfig'
 
 CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
 RUBY=ENV['RUBY'] || File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
-IRBPROG=ENV['IRB'] || 'irb'
 
 begin
   gem 'rdoc'
@@ -96,7 +95,8 @@ end
 
 desc "Start an IRB shell using the extension"
 task :irb do
-  sh %{#{IRBPROG} -I ext -r date}
+  irb = ENV['IRB'] || File.join(Config::CONFIG['bindir'], File.basename(RUBY).sub('ruby', 'irb'))
+  sh %{#{irb} -I ext -r date}
 end
 
 desc "Run comparative benchmarks"
