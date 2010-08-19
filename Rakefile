@@ -1,7 +1,7 @@
 require "rake"
 require "rake/clean"
 
-CLEAN.include %w'Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
+CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
 RUBY=ENV['RUBY'] || 'ruby'
 IRBPROG=ENV['IRB'] || 'irb'
 
@@ -27,6 +27,12 @@ end
 desc "Build the gem"
 task :gem => [:clean, :parser] do
   sh %{gem build home_run.gemspec}
+end
+
+desc "Try to clean up everything"
+task :distclean  do
+  CLEAN.concat(%w'pkg home_run-*.gem ext/1.* tmp rdoc ext/date_parser.c')
+  Rake::Task[:clean].invoke
 end
 
 if RUBY_PLATFORM !~ /win|w32/ and File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))

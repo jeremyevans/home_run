@@ -3,8 +3,9 @@
 /ext/date_ext.*o
 /ext/date_parser.c
 /rdoc
-/*.gem
+/home_run-*.gem
 *.core
 /pkg
 /ext/1.8
 /ext/1.9
+/tmp
