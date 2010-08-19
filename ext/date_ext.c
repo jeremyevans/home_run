@@ -160,6 +160,7 @@ VALUE rhrd_zone_dst_re;
 VALUE rhrd_zone_sign_re;
 VALUE rhrd_zones_hash;
 VALUE rhrd_empty_string;
+VALUE rhrd_start_num;
 VALUE rhrd_string_colon;
 VALUE rhrd_re_comma_period;
 
@@ -2458,7 +2459,7 @@ static VALUE rhrd_new_start(int argc, VALUE *argv, VALUE self) {
  * date that this library can handle.
  */
 static VALUE rhrd_start(VALUE self) {
-  return LONG2NUM(RHR_JD_MIN);
+  return rhrd_start_num;
 }
 
 /* call-seq:
@@ -4038,6 +4039,8 @@ void Init_date_ext(void) {
   rhrd_sym_yday = ID2SYM(rb_intern("yday"));
   rhrd_sym_year = ID2SYM(rb_intern("year"));
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
+
+  rhrd_start_num = LONG2NUM(RHR_JD_MIN);
 
   rhrd_class = rb_define_class("Date", rb_cObject);
   rb_undef_alloc_func(rhrd_class);
