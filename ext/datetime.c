@@ -453,7 +453,7 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
 }
 
 /* call-seq:
- *   _strptime(string, format='%FT%T%z') -> Hash
+ *   _strptime(string, format='%FT%T%z') -> Hash or nil
  *
  * Attemps to parse the string using the given format, returning
  * a hash if there is a match (or +nil+ if no match).

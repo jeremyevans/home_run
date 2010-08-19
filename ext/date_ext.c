@@ -1510,10 +1510,10 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
 
 
 /* call-seq:
- *   _ragel_parse(string) -> Hash
+ *   _ragel_parse(string) -> Hash or nil
  *
  * Attemps to parse the string with Ragel, returning a hash
- * if there is a match (or +nil+ if no match), similar to +_parse+.
+ * if there is a match (or +nil+ if no match).
  */
 static VALUE rhrd_s__ragel_parse(VALUE klass, VALUE s) {
   s = rb_str_to_str(s);
@@ -1521,10 +1521,10 @@ static VALUE rhrd_s__ragel_parse(VALUE klass, VALUE s) {
 }
 
 /* call-seq:
- *   _strptime(string, format='%F') -> Hash
+ *   _strptime(string, format='%F') -> Hash or nil
  *
  * Attemps to parse the string using the given format, returning
- * a hash if there is a match (or +nil+ if no match), similar to +_parse+.
+ * a hash if there is a match (or +nil+ if no match).
  *
  * +_strptime+ supports the same formats that <tt>Date#strftime</tt> does.
  */
