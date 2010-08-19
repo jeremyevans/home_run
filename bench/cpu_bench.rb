@@ -14,8 +14,10 @@ HRD = Date
 HRDT = DateTime
 NANOS_PER_SEC = 1000000000
 N = 10000
+FILTER = ARGV.empty? ? nil : Regexp.new(ARGV[0])
 
 def compare(label, datetime=false, &block)
+  return if FILTER && label !~ FILTER
   Object.send(:remove_const, :Date)
   Object.send(:remove_const, :DateTime)
   Object.send(:const_set, :Date, SD)
