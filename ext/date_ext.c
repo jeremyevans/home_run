@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include <ruby.h>
 
 #ifdef RUBY19
@@ -854,7 +855,7 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%2hhi", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12);
           break;
         case 'L':
-          cp += sprintf(str + cp, "%03lli", (d->nanos % RHR_NANOS_PER_SECOND)/1000000);
+          cp += sprintf(str + cp, "%03" PRId64, (d->nanos % RHR_NANOS_PER_SECOND)/1000000);
           break;
         case 'm':
           cp += sprintf(str + cp, "%02hhi", d->month);
@@ -863,7 +864,7 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%02hhi", d->minute);
           break;
         case 'N':
-          cp += sprintf(str + cp, "%09lli", (d->nanos % RHR_NANOS_PER_SECOND));
+          cp += sprintf(str + cp, "%09" PRId64, (d->nanos % RHR_NANOS_PER_SECOND));
           break;
         case 'n':
           cp += sprintf(str + cp, "\n");
@@ -875,7 +876,7 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, d->hour >= 12 ? "pm" : "am");
           break;
         case 'Q':
-          cp += sprintf(str + cp, "%lli", rhrd__jd_to_unix(d->jd) * 1000 + d->nanos/RHR_NANOS_PER_MILLISECOND - d->offset * 60000);
+          cp += sprintf(str + cp, "%" PRId64, rhrd__jd_to_unix(d->jd) * 1000 + d->nanos/RHR_NANOS_PER_MILLISECOND - d->offset * 60000);
           break;
         case 'r':
           cp += sprintf(str + cp, "%2hhi:%02hhi:%02hhi %s", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12, d->minute, d->second, d->hour >= 12 ? "PM" : "AM");
@@ -884,7 +885,7 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%02hhi:%02hhi", d->hour, d->minute);
           break;
         case 's':
-          cp += sprintf(str + cp, "%lli", rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60);
+          cp += sprintf(str + cp, "%" PRId64, rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60);
           break;
         case 'S':
           cp += sprintf(str + cp, "%02hhi", d->second);
@@ -1189,13 +1190,13 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           RHR_PARSE_p
           break;
         case 'Q':
-          if (sscanf(str + pos, "%lld%n", &milliseconds, &scan_len) != 1) {
+          if (sscanf(str + pos, "%" SCNd64 "%n", &milliseconds, &scan_len) != 1) {
             return Qnil;
           }
           state |= RHRR_UNIXM_SET;
           break;
         case 's':
-          if (sscanf(str + pos, "%lld%n", &seconds, &scan_len) != 1) {
+          if (sscanf(str + pos, "%" SCNd64 "%n", &seconds, &scan_len) != 1) {
             return Qnil;
           }
           state |= RHRR_UNIX_SET;
