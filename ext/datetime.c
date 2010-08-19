@@ -1292,8 +1292,9 @@ static VALUE rhrdt_next(VALUE self) {
  */
 static VALUE rhrdt_offset(VALUE self) {
   rhrdt_t *dt;
+  RHR_CACHED_IV(self, rhrd_id_offset)
   Data_Get_Struct(self, rhrdt_t, dt);
-  return rb_float_new(dt->offset/1440.0);
+  return rb_ivar_set(self, rhrd_id_offset, rb_float_new(dt->offset/1440.0));
 }
 
 /* call-seq:

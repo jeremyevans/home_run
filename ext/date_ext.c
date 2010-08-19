@@ -180,6 +180,7 @@ ID rhrd_id_local;
 ID rhrd_id_localtime;
 ID rhrd_id_match;
 ID rhrd_id_now;
+ID rhrd_id_offset;
 ID rhrd_id_slice;
 ID rhrd_id_split;
 ID rhrd_id_sub_b;
@@ -3998,6 +3999,7 @@ void Init_date_ext(void) {
   rhrd_id_localtime = rb_intern("localtime");
   rhrd_id_match = rb_intern("match");
   rhrd_id_now = rb_intern("now");
+  rhrd_id_offset = rb_intern("offset");
   rhrd_id_slice = rb_intern("slice");
   rhrd_id_split = rb_intern("split");
   rhrd_id_sub_b = rb_intern("sub!");
@@ -4040,7 +4042,7 @@ void Init_date_ext(void) {
   rhrd_sym_year = ID2SYM(rb_intern("year"));
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
 
-  rhrd_start_num = LONG2NUM(RHR_JD_MIN);
+  rhrd_start_num = LONG2NUM(RHR_JD_MIN - 1);
 
   rhrd_class = rb_define_class("Date", rb_cObject);
   rb_undef_alloc_func(rhrd_class);
@@ -4051,7 +4053,7 @@ void Init_date_ext(void) {
   /* The julian day number for the day of calendar reform in England */
   rb_define_const(rhrd_class, "ENGLAND", LONG2NUM(RHR_JD_ENGLAND));
   /* An integer lower than the lowest supported julian day number */
-  rb_define_const(rhrd_class, "GREGORIAN", LONG2NUM(RHR_JD_MIN - 1));
+  rb_define_const(rhrd_class, "GREGORIAN", rhrd_start_num);
   /* An integer higher than the highest supported julian day number */
   rb_define_const(rhrd_class, "JULIAN", LONG2NUM(RHR_JD_MAX + 1));
 
