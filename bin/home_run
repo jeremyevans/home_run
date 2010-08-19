@@ -55,16 +55,18 @@ when :install
   FUV.cp("date.rb", Config::CONFIG['sitelibdir'])
   FUV.mkdir_p(File.join(Config::CONFIG['sitelibdir'], 'date'))
   FUV.cp("date/format.rb", File.join(Config::CONFIG['sitelibdir'], 'date'))
-  if File.exists?('date.so')
-    FUV.cp("date.so", Config::CONFIG['sitearchdir'])
-  end
-  if File.exists?('1.8/date.so')
-    FUV.mkdir_p(File.join(Config::CONFIG['sitearchdir'], '1.8'))
-    FUV.cp("1.8/date.so", File.join(Config::CONFIG['sitearchdir'], '1.8'))
-  end
-  if File.exists?('1.9/date.so')
-    FUV.mkdir_p(File.join(Config::CONFIG['sitearchdir'], '1.9'))
-    FUV.cp("1.9/date.so", File.join(Config::CONFIG['sitearchdir'], '1.9'))
+  if File.exists?("date_ext.#{Config::CONFIG['DLEXT']}")
+    FUV.cp("date_ext.#{Config::CONFIG['DLEXT']}", Config::CONFIG['sitearchdir'])
+  else
+    # Windows binary gem files
+    if File.exists?('1.8/date_ext.so')
+      FUV.mkdir_p(File.join(Config::CONFIG['sitearchdir'], '1.8'))
+      FUV.cp("1.8/date_ext.so", File.join(Config::CONFIG['sitearchdir'], '1.8'))
+    end
+    if File.exists?('1.9/date_ext.so')
+      FUV.mkdir_p(File.join(Config::CONFIG['sitearchdir'], '1.9'))
+      FUV.cp("1.9/date_ext.so", File.join(Config::CONFIG['sitearchdir'], '1.9'))
+    end
   end
 when :uninstall
   require 'rbconfig'
@@ -73,10 +75,10 @@ when :uninstall
   FUV.rm_f(File.join(Config::CONFIG['sitelibdir'], 'date.rb'))
   FUV.rm_f(File.join(Config::CONFIG['sitelibdir'], 'date/format.rb'))
   FUV.rmdir(File.join(Config::CONFIG['sitelibdir'], 'date')) rescue nil
-  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], 'date.so'))
-  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], '1.8/date.so'))
+  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], "date_ext.#{Config::CONFIG['DLEXT']}"))
+  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], '1.8/date_ext.so'))
   FUV.rmdir(File.join(Config::CONFIG['sitearchdir'], '1.8')) rescue nil
-  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], '1.9/date.so'))
+  FUV.rm_f(File.join(Config::CONFIG['sitearchdir'], '1.9/date_ext.so'))
   FUV.rmdir(File.join(Config::CONFIG['sitearchdir'], '1.9')) rescue nil
 else
   ENV['RUBYOPT'] = "-rdate #{ENV['RUBYOPT']}"
