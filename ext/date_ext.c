@@ -1478,9 +1478,9 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
 }
 
 void rhrd__set_cw_ivs(VALUE self, rhrd_t *d) {
-  rb_ivar_set(self, rhrd_id_cwyear, d->year);
-  rb_ivar_set(self, rhrd_id_cweek, d->month);
-  rb_ivar_set(self, rhrd_id_cwday, d->day);
+  rb_ivar_set(self, rhrd_id_cwyear, LONG2NUM(d->year));
+  rb_ivar_set(self, rhrd_id_cweek, LONG2NUM(d->month));
+  rb_ivar_set(self, rhrd_id_cwday, LONG2NUM(d->day));
 }
 
 #include "date_parser.c"
