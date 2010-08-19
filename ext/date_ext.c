@@ -20,7 +20,14 @@
 #define RHR_JD_ITALY 2299161
 #define RHR_JD_ENGLAND 2361222
 #define RHR_UNIX_EPOCH 2440588
+#define RHR_SECONDS_PER_HOUR 3600
+#define RHR_MINUTES_PER_DAYD 1440.0
 #define RHR_SECONDS_PER_DAY 86400
+#define RHR_SECONDS_PER_DAYD 86400.0
+#define RHR_MAX_OFFSET_MINUTES 864
+#define RHR_MAX_OFFSET_FRACT 0.6
+#define RHR_MIN_OFFSET_MINUTES -864
+#define RHR_MIN_OFFSET_FRACT -0.6
 
 /*
 In both the 32-bit and 64-bit cases, the limits are chosen so that you cannot
@@ -2010,7 +2017,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
   str = rb_funcall(str, rhrd_id_downcase, 0);
   if(RTEST(rb_funcall(str, rhrd_id_sub_b, 2, rhrd_zone_dst_re, rhrd_empty_string))) {
     if (!RTEST(rb_reg_nth_match(1, rb_gv_get("$~")))) { 
-      offset += 3600;
+      offset += RHR_SECONDS_PER_HOUR;
     }
   }
 
@@ -2030,7 +2037,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
     for(i=0; i < len; i++) {
       if(s[i] == ':') {
         v = rb_funcall(str, rhrd_id_split, 1, rhrd_string_colon);
-        return LONG2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600
+        return LONG2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR
                + NUM2LONG(rb_funcall(rb_ary_entry(v, 1), rhrd_id_to_i, 0)) * 60
                + NUM2LONG(rb_funcall(rb_ary_entry(v, 2), rhrd_id_to_i, 0))) * offset);
       }
@@ -2039,8 +2046,8 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
       if((s[i] == ',') || (s[i] == '.')) {
         v = rb_funcall(str, rhrd_id_split, 1, rhrd_re_comma_period);
         e = rb_ary_entry(v, 1);
-        return LONG2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * 3600)
-               + (NUM2LONG(rb_funcall(e, rhrd_id_to_i, 0)) * 3600) / (long)pow(10, RSTRING_LEN(rb_str_to_str(e))) * offset);
+        return LONG2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR)
+               + (NUM2LONG(rb_funcall(e, rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR) / (long)pow(10, RSTRING_LEN(rb_str_to_str(e))) * offset);
       }
     }
     switch (len) {
@@ -2048,17 +2055,17 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
         return LONG2NUM(0);
       case 1:
       case 2:
-        return LONG2NUM(atol(s) * 3600 * offset);
+        return LONG2NUM(atol(s) * RHR_SECONDS_PER_HOUR * offset);
       case 3:
         i = atol(s + 1);
         s[1] = '\0';
         len = atol(s);
-        return LONG2NUM((len * 3600 + i * 60) * offset);
+        return LONG2NUM((len * RHR_SECONDS_PER_HOUR + i * 60) * offset);
       case 4:
         i = atol(s + 2);
         s[2] = '\0';
         len = atol(s);
-        return LONG2NUM((len * 3600 + i * 60) * offset);
+        return LONG2NUM((len * RHR_SECONDS_PER_HOUR + i * 60) * offset);
       default:
         s[6] = '\0';
       case 6:
@@ -2068,7 +2075,7 @@ static VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
         i = atol(s + 2);
         s[2] = '\0';
         len = atol(s);
-        return LONG2NUM((len * 3600 + i * 60 + j) * offset);
+        return LONG2NUM((len * RHR_SECONDS_PER_HOUR + i * 60 + j) * offset);
     }
   }
 
@@ -3728,7 +3735,7 @@ static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
   m = floor(f);
   f = (f - m) * 60;
   s = floor(f);
-  f = (f - s)/86400;
+  f = (f - s)/RHR_SECONDS_PER_DAY;
   return rb_ary_new3(4, LONG2NUM(h), LONG2NUM(m), LONG2NUM(s), rb_float_new(f));
 }
 
@@ -3935,7 +3942,7 @@ static VALUE rhrd_s_ordinal_to_jd(int argc, VALUE *argv, VALUE klass) {
  * 0.5.
  */
 static VALUE rhrd_s_time_to_day_fraction(VALUE klass, VALUE h, VALUE m, VALUE s) {
-  return rb_float_new(NUM2DBL(h)/24.0 + NUM2DBL(m)/1440.0 + NUM2DBL(s)/86400.0);
+  return rb_float_new(NUM2DBL(h)/24.0 + NUM2DBL(m)/RHR_MINUTES_PER_DAYD + NUM2DBL(s)/RHR_SECONDS_PER_DAYD);
 }
 
 /* call-seq:
@@ -3963,7 +3970,7 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
   if (h < 0 || m < 0 || s < 0 || h > 24 || m > 59 || s > 59 || (h == 24 && m != 0 && s != 0)) {
     return Qnil;
   }
-  return rb_float_new(h/24.0 + m/1440.0 + s/86400.0);
+  return rb_float_new(h/24.0 + m/RHR_MINUTES_PER_DAYD + s/RHR_SECONDS_PER_DAYD);
 }
 
 #endif

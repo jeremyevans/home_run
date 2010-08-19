@@ -44,7 +44,7 @@ int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
 }
 
 int rhrdt__valid_offset(rhrdt_t *dt, double offset) {
-  if (offset < -0.6 || offset > 0.6) {
+  if (offset < RHR_MIN_OFFSET_FRACT || offset > RHR_MAX_OFFSET_FRACT) {
     return 0;
   }
 
@@ -109,14 +109,14 @@ void rhrdt__jd_to_civil(rhrdt_t *date) {
 void rhrdt__nanos_to_hms(rhrdt_t *d) {
   unsigned int seconds;
   seconds = d->nanos/RHR_NANOS_PER_SECOND;
-  d->hour = seconds/3600;
-  d->minute = (seconds % 3600)/60;
+  d->hour = seconds/RHR_SECONDS_PER_HOUR;
+  d->minute = (seconds % RHR_SECONDS_PER_HOUR)/60;
   d->second = seconds % 60;
   d->flags |= RHR_HAVE_HMS;
 }
 
 void rhrdt__hms_to_nanos(rhrdt_t *d) {
-  d->nanos = (d->hour*3600 + d->minute*60 + d->second)*RHR_NANOS_PER_SECOND;
+  d->nanos = (d->hour*RHR_SECONDS_PER_HOUR + d->minute*60 + d->second)*RHR_NANOS_PER_SECOND;
   d->flags |= RHR_HAVE_NANOS;
 }
 
@@ -205,9 +205,9 @@ void rhrdt__now(rhrdt_t * dt) {
   t = NUM2LONG(rb_funcall(rt, rhrd_id_to_i, 0)) + offset;
   dt->jd = rhrd__unix_to_jd(t);
 #ifdef RUBY19
-  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(rt, rhrd_id_nsec, 0));
+  dt->nanos = rhrd__mod(t, RHR_SECONDS_PER_DAY) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(rt, rhrd_id_nsec, 0));
 #else
-  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(rt, rhrd_id_usec, 0)) * 1000;
+  dt->nanos = rhrd__mod(t, RHR_SECONDS_PER_DAY) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(rt, rhrd_id_usec, 0)) * 1000;
 #endif
   dt->offset = offset/60;
   dt->flags |= RHR_HAVE_JD | RHR_HAVE_NANOS;
@@ -328,13 +328,13 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
   if (RTEST(runix)) {
     time_set = NUM2LL(runix);
     dt->jd = rhrd__unix_to_jd(time_set);
-    time_set = rhrd__modll(time_set, 86400);
+    time_set = rhrd__modll(time_set, RHR_SECONDS_PER_DAY);
     dt->nanos = time_set*RHR_NANOS_PER_SECOND + nanos;
-    dt->hour = time_set/3600;
-    dt->minute = (time_set - dt->hour * 3600)/60;
+    dt->hour = time_set/RHR_SECONDS_PER_HOUR;
+    dt->minute = (time_set - dt->hour * RHR_SECONDS_PER_HOUR)/60;
     dt->second = rhrd__mod(time_set, 60);
     offset /= 60;
-    if (offset > 864 || offset < -864) {
+    if (offset > RHR_MAX_OFFSET_MINUTES || offset < RHR_MIN_OFFSET_MINUTES) {
       rb_raise(rb_eArgError, "invalid offset: %ld minutes", offset);
     }
     RHR_CHECK_JD(dt);
@@ -385,13 +385,13 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
     dt->flags |= RHR_HAVE_CIVIL;
   }
   if(time_set) {
-    rhrdt__valid_time(dt, hour, minute, second, offset/86400.0);
+    rhrdt__valid_time(dt, hour, minute, second, offset/RHR_SECONDS_PER_DAYD);
     if(nanos) {
       RHRDT_FILL_NANOS(dt)
       dt->nanos += nanos;
     }
   } else if (offset) {
-    if(!rhrdt__valid_offset(dt, offset/86400.0)){
+    if(!rhrdt__valid_offset(dt, offset/RHR_SECONDS_PER_DAYD)){
       rb_raise(rb_eArgError, "invalid date");
     } 
   }
@@ -401,7 +401,7 @@ VALUE rhrdt__new_offset(VALUE self, double offset) {
   rhrdt_t *dt;
   long offset_min;
 
-  if(offset < -0.6 || offset > 0.6) {
+  if(offset < RHR_MIN_OFFSET_FRACT || offset > RHR_MAX_OFFSET_FRACT) {
     rb_raise(rb_eArgError, "invalid offset (%f)", offset);
   } 
   offset_min = lround(offset * 1440.0);
@@ -443,7 +443,7 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   }
 
   x = NUM2LONG(rb_ary_entry(ary, 2));
-  if (x > 864 || x < -864) {
+  if (x > RHR_MAX_OFFSET_MINUTES || x < RHR_MIN_OFFSET_MINUTES) {
     rb_raise(rb_eArgError, "invalid offset: %ld minutes", x);
   }
   d->offset = x;
@@ -1253,7 +1253,7 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
       break;
     case 1:
       if (RTEST(rb_obj_is_kind_of(argv[0], rb_cString))) {
-        offset = NUM2LONG(rhrd_s_zone_to_diff(self, argv[0]))/86400.0;
+        offset = NUM2LONG(rhrd_s_zone_to_diff(self, argv[0]))/RHR_SECONDS_PER_DAYD;
       } else {
         offset = NUM2DBL(argv[0]);
       }
@@ -2501,8 +2501,8 @@ static VALUE rhrdt_to_time(VALUE self) {
   RHRDT_FILL_HMS(dt)
 
   s = dt->nanos/RHR_NANOS_PER_SECOND;
-  h = s/3600;
-  m = (s % 3600) / 60;
+  h = s/RHR_SECONDS_PER_HOUR;
+  m = (s % RHR_SECONDS_PER_HOUR) / 60;
   return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, LONG2NUM(dt->year), LONG2NUM(dt->month), LONG2NUM(dt->day), LONG2NUM(h), LONG2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
 }
 
@@ -2526,9 +2526,9 @@ static VALUE rhrdt_time_to_datetime(VALUE self) {
   t = NUM2LONG(rb_funcall(self, rhrd_id_to_i, 0)) + offset;
   dt->jd = rhrd__unix_to_jd(t);
 #ifdef RUBY19
-  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(self, rhrd_id_nsec, 0));
+  dt->nanos = rhrd__mod(t, RHR_SECONDS_PER_DAY) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(self, rhrd_id_nsec, 0));
 #else
-  dt->nanos = rhrd__mod(t, 86400) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(self, rhrd_id_usec, 0)) * 1000;
+  dt->nanos = rhrd__mod(t, RHR_SECONDS_PER_DAY) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(self, rhrd_id_usec, 0)) * 1000;
 #endif
   dt->offset = offset/60;
   dt->flags |= RHR_HAVE_JD | RHR_HAVE_NANOS;
