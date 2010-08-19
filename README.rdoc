@@ -4,6 +4,69 @@ home_run is an implementation of ruby's Date/DateTime classes in C,
 with much better performance (20-200x) than the version in the
 standard library, while being almost completely compatible.
 
+== Performance increase (microbenchmarks)
+
+The speedup you'll get depends mostly on your version of ruby, but
+also on your operating system, platform, and compiler.  Here are
+some comparative results for common methods:
+
+  #                 | i386  | i386  | i386  | i386  | amd64 |
+  #                 |Windows| Linux | Linux | Linux |OpenBSD|
+  #                 | 1.8.6 | 1.8.7 | 1.9.1 | 1.9.2 | 1.9.2 |
+  #                 |-------+-------+-------+------ +-------|
+  Date.civil        |   82x |   66x |  27x  |  21x  |  14x  |
+  Date.parse        |   56x |   56x |  33x  |  30x  |  25x  |
+  Date.today        |   17x |    6x |   2x  |   2x  |   2x  |
+  Date.strptime     |   43x |   62x |  63x  |  37x  |  23x  |
+  DateTime.civil    |  252x |  146x |  52x  |  41x  |  17x  |
+  DateTime.parse    |   52x |   54x |  32x  |  27x  |  20x  |
+  DateTime.now      |   78x |   35x |  11x  |   8x  |   4x  |
+  DateTime.strptime |   63x |   71x |  58x  |  35x  |  23x  |
+  Date#strftime     |  156x |  104x | 110x  |  70x  |  62x  |
+  Date#+            |   34x |   32x |   5x  |   5x  |   4x  |
+  Date#<<           |  177x |  220x |  86x  |  72x  |  40x  |
+  Date#to_s         |   15x |    6x |   5x  |   4x  |   2x  |
+  DateTime#strftime |  146x |  107x | 114x  |  71x  |  60x  |
+  DateTime#+        |   34x |   37x |   8x  |   6x  |   3x  |
+  DateTime#<<       |   88x |  106x |  40x  |  33x  |  16x  |
+  DateTime#to_s     |  144x |   47x |  54x  |  29x  |  24x  |
+
+== Real world difference
+
+The standard library Date class is slow enough to be the
+bottleneck in much (if not most) of code that uses it.
+Here's a real world benchmark showing the retrieval of
+data from a database, first without home_run, and then
+with home_run.
+
+  $ script/console production
+  Loading production environment (Rails 2.3.5)
+  >> require 'benchmark'
+  => false
+  >> puts Benchmark.measure{Employee.all}
+    0.270000   0.020000   0.290000 (  0.460604)
+  => nil
+  >> puts Benchmark.measure{Notification.all}
+    2.510000   0.050000   2.560000 (  2.967896)
+  => nil
+
+  $ home_run script/console production
+  Loading production environment (Rails 2.3.5)
+  >> require 'benchmark'
+  => false
+  >> puts Benchmark.measure{Employee.all}
+    0.100000   0.000000   0.100000 (  0.114747)
+  => nil
+  >> puts Benchmark.measure{Notification.all}
+    0.860000   0.010000   0.870000 (  0.939594)
+
+Without changing any application code, there's a 4x
+increase when retrieving all employees, and a 3x
+increase when retrieving all notifications.  The
+main reason for the performance difference between
+these two models is that Employee has 5 date columns,
+while Notification only has 3.
+
 == Installing the gem
 
   gem install home_run
@@ -31,7 +94,8 @@ If you ever want to uninstall from site_ruby:
 
 == Running without installing into site_ruby
 
-Again, this should only be necessary on ruby 1.8.
+Just like installing into site_ruby, this should only be necessary
+on ruby 1.8.
 
 If you don't want to install into site_ruby, you can use home_run's
 Date/DateTime classes for specific programs by running your script
@@ -112,7 +176,7 @@ you use the standard library.
   with fractional minutes to the nearest minute.
 * All public class and instance methods for both Date and DateTime
   are implemented, except that the allocate class method is not
-  defined and on 1.9, _dump and _load are used instead of
+  available and on 1.9, _dump and _load are used instead of
   marshal_dump and marshal_load.
 * Only the public API is compatible, the private methods in the
   standard library are not implemented.
@@ -213,7 +277,7 @@ home_run has been tested on the following:
 
 === Compiler Versions
 
-* gcc (3.3.5, 4.2.1, 4.4.3)
+* gcc (3.3.5, 4.2.1, 4.4.3, 4.5.0)
 
 === Ruby Versions
 
@@ -227,7 +291,7 @@ home_run has been tested on the following:
 If your platform, compiler version, or ruby version is not listed
 above, please test and send me a report including:
 
-* Your operating system and platform (i386, x86_64/amd64)
+* Your operating system and platform (e.g. i386, x86_64/amd64)
 * Your compiler
 * Your ruby version
 * The output of home_run --spec
