@@ -120,6 +120,8 @@ you use the standard library.
 * When parsing the %Q modifier in _strptime, the hash returned
   includes an Integer :seconds value and a Float :sec_fraction
   value instead of a single Rational :seconds value.
+* The string returned by #inspect has a different format, since it
+  doesn't use Rational.
 * You can use the Date::Format::STYLE hash to change how to parse
   DD/DD/DD and DD.DD.DD date formats, allowing you to get ruby 1.9
   behavior on 1.8 or vice-versa.  This is probably the only new
