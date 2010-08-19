@@ -2298,9 +2298,10 @@ static VALUE rhrd_gregorian_q(VALUE self) {
  */
 static VALUE rhrd_hash(VALUE self) {
   rhrd_t *d;
+  RHR_CACHED_IV(self, rhrd_id_hash)
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
-  return rb_funcall(LONG2NUM(d->jd), rhrd_id_hash, 0);
+  return rb_ivar_set(self, rhrd_id_hash, rb_funcall(LONG2NUM(d->jd), rhrd_id_hash, 0));
 }
 
 /* call-seq:

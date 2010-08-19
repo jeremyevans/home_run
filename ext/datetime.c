@@ -1089,10 +1089,10 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
  */
 static VALUE rhrdt_hash(VALUE self) {
   rhrdt_t *d;
-
+  RHR_CACHED_IV(self, rhrd_id_hash)
   self = rhrdt__new_offset(self, 0);
   Data_Get_Struct(self, rhrdt_t, d);
-  return rb_funcall(rb_ary_new3(2, LONG2NUM(d->jd), LL2NUM(d->nanos)), rhrd_id_hash, 0);
+  return rb_ivar_set(self, rhrd_id_hash, rb_funcall(rb_ary_new3(2, LONG2NUM(d->jd), LL2NUM(d->nanos)), rhrd_id_hash, 0));
 }
 
 /* call-seq:
