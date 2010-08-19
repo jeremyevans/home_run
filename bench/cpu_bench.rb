@@ -1,14 +1,15 @@
+require 'rbconfig'
+$:.unshift Config::CONFIG['rubylibdir']
 require 'date'
 require 'benchmark'
 
 SD = Date
 SDT = DateTime
-$:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext'))
-$:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__)))))
 Object.send(:remove_const, :Date)
 Object.send(:remove_const, :DateTime)
-require 'ext/date.rb'
-require 'ext/date/format.rb'
+$:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext'))
+load 'ext/date.rb'
+load 'ext/date/format.rb'
 HRD = Date
 HRDT = DateTime
 NANOS_PER_SEC = 1000000000
