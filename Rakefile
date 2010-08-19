@@ -38,10 +38,10 @@ end
 if RUBY_PLATFORM !~ /win|w32/ and File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
 begin
   require "rake/extensiontask"
-  desc "Internal--cross compile the windows binary gem"
   ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
   load('home_run.gemspec')
-  Rake::ExtensionTask.new('home_run', HOME_RUN_GEMSPEC) do |ext|
+  desc "Internal--cross compile the windows binary gem"
+  Rake::ExtensionTask.new('date_ext', HOME_RUN_GEMSPEC) do |ext|
     ext.name = 'date_ext'
     ext.ext_dir = 'ext' 
     ext.lib_dir = 'ext' 
@@ -111,11 +111,13 @@ task :mem_bench do
     puts "Memory benchmarks not supported on Windows"
     next
   end
-  stdlib = `#{RUBY} bench/mem_bench.rb`.to_i
+
+  require 'rbconfig'
+  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/mem_bench.rb`.to_i
   puts "Date memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
-  stdlib = `#{RUBY} bench/dt_mem_bench.rb`.to_i
+  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/dt_mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/dt_mem_bench.rb`.to_i
   puts "DateTime memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
@@ -126,11 +128,13 @@ task :garbage_bench do
     puts "Garbage creation benchmarks not supported on Windows"
     next
   end
-  stdlib = `#{RUBY} bench/garbage_bench.rb`.to_i
+
+  require 'rbconfig'
+  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/garbage_bench.rb`.to_i
   puts "Date garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
-  stdlib = `#{RUBY} bench/dt_garbage_bench.rb`.to_i
+  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/dt_garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/dt_garbage_bench.rb`.to_i
   puts "DateTime garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
