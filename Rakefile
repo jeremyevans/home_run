@@ -1,8 +1,9 @@
 require "rake"
 require "rake/clean"
+require 'rbconfig'
 
 CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
-RUBY=ENV['RUBY'] || 'ruby'
+RUBY=ENV['RUBY'] || File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
 IRBPROG=ENV['IRB'] || 'irb'
 
 begin
@@ -21,6 +22,7 @@ end
 desc "Run the specs with mspec"
 task :default => :spec
 task :spec do
+  ENV['RUBY'] ||= RUBY
   sh %{mspec}
 end
 
@@ -112,7 +114,6 @@ task :mem_bench do
     next
   end
 
-  require 'rbconfig'
   stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/mem_bench.rb`.to_i
   puts "Date memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
@@ -129,7 +130,6 @@ task :garbage_bench do
     next
   end
 
-  require 'rbconfig'
   stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/garbage_bench.rb`.to_i
   puts "Date garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
