@@ -112,6 +112,8 @@ so that no calculations can overflow.
 #define RHR_CHECK_JD(d) if ((d->jd > RHR_JD_MAX) || (d->jd < RHR_JD_MIN)) { rb_raise(rb_eRangeError, "date out of range: jd = %li", d->jd);}
 #define RHR_CHECK_CIVIL(d) if (!rhrd__valid_civil_limits(d->year, d->month, d->day)) { rb_raise(rb_eRangeError, "date out of range: year = %li, month = %hhi, day = %hhi", d->year, d->month, d->day);}
 
+#define RHR_CACHED_IV(self, iv) VALUE v = rb_ivar_get(self, iv); if (RTEST(v)) {return v;} 
+
 typedef struct rhrd_s {
   long jd;
   long year;
@@ -165,6 +167,9 @@ ID rhrd_id_op_array;
 ID rhrd_id_op_gte;
 ID rhrd_id_op_lt;
 ID rhrd_id__parse;
+ID rhrd_id_cwday;
+ID rhrd_id_cweek;
+ID rhrd_id_cwyear;
 ID rhrd_id_downcase;
 ID rhrd_id_getlocal;
 ID rhrd_id_hash;
@@ -1470,6 +1475,12 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
   return hash;
 }
 
+void rhrd__set_cw_ivs(VALUE self, rhrd_t *d) {
+  rb_ivar_set(self, rhrd_id_cwyear, d->year);
+  rb_ivar_set(self, rhrd_id_cweek, d->month);
+  rb_ivar_set(self, rhrd_id_cwday, d->day);
+}
+
 #include "date_parser.c"
 
 /* Ruby class methods */
@@ -2119,11 +2130,13 @@ static VALUE rhrd_asctime(VALUE self) {
 static VALUE rhrd_cwday(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
+  RHR_CACHED_IV(self, rhrd_id_cwday)
   memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
+  rhrd__set_cw_ivs(self, &n);
   return LONG2NUM(n.day);
 }
 
@@ -2140,11 +2153,13 @@ static VALUE rhrd_cwday(VALUE self) {
 static VALUE rhrd_cweek(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
+  RHR_CACHED_IV(self, rhrd_id_cweek)
   memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
+  rhrd__set_cw_ivs(self, &n);
   return LONG2NUM(n.month);
 }
 
@@ -2161,11 +2176,13 @@ static VALUE rhrd_cweek(VALUE self) {
 static VALUE rhrd_cwyear(VALUE self) {
   rhrd_t *d;
   rhrd_t n;
+  RHR_CACHED_IV(self, rhrd_id_cwyear)
   memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
+  rhrd__set_cw_ivs(self, &n);
   return LONG2NUM(n.year);
 }
 
@@ -3967,6 +3984,9 @@ void Init_date_ext(void) {
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
   rhrd_id__parse = rb_intern("_parse");
+  rhrd_id_cwday = rb_intern("cwday");
+  rhrd_id_cweek = rb_intern("cweek");
+  rhrd_id_cwyear = rb_intern("cwyear");
   rhrd_id_downcase = rb_intern("downcase");
   rhrd_id_getlocal = rb_intern("getlocal");
   rhrd_id_hash = rb_intern("hash");

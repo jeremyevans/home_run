@@ -928,11 +928,13 @@ static VALUE rhrdt_asctime(VALUE self) {
 static VALUE rhrdt_cwday(VALUE self) {
   rhrdt_t *d;
   rhrd_t n;
+  RHR_CACHED_IV(self, rhrd_id_cwday)
   memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
+  rhrd__set_cw_ivs(self, &n);
   return LONG2NUM(n.day);
 }
 
@@ -949,11 +951,13 @@ static VALUE rhrdt_cwday(VALUE self) {
 static VALUE rhrdt_cweek(VALUE self) {
   rhrdt_t *d;
   rhrd_t n;
+  RHR_CACHED_IV(self, rhrd_id_cweek)
   memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
+  rhrd__set_cw_ivs(self, &n);
   return LONG2NUM(n.month);
 }
 
@@ -970,11 +974,13 @@ static VALUE rhrdt_cweek(VALUE self) {
 static VALUE rhrdt_cwyear(VALUE self) {
   rhrdt_t *d;
   rhrd_t n;
+  RHR_CACHED_IV(self, rhrd_id_cwyear)
   memset(&n, 0, sizeof(rhrd_t));
   Data_Get_Struct(self, rhrdt_t, d);
   RHRDT_FILL_JD(d)
   n.jd = d->jd;
   rhrd__fill_commercial(&n);
+  rhrd__set_cw_ivs(self, &n);
   return LONG2NUM(n.year);
 }
 
