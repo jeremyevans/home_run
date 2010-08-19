@@ -15,6 +15,9 @@ and 1.9.
 
 == Installing into site_ruby
 
+This is only necessary on ruby 1.8, as on ruby 1.9, gem directories
+come before the standard library directories in the load path.
+
 After installing the gem:
 
   home_run --install
@@ -27,6 +30,8 @@ If you ever want to uninstall from site_ruby:
   home_run --uninstall
 
 == Running without installing into site_ruby
+
+Again, this should only be necessary on ruby 1.8.
 
 If you don't want to install into site_ruby, you can use home_run's
 Date/DateTime classes for specific programs by running your script
@@ -77,7 +82,7 @@ library and home_run's versions.
 == Usage
 
 home_run aims to be compatible with the standard library, except
-for exceptions mentioned below.  So you can use it the same way
+for differences mentioned below.  So you can use it the same way
 you use the standard library.
 
 == Differences from standard library
@@ -92,10 +97,10 @@ you use the standard library.
 * The DateTime class stores fractional days as the number of
   nanoseconds since midnight, so it cannot deal with differences
   less than a nanosecond.
-* Neither Date nor DateTime uses Rational.  Places where the standard
-  library returns Rationals, home_run returns integers or floats.
-* Because Rational is not used, it is not required.  This can break
-  other libraries that use Rational without directly requiring it.
+* Neither Date nor DateTime uses rational.  Places where the standard
+  library returns rationals, home_run returns integers or floats.
+* Because rational is not used, it is not required.  This can break
+  other libraries that use rational without directly requiring it.
 * There is no support for modifying the date of calendar reform, the
   sg arguments are ignored and the Gregorian calendar is always used.
   This means that julian day 0 is -4173-11-24, instead of -4712-01-01.
@@ -119,9 +124,9 @@ you use the standard library.
   day steps, though.
 * When parsing the %Q modifier in _strptime, the hash returned
   includes an Integer :seconds value and a Float :sec_fraction
-  value instead of a single Rational :seconds value.
+  value instead of a single rational :seconds value.
 * The string returned by #inspect has a different format, since it
-  doesn't use Rational.
+  doesn't use rational.
 * You can use the Date::Format::STYLE hash to change how to parse
   DD/DD/DD and DD.DD.DD date formats, allowing you to get ruby 1.9
   behavior on 1.8 or vice-versa.  This is probably the only new
@@ -170,8 +175,7 @@ requirements:
 
 == Testing
 
-The default rake task runs the specs, so just cd into the home_run
-directory and run:
+The default rake task runs the specs, so just run:
 
   rake
 
@@ -181,7 +185,7 @@ You need to build the library before running the specs.
 
 To see the speedup that home_run gives you over the standard library:
 
-  rake bench # or bench_long or bench_quick
+  rake bench
 
 To see how much less memory home_run uses compared to the standard
 library:
@@ -192,6 +196,10 @@ To see how much less garbage is created when instantiating objects
 with home_run compared to the standard library:
 
   rake garbage_bench
+
+If you want to run all three benchmarks at once:
+
+  rake bench_all
 
 == Platforms Supported
 
