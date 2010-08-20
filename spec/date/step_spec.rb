@@ -2,6 +2,10 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 describe "Date#step" do
   
+  it "should require a block" do
+    proc{Date.today.step(Date.today)}.should raise_error(LocalJumpError)
+  end
+
   it "should be able to step forward in time" do
     ds    = Date.civil(2008, 10, 11)
     de    = Date.civil(2008,  9, 29)
