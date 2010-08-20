@@ -274,7 +274,8 @@ home_run has been tested on the following:
 
 === Operating Systems/Platforms
 
-* Linux (i386)
+* Linux (x86_64, i386)
+* Mac OS X 10.6 (x86_64, i386)
 * OpenBSD (amd64, i386)
 * Windows XP (i386)
 
@@ -286,7 +287,7 @@ home_run has been tested on the following:
 
 * rbx head (as of commit 0e265b92727cf3536053, 2010-08-16)
 * ruby 1.8.6 (p0, p398, p399)
-* ruby 1.8.7 (p248, p299, p302)
+* ruby 1.8.7 (p174, p248, p299, p302)
 * ruby 1.9.1 (p243, p378, p429, p430)
 * ruby 1.9.2 (p0)
 * ruby head
@@ -310,5 +311,4 @@ above, please test and send me a report including:
 
 == Author
 
-Jeremy Evans
-code@jeremyevans.net
+Jeremy Evans <code@jeremyevans.net>
