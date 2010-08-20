@@ -5,17 +5,13 @@ require 'rbconfig'
 CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
 RUBY=ENV['RUBY'] || File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
 
-begin
-  gem 'rdoc'
-  require 'rdoc/rdoc'
-  require "rake/rdoctask"
-  Rake::RDocTask.new do |rdoc|
-    rdoc.rdoc_dir = "rdoc"
-    rdoc.options += ["--quiet", "--line-numbers", "--inline-source", '--title',
-      'home_run: Fast Date/DateTime classes for ruby', '--main', 'README.rdoc']
-    rdoc.rdoc_files.add %w"README.rdoc CHANGELOG LICENSE ext/**/*.rb ext/*.c"
-  end
-rescue LoadError
+desc "Build the RDoc documentation"
+task :rdoc do
+  require 'fileutils'
+  FileUtils.rm_rf('rdoc')
+  sh 'rdoc --quiet --line-numbers --inline-source --output rdoc --title ' \
+     '"home_run: Fast Date/DateTime classes for ruby" --main README.rdoc ' \
+     'README.rdoc CHANGELOG LICENSE ext/**/*.rb ext/*.c'
 end
 
 desc "Run the specs with mspec"
