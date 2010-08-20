@@ -1,5 +1,5 @@
 require 'rbconfig'
-$:.unshift Config::CONFIG['rubylibdir']
+$:.unshift RbConfig::CONFIG['rubylibdir']
 require 'date'
 require 'benchmark'
 

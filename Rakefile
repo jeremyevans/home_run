@@ -3,7 +3,7 @@ require "rake/clean"
 require 'rbconfig'
 
 CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
-RUBY=ENV['RUBY'] || File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
+RUBY=ENV['RUBY'] || File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
 
 begin
   gem 'rdoc'
@@ -95,7 +95,7 @@ end
 
 desc "Start an IRB shell using the extension"
 task :irb do
-  irb = ENV['IRB'] || File.join(Config::CONFIG['bindir'], File.basename(RUBY).sub('ruby', 'irb'))
+  irb = ENV['IRB'] || File.join(RbConfig::CONFIG['bindir'], File.basename(RUBY).sub('ruby', 'irb'))
   sh %{#{irb} -I ext -r date}
 end
 
@@ -114,11 +114,11 @@ task :mem_bench do
     next
   end
 
-  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/mem_bench.rb`.to_i
+  stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/mem_bench.rb`.to_i
   puts "Date memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
-  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/dt_mem_bench.rb`.to_i
+  stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/dt_mem_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/dt_mem_bench.rb`.to_i
   puts "DateTime memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
@@ -130,11 +130,11 @@ task :garbage_bench do
     next
   end
 
-  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/garbage_bench.rb`.to_i
+  stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/garbage_bench.rb`.to_i
   puts "Date garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
-  stdlib = `#{RUBY} -I #{Config::CONFIG['rubylibdir']} bench/dt_garbage_bench.rb`.to_i
+  stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/dt_garbage_bench.rb`.to_i
   home_run = `#{RUBY} -I ext bench/dt_garbage_bench.rb`.to_i
   puts "DateTime garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
