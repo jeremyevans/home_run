@@ -27,6 +27,10 @@ opts = OptionParser.new do |opts|
     command = :spec 
   end
 end
+if ARGV.empty?
+  $stderr.puts opts.help
+  exit(1)
+end
 opts.order!
 
 case command
