@@ -246,7 +246,8 @@ The default rake task runs the specs, so just run:
 
   rake
 
-You need to build the library before running the specs.
+You need to build the library and install MSpec before running the
+specs.
 
 == Benchmarking
 
