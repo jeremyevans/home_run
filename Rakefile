@@ -54,7 +54,7 @@ begin
   # FIXME: Incredibly hacky, should figure out how to get
   # rake compiler to do this correctly
   desc "Build the cross compiled windows binary gem"
-  task :windows_gem => :clean do
+  task :windows_gem => [:clean, :parser] do
     sh %{rm -rf tmp pkg home_run-*.gem ext/1.*}
     system %{rake cross native gem}
     unless File.directory?('pkg')
@@ -67,11 +67,6 @@ begin
     sh %{rm -rf home_run-*.gem tmp ext/1.*}
     sh %{mv pkg/home_run-*.gem .}
     sh %{rmdir pkg}
-  end
-
-  desc "Build the cross compiled windows binary gem"
-  task :windows_gem_clean do
-    sh %{rm -rf tmp ext/1.{8,9}}
   end
 rescue LoadError
 end
