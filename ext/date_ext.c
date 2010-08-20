@@ -4074,6 +4074,8 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
 void Init_date_ext(void) {
   int i;
 
+  /* Setup static IDs and symbols */
+
   rhrd_id_op_array = rb_intern("[]");
   rhrd_id_op_gte = rb_intern(">=");
   rhrd_id_op_lt = rb_intern("<");
@@ -4133,22 +4135,14 @@ void Init_date_ext(void) {
   rhrd_sym_year = ID2SYM(rb_intern("year"));
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
 
-  rhrd_start_num = LONG2NUM(RHR_JD_MIN - 1);
+  /* Define classes*/
 
   rhrd_class = rb_define_class("Date", rb_cObject);
   rb_undef_alloc_func(rhrd_class);
   rhrd_s_class = rb_singleton_class(rhrd_class);
 
-  /* The julian day number for the day of calendar reform in Italy */
-  rb_define_const(rhrd_class, "ITALY", LONG2NUM(RHR_JD_ITALY));
-  /* The julian day number for the day of calendar reform in England */
-  rb_define_const(rhrd_class, "ENGLAND", LONG2NUM(RHR_JD_ENGLAND));
-  /* An integer lower than the lowest supported julian day number */
-  rb_define_const(rhrd_class, "GREGORIAN", rhrd_start_num);
-  /* An integer higher than the highest supported julian day number */
-  rb_define_const(rhrd_class, "JULIAN", LONG2NUM(RHR_JD_MAX + 1));
+  /* Define methods for all ruby versions */
 
-  /* All ruby versions */
   rb_define_method(rhrd_s_class, "_load", rhrd_s__load, 1);
   rb_define_method(rhrd_s_class, "_strptime", rhrd_s__strptime, -1);
   rb_define_method(rhrd_s_class, "civil", rhrd_s_civil, -1);
@@ -4220,6 +4214,8 @@ void Init_date_ext(void) {
   rb_define_method(rhrd_class, "<=>", rhrd_op_spaceship, 1);
 
   rb_funcall(rhrd_class, rb_intern("include"), 1, rb_mComparable);
+
+  /* Setup static constants */
 
   rhrd_monthnames = rb_ary_new2(13);
   rhrd_abbr_monthnames = rb_ary_new2(13);
@@ -4408,23 +4404,49 @@ void Init_date_ext(void) {
   rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp4"), LONG2NUM(14400));
   rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp5"), LONG2NUM(18000));
   rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp6"), LONG2NUM(21600));
-  rb_define_const(rhrd_s_class, "ZONES", rhrd_zones_hash);
 
+  rhrd_start_num = LONG2NUM(RHR_JD_MIN - 1);
   rhrd_empty_string = rb_str_new("", 0);
-  rb_define_const(rhrd_s_class, "EMPTY_STRING", rhrd_empty_string);
   rhrd_string_colon = rb_str_new(":", 1);
-  rb_define_const(rhrd_s_class, "COLON", rhrd_string_colon);
-  rhrd_re_comma_period = rb_reg_new("[,.]", 4, 0);
-  rb_define_const(rhrd_s_class, "COMMA_PERIOD", rhrd_re_comma_period);
 
-  /* 1 is option ignore case */
+  /* Define some static regexps. The 1 for the options makes
+   * it case insensitive, as I don't want to deal with including
+   * the ruby regex header just to get it. */
   rhrd_zone_re = rb_reg_new(rhrd__zone_re_str, strlen(rhrd__zone_re_str), 1);
-  rb_define_const(rhrd_s_class, "ZONE_RE", rhrd_zone_re);
   rhrd_zone_dst_re = rb_reg_new(rhrd__zone_dst_re_str, strlen(rhrd__zone_dst_re_str), 1);
-  rb_define_const(rhrd_s_class, "ZONE_DST_RE", rhrd_zone_dst_re);
   rhrd_zone_sign_re = rb_reg_new(rhrd__zone_sign_re_str, strlen(rhrd__zone_sign_re_str), 1);
-  rb_define_const(rhrd_s_class, "ZONE_SIGN_RE", rhrd_zone_sign_re);
+  rhrd_re_comma_period = rb_reg_new("[,.]", 4, 0);
 
+  /* Register global variables with Garbage collector, so users
+   * who remove constants can't crash the interpreter. */
+
+  rb_global_variable(&rhrd_zones_hash);
+  rb_global_variable(&rhrd_monthnames);
+  rb_global_variable(&rhrd_abbr_monthnames);
+  rb_global_variable(&rhrd_daynames);
+  rb_global_variable(&rhrd_abbr_daynames);
+  rb_global_variable(&rhrd_start_num);
+  rb_global_variable(&rhrd_empty_string);
+  rb_global_variable(&rhrd_string_colon);
+  rb_global_variable(&rhrd_zone_re);
+  rb_global_variable(&rhrd_zone_dst_re);
+  rb_global_variable(&rhrd_zone_sign_re);
+  rb_global_variable(&rhrd_re_comma_period);
+
+  /* Define constants accessible from ruby */
+
+  /* The julian day number for the day of calendar reform in Italy */
+  rb_define_const(rhrd_class, "ITALY", LONG2NUM(RHR_JD_ITALY));
+  /* The julian day number for the day of calendar reform in England */
+  rb_define_const(rhrd_class, "ENGLAND", LONG2NUM(RHR_JD_ENGLAND));
+  /* An integer lower than the lowest supported julian day number */
+  rb_define_const(rhrd_class, "GREGORIAN", rhrd_start_num);
+  /* An integer higher than the highest supported julian day number */
+  rb_define_const(rhrd_class, "JULIAN", LONG2NUM(RHR_JD_MAX + 1));
+
+  /* A hash mapping lowercase time zone names to offsets
+   * in seconds<br />ZONES['pst'] => -28800 */
+  rb_define_const(rhrd_class, "ZONES", rhrd_zones_hash);
   /* An array of month names<br />MONTHNAMES[1] => 'January' */
   rb_define_const(rhrd_class, "MONTHNAMES", rhrd_monthnames);
   /* An array of abbreviated month names<br />ABBR_MONTHNAMES[1] => 'Jan' */
@@ -4435,6 +4457,9 @@ void Init_date_ext(void) {
   rb_define_const(rhrd_class, "ABBR_DAYNAMES", rhrd_abbr_daynames);
 
 #ifdef RUBY19
+
+  /* Define ruby 1.9 only methods */
+
   rb_define_method(rhrd_s_class, "httpdate", rhrd_s_httpdate, -1);
   rb_define_method(rhrd_s_class, "iso8601", rhrd_s_iso8601, -1);
   rb_define_method(rhrd_s_class, "jisx0301", rhrd_s_jisx0301, -1);
@@ -4475,6 +4500,9 @@ void Init_date_ext(void) {
   rb_define_method(rb_cTime, "to_date", rhrd_time_to_date, 0);
   rb_define_method(rb_cTime, "to_time", rhrd_time_to_time, 0);
 #else
+
+  /* Define ruby 1.8 only methods */
+
   rb_define_method(rhrd_s_class, "ajd_to_amjd", rhrd_s_ajd_to_amjd, 1);
   rb_define_method(rhrd_s_class, "ajd_to_jd", rhrd_s_ajd_to_jd, -1);
   rb_define_method(rhrd_s_class, "amjd_to_ajd", rhrd_s_amjd_to_ajd, 1);

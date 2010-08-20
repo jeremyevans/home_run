@@ -2676,9 +2676,14 @@ static VALUE rhrdt_saturday_q(VALUE self) {
  * object.
  * */
 void Init_datetime(void) {
+
+  /* Define class */
+
   rhrdt_class = rb_define_class("DateTime", rhrd_class);
   rb_undef_alloc_func(rhrdt_class);
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
+
+  /* Define methods for all ruby versions*/
 
   rb_undef(rhrdt_s_class, rb_intern("today"));
   rb_define_method(rhrdt_s_class, "_load", rhrdt_s__load, 1);
@@ -2741,6 +2746,9 @@ void Init_datetime(void) {
   rb_define_alias(rhrdt_class, "succ", "next");
 
 #ifdef RUBY19
+
+  /* Define methods for ruby 1.9 */
+
   rb_define_method(rhrdt_s_class, "httpdate", rhrdt_s_httpdate, -1);
   rb_define_method(rhrdt_s_class, "iso8601", rhrdt_s_iso8601, -1);
   rb_define_method(rhrdt_s_class, "jisx0301", rhrdt_s_jisx0301, -1);
@@ -2781,6 +2789,9 @@ void Init_datetime(void) {
 
   rb_define_method(rb_cTime, "to_datetime", rhrdt_time_to_datetime, 0);
 #else
+
+  /* Define methods for ruby 1.8 */
+
   rb_define_alias(rhrdt_s_class, "new0", "new!");
   rb_define_alias(rhrdt_s_class, "new1", "jd");
   rb_define_alias(rhrdt_s_class, "new2", "ordinal");

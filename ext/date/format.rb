@@ -55,8 +55,11 @@ class Date
       'sun'      => 0, 'mon'      => 1, 'tue'      => 2, 'wed'      => 3,
       'thu'      => 4, 'fri'      => 5, 'sat'      => 6
     }
+    
+    # Hash mapping lowercase time zone names to offsets in seconds (e.g. ZONES['pst'] => -28800)
+    ZONES = Date::ZONES
 
-    [MONTHS, DAYS, ABBR_MONTHS, ABBR_DAYS].each do |x|
+    [MONTHS, DAYS, ABBR_MONTHS, ABBR_DAYS, ZONES].each do |x|
       x.freeze
     end
   end
