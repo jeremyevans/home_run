@@ -111,8 +111,8 @@ that home_run's Date/DateTime classes will be used.
 
 == Running the specs
 
-You can run the specs after installing the gem, if you have MSpec
-installed (gem install mspec):
+You can run the rubyspec based specs after installing the gem, if
+you have MSpec installed (gem install mspec):
 
   home_run --spec
 
