@@ -42,12 +42,13 @@ begin
   ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
   load('home_run.gemspec')
   desc "Internal--cross compile the windows binary gem"
+  cross_platform = ENV['CROSS_PLATFORM'] || 'i386-mingw32'
   Rake::ExtensionTask.new('date_ext', HOME_RUN_GEMSPEC) do |ext|
     ext.name = 'date_ext'
     ext.ext_dir = 'ext' 
     ext.lib_dir = 'ext' 
     ext.cross_compile = true
-    ext.cross_platform = 'i386-mswin32'
+    ext.cross_platform = cross_platform
     ext.source_pattern = '*.c'
   end
 
@@ -58,9 +59,9 @@ begin
     sh %{rm -rf tmp pkg home_run-*.gem ext/1.*}
     system %{rake cross native gem}
     unless File.directory?('pkg')
-      sh %{cp ext/*.c tmp/i386-mswin32/date_ext/1.8.6}
+      sh "cp ext/*.c tmp/#{cross_platform}/date_ext/1.8.6"
       system %{rake cross native gem}
-      sh %{cp ext/*.c tmp/i386-mswin32/date_ext/1.9.1}
+      sh "cp ext/*.c tmp/#{cross_platform}/date_ext/1.9.1"
       system %{rake cross native gem}
       sh %{rake cross native gem}
     end
