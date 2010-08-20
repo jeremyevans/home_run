@@ -7,23 +7,23 @@ lib = File.expand_path('../../ext', __FILE__)
 
 opts = OptionParser.new do |opts|
   opts.banner = "home_run: Fast Date/DateTime classes for ruby"
-  opts.define_head "Usage: home_run (--install | --uninstall | command)"
+  opts.define_head "Usage: home_run (--install | --uninstall | --bench | --spec | command)"
   opts.separator ""
   opts.separator "Options:"
 
-  opts.on_tail("--install", "install home_run to site_ruby") do
+  opts.on_tail("--install", "install to site_ruby") do
     command = :install
   end
 
-  opts.on_tail("--uninstall", "uninstall home_run from site_ruby") do
+  opts.on_tail("--uninstall", "uninstall from site_ruby") do
     command = :uninstall
   end
 
-  opts.on_tail("--bench", "benchmark home_run compared to the standard library") do
+  opts.on_tail("--bench", "run comparative benchmarks") do
     command = :bench
   end
 
-  opts.on_tail("--spec", "run the home_run specs") do
+  opts.on_tail("--spec", "run the specs (requires mspec)") do
     command = :spec 
   end
 end
