@@ -69,6 +69,9 @@ so that no calculations can overflow.
 #define RHR_HAVE_NANOS 4
 #define RHR_HAVE_HMS 8
 
+#define RHR_NO_RAISE 0
+#define RHR_OVERLIMIT_RAISE 1
+
 #define RHR_NANOS_PER_MILLISECOND 1000000LL
 #define RHR_NANOS_PER_SECOND 1000000000LL
 #define RHR_NANOS_PER_MINUTE 60000000000LL
@@ -264,8 +267,8 @@ long rhrd__modll(long long a, long b) {
   return c;
 }
 
-/* Return 0 if the year, month, day provided are greater than
- * the allowed limits, 1 otherwise. */
+/* Return 1 if the year, month, day provided are within
+ * the allowed limits, 0 otherwise. */
 int rhrd__valid_civil_limits(long year, long month, long day) {
   if (year > RHR_YEAR_MAX || year < RHR_YEAR_MIN) {
     return 0;
@@ -365,7 +368,7 @@ int rhrd__leap_year(long year) {
  * fields in the rhrd_t and returning 1 if so.  If the fields
  * given are not a valid date, return 0. 
  * This also handles wrap around if the month or day is negative. */
-int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
+int rhrd__valid_civil(rhrd_t *d, long year, long month, long day, int check_limits) {
   if (month < 0 && month >= -12) {
     month += 13;
   }
@@ -397,6 +400,9 @@ int rhrd__valid_civil(rhrd_t *d, long year, long month, long day) {
   }
 
   if(!rhrd__valid_civil_limits(year, month, day)) {
+    if (check_limits == RHR_OVERLIMIT_RAISE) {
+      rb_raise(rb_eRangeError, "date out of range: year = %li, month = %li, day = %li", year, month, day);
+    }
     return 0;
   } 
 
@@ -839,7 +845,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
     return 0;
   } else if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday)) {
     return 0;
-  } else if (!rhrd__valid_civil(d, year, month, day)) {
+  } else if (!rhrd__valid_civil(d, year, month, day, RHR_NO_RAISE)) {
     return 1;
   }
 
@@ -1667,8 +1673,7 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
-  if (!rhrd__valid_civil(d, year, month, day)) {
-    RHR_CHECK_CIVIL(d)
+  if (!rhrd__valid_civil(d, year, month, day, RHR_OVERLIMIT_RAISE)) {
     rb_raise(rb_eArgError, "invalid date (year: %li, month: %li, day: %li)", year, month, day);
   }
   return rd;
@@ -1948,7 +1953,7 @@ static VALUE rhrd_s_valid_civil_q(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 3:
     case 4:
-      if (!rhrd__valid_civil(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]))) {
+      if (!rhrd__valid_civil(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]), RHR_NO_RAISE)) {
 #ifdef RUBY19
         return Qfalse;
 #else
