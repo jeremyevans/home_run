@@ -847,15 +847,17 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   } else {
     return -1;
   }
-  if (yday && rhrd__valid_ordinal(d, year, yday, RHR_NO_RAISE)) {
-    return 0;
-  } else if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday, RHR_NO_RAISE)) {
-    return 0;
-  } else if (!rhrd__valid_civil(d, year, month, day, RHR_NO_RAISE)) {
-    return 1;
-  }
 
-  return 0;
+  if (yday && rhrd__valid_ordinal(d, year, yday, RHR_OVERLIMIT_RAISE)) {
+    return 0;
+  }
+  if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday, RHR_OVERLIMIT_RAISE)) {
+    return 0;
+  }
+  if (rhrd__valid_civil(d, year, month, day, RHR_OVERLIMIT_RAISE)) {
+    return 0;
+  }
+  return 1;
 }
 
 /* Returns a new ruby object filled with information from
