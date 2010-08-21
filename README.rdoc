@@ -305,8 +305,7 @@ above, please test and send me a report including:
 == Todo
 
 * Get it working on jruby with the cext branch
-* Add more specs for greater code coverage and to test
-  boundry conditions
+* Add more specs for greater code coverage
 * Expand main ragel parser to handle more formats
 * Add ragel versions of the 1.9 date parsing functions
 
