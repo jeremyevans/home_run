@@ -728,6 +728,7 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
     case 1:
       offset += NUM2DBL(argv[0]) + 0.5;
       dt->jd = offset;
+      RHR_CHECK_JD(dt)
       dt->nanos = (offset - dt->jd)*RHR_NANOS_PER_DAY;
       dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
       break;
