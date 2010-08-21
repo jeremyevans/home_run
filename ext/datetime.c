@@ -38,7 +38,7 @@ int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
   }
 
   if(!rhrd__valid_civil_limits(year, month, day)) {
-    return 0;
+    rb_raise(rb_eRangeError, "datetime out of range: year = %li, month = %li, day = %li", year, month, day);
   } 
 
   dt->year = year;
@@ -573,7 +573,6 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   }
 
   if (!rhrdt__valid_civil(dt, year, month, day)) {
-    RHR_CHECK_CIVIL(dt)
     rb_raise(rb_eArgError, "invalid date (year: %li, month: %li, day: %li)", year, month, day);
   }
   if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
