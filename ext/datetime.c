@@ -172,7 +172,7 @@ int rhrdt__valid_commercial(rhrdt_t *d, long cwyear, long cweek, long cwday) {
   }
 
   if ((n.jd > RHR_JD_MAX) || (n.jd < RHR_JD_MIN)) {
-    return 0;
+    rb_raise(rb_eRangeError, "datetime out of range");
   }
 
   d->jd = n.jd;
@@ -637,7 +637,6 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
       break;
   }
   if(!rhrdt__valid_commercial(dt, cwyear, cweek, cwday)) {
-    RHR_CHECK_JD(dt)
     rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %li, cwday: %li)", cwyear, cweek, cwday);
   }
   if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
