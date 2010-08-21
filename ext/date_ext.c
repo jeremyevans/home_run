@@ -368,7 +368,7 @@ int rhrd__leap_year(long year) {
  * fields in the rhrd_t and returning 1 if so.  If the fields
  * given are not a valid date, return 0. 
  * This also handles wrap around if the month or day is negative. */
-int rhrd__valid_civil(rhrd_t *d, long year, long month, long day, int check_limits) {
+int rhrd__valid_civil(rhrd_t *d, long year, long month, long day, int overlimit_raise) {
   if (month < 0 && month >= -12) {
     month += 13;
   }
@@ -400,7 +400,7 @@ int rhrd__valid_civil(rhrd_t *d, long year, long month, long day, int check_limi
   }
 
   if(!rhrd__valid_civil_limits(year, month, day)) {
-    if (check_limits == RHR_OVERLIMIT_RAISE) {
+    if (overlimit_raise == RHR_OVERLIMIT_RAISE) {
       rb_raise(rb_eRangeError, "date out of range: year = %li, month = %li, day = %li", year, month, day);
     }
     return 0;
@@ -562,7 +562,7 @@ void rhrd__fill_commercial(rhrd_t *d) {
  * and cwday arguments, if the date is valid, and return 1.  If the
  * date is not valid, return 0.  This also handles wrap around if
  * the cweek or cwday arguments is negative. */
-int rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
+int rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday, int overlimit_raise) {
   rhrd_t n;
   memset(&n, 0, sizeof(rhrd_t));
 
@@ -592,6 +592,9 @@ int rhrd__valid_commercial(rhrd_t *d, long cwyear, long cweek, long cwday) {
   }
 
   if ((n.jd > RHR_JD_MAX) || (n.jd < RHR_JD_MIN)) {
+    if (overlimit_raise == RHR_OVERLIMIT_RAISE) {
+      rb_raise(rb_eRangeError, "date out of range");
+    }
     return 0;
   }
 
@@ -784,7 +787,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
       d->jd = rhrd__yday1_jd(year);
       d->flags |= RHR_HAVE_JD;
       rhrd__fill_commercial(d);
-      if(!rhrd__valid_commercial(d, d->year, 1, NUM2LONG(rwday))) {
+      if(!rhrd__valid_commercial(d, d->year, 1, NUM2LONG(rwday), RHR_NO_RAISE)) {
         return 1;
       }
       d->flags &= ~RHR_HAVE_CIVIL;
@@ -843,7 +846,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   }
   if (yday && rhrd__valid_ordinal(d, year, yday)) {
     return 0;
-  } else if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday)) {
+  } else if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday, RHR_NO_RAISE)) {
     return 0;
   } else if (!rhrd__valid_civil(d, year, month, day, RHR_NO_RAISE)) {
     return 1;
@@ -1722,8 +1725,7 @@ static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
       break;
   }
 
-  if(!rhrd__valid_commercial(d, cwyear, cweek, cwday)) {
-    RHR_CHECK_JD(d)
+  if(!rhrd__valid_commercial(d, cwyear, cweek, cwday, RHR_OVERLIMIT_RAISE)) {
     rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %li, cwday: %li)", cwyear, cweek, cwday);
   }
   return rd;
@@ -1993,7 +1995,7 @@ static VALUE rhrd_s_valid_commercial_q(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 3:
     case 4:
-      if (!rhrd__valid_commercial(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]))) {
+      if (!rhrd__valid_commercial(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), NUM2LONG(argv[2]), RHR_NO_RAISE)) {
 #ifdef RUBY19
         return Qfalse;
 #else
