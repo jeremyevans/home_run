@@ -617,7 +617,7 @@ long rhrd__ordinal_day(long year, unsigned char month, unsigned char day) {
  * given ordinal day fields, if they are valid.  Returns
  * 1 if the date is valid, 0 if not.  This also handles
  * wrap around for a negative yday argument. */
-int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
+int rhrd__valid_ordinal(rhrd_t *d, long year, long yday, int overlimit_raise) {
   int leap;
   long month, day;
 
@@ -645,6 +645,9 @@ int rhrd__valid_ordinal(rhrd_t *d, long year, long yday) {
   }
 
   if(!rhrd__valid_civil_limits(year, month, day)) {
+    if (overlimit_raise == RHR_OVERLIMIT_RAISE) {
+      rb_raise(rb_eRangeError, "date out of range");
+    }
     return 0;
   } 
 
@@ -844,7 +847,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
   } else {
     return -1;
   }
-  if (yday && rhrd__valid_ordinal(d, year, yday)) {
+  if (yday && rhrd__valid_ordinal(d, year, yday, RHR_NO_RAISE)) {
     return 0;
   } else if (cweek && cwday && rhrd__valid_commercial(d, cwyear, cweek, cwday, RHR_NO_RAISE)) {
     return 0;
@@ -1827,8 +1830,7 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
       day = NUM2LONG(argv[1]);
     case 1:
       year = NUM2LONG(argv[0]);
-      if(!rhrd__valid_ordinal(d, year, day)) {
-        RHR_CHECK_JD(d)
+      if(!rhrd__valid_ordinal(d, year, day, RHR_OVERLIMIT_RAISE)) {
         rb_raise(rb_eArgError, "invalid date (year: %li, yday: %li)", year, day);
       }
       break;
@@ -2059,7 +2061,7 @@ static VALUE rhrd_s_valid_ordinal_q(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 2:
     case 3:
-      if (!rhrd__valid_ordinal(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]))) {
+      if (!rhrd__valid_ordinal(&d, NUM2LONG(argv[0]), NUM2LONG(argv[1]), RHR_NO_RAISE)) {
 #ifdef RUBY19
         return Qfalse;
 #else

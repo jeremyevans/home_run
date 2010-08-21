@@ -209,7 +209,7 @@ int rhrdt__valid_ordinal(rhrdt_t *d, long year, long yday) {
   }
 
   if(!rhrd__valid_civil_limits(year, month, day)) {
-    return 0;
+    rb_raise(rb_eRangeError, "datetime out of range");
   } 
 
   d->year = year;
