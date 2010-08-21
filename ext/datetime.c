@@ -263,6 +263,7 @@ VALUE rhrdt__from_jd_nanos(long jd, long long nanos, short offset) {
     jd += t;
   }
   dt->jd = jd;
+  RHR_CHECK_JD(dt)
   dt->nanos = nanos;
   dt->offset = offset;
   dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
