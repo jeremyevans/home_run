@@ -120,3 +120,51 @@ describe "DateTime limits: " do
   end
 
 end
+
+describe "DateTime offset limits: " do
+  it "methods should raise ArgumentError for offets that are too large or small" do
+    max = (14 + 1.0/60)/24
+    min = -(14 + 1.0/60)/24
+    proc{DateTime.civil(2009, 1, 1, 0, 0, 0, max)}.should raise_error(ArgumentError)
+    proc{DateTime.civil(2009, 1, 1, 0, 0, 0, min)}.should raise_error(ArgumentError)
+    proc{DateTime.commercial(2009, 1, 1, 0, 0, 0, max)}.should raise_error(ArgumentError)
+    proc{DateTime.commercial(2009, 1, 1, 0, 0, 0, min)}.should raise_error(ArgumentError)
+    proc{DateTime.ordinal(2009, 1, 0, 0, 0, max)}.should raise_error(ArgumentError)
+    proc{DateTime.ordinal(2009, 1, 0, 0, 0, min)}.should raise_error(ArgumentError)
+    proc{DateTime.jd(2009, 0, 0, 0, max)}.should raise_error(ArgumentError)
+    proc{DateTime.jd(2009, 0, 0, 0, min)}.should raise_error(ArgumentError)
+    proc{DateTime.new!(2009, max)}.should raise_error(ArgumentError)
+    proc{DateTime.new!(2009, min)}.should raise_error(ArgumentError)
+    proc{DateTime.parse("00:00:00+14:01", "%H:%M:%S%z")}.should raise_error(ArgumentError)
+    proc{DateTime.parse("00:00:00-14:01", "%H:%M:%S%z")}.should raise_error(ArgumentError)
+    proc{DateTime.strptime("00:00:00+14:01", "%H:%M:%S%z")}.should raise_error(ArgumentError)
+    proc{DateTime.strptime("00:00:00-14:01", "%H:%M:%S%z")}.should raise_error(ArgumentError)
+
+    d = DateTime.jd(2009)
+    proc{d.new_offset(max)}.should raise_error(ArgumentError)
+    proc{d.new_offset(min)}.should raise_error(ArgumentError)
+  end
+
+  it "methods should not raise for offsets that are not too large or small" do
+    max = 14.0/24
+    min = -14.0/24
+    proc{DateTime.civil(2009, 1, 1, 0, 0, 0, max)}.should_not raise_error
+    proc{DateTime.civil(2009, 1, 1, 0, 0, 0, min)}.should_not raise_error
+    proc{DateTime.commercial(2009, 1, 1, 0, 0, 0, max)}.should_not raise_error
+    proc{DateTime.commercial(2009, 1, 1, 0, 0, 0, min)}.should_not raise_error
+    proc{DateTime.ordinal(2009, 1, 0, 0, 0, max)}.should_not raise_error
+    proc{DateTime.ordinal(2009, 1, 0, 0, 0, min)}.should_not raise_error
+    proc{DateTime.jd(2009, 0, 0, 0, max)}.should_not raise_error
+    proc{DateTime.jd(2009, 0, 0, 0, min)}.should_not raise_error
+    proc{DateTime.new!(2009, max)}.should_not raise_error
+    proc{DateTime.new!(2009, min)}.should_not raise_error
+    proc{DateTime.parse("00:00:00+14:00", "%H:%M:%S%z")}.should_not raise_error
+    proc{DateTime.parse("00:00:00-14:00", "%H:%M:%S%z")}.should_not raise_error
+    proc{DateTime.strptime("00:00:00+14:00", "%H:%M:%S%z")}.should_not raise_error
+    proc{DateTime.strptime("00:00:00-14:00", "%H:%M:%S%z")}.should_not raise_error
+
+    d = DateTime.jd(2009)
+    proc{d.new_offset(max)}.should_not raise_error
+    proc{d.new_offset(min)}.should_not raise_error
+  end
+end
