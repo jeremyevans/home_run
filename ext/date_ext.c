@@ -24,10 +24,8 @@
 #define RHR_MINUTES_PER_DAYD 1440.0
 #define RHR_SECONDS_PER_DAY 86400
 #define RHR_SECONDS_PER_DAYD 86400.0
-#define RHR_MAX_OFFSET_MINUTES 864
-#define RHR_MAX_OFFSET_FRACT 0.6
-#define RHR_MIN_OFFSET_MINUTES -864
-#define RHR_MIN_OFFSET_FRACT -0.6
+#define RHR_MAX_OFFSET 840
+#define RHR_MIN_OFFSET -840
 
 /*
 In both the 32-bit and 64-bit cases, the limits are chosen so that you cannot

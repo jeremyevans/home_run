@@ -1,6 +1,13 @@
 
 /* Helper methods */
 
+/* Raise an ArgumentError if the offset is outside the allowed range. */
+void rhrdt__check_offset(long offset) {
+  if (offset > RHR_MAX_OFFSET || offset < RHR_MIN_OFFSET) {
+    rb_raise(rb_eArgError, "invalid offset: %ld minutes", offset);
+  }
+}
+
 /* Identical for rhrd__valid_civil, but for rhrdt_t.  Not very
  * DRY, but the arguments get modified by the method and then
  * used to populate the rhrdt_t. Because the rhrd_t field structure
@@ -49,23 +56,21 @@ int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
 }
 
 /* Check if the given offset is valid.  If so, set the offset field
- * in the rhrdt_t and return 1.  Otherwise, return 0. */
-int rhrdt__valid_offset(rhrdt_t *dt, double offset) {
-  if (offset < RHR_MIN_OFFSET_FRACT || offset > RHR_MAX_OFFSET_FRACT) {
-    return 0;
-  }
-
-  dt->offset = lround(offset * 1440);
-  return 1;
+ * in the rhrdt_t, otherwise, raise an ArgumentError. */
+void rhrdt__set_offset(rhrdt_t *dt, double offset) {
+  long offset_min;
+  offset_min = lround(offset * 1440);
+  rhrdt__check_offset(offset_min);
+  dt->offset = offset_min;
 }
 
-/* Check if the time information consistutes a valid time.  If not, return
- * 0.  If so, fill in the fields in the rhrdt_t and return 1.  This handles
+/* Check if the time information consistutes a valid time.  If not, raise an
+ * ArgumentError.  If so, fill in the fields in the rhrdt_t.  This handles
  * wrap around for negative hour, minute, and second arguments, and handles
  * an hour of 24 with no minute or second value as the 0th hour of the next
  * day, so either the julian day or civil day fields in the rhrdt_t should
  * be filled out before calling this method. */
-int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
+void rhrdt__set_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   if (h < 0) {
     h += 24;
   }
@@ -82,17 +87,14 @@ int rhrdt__valid_time(rhrdt_t *dt, long h, long m, long s, double offset) {
     dt->flags &= ~RHR_HAVE_CIVIL;
     h = 0;
   } else if (h < 0 || m < 0 || s < 0 || h > 23 || m > 59 || s > 59) {
-    return 0;
+    rb_raise(rb_eArgError, "invalid time: %ld hours, %ld minutes, %ld seconds", h, m, s);
   }
-  if(!rhrdt__valid_offset(dt, offset)) {
-    return 0;
-  }
+  rhrdt__set_offset(dt, offset);
 
   dt->hour = h;
   dt->minute = m;
   dt->second = s;
   dt->flags |= RHR_HAVE_HMS;
-  return 1;
 }
 
 /* Same as rhrd__civil_to_jd for rhrdt_t. */
@@ -378,9 +380,7 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
     dt->minute = (time_set - dt->hour * RHR_SECONDS_PER_HOUR)/60;
     dt->second = rhrd__mod(time_set, 60);
     offset /= 60;
-    if (offset > RHR_MAX_OFFSET_MINUTES || offset < RHR_MIN_OFFSET_MINUTES) {
-      rb_raise(rb_eArgError, "invalid offset: %ld minutes", offset);
-    }
+    rhrdt__check_offset(offset);
     RHR_CHECK_JD(dt);
     dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
     return;
@@ -429,15 +429,13 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
     dt->flags |= RHR_HAVE_CIVIL;
   }
   if(time_set) {
-    rhrdt__valid_time(dt, hour, minute, second, offset/RHR_SECONDS_PER_DAYD);
+    rhrdt__set_time(dt, hour, minute, second, offset/RHR_SECONDS_PER_DAYD);
     if(nanos) {
       RHRDT_FILL_NANOS(dt)
       dt->nanos += nanos;
     }
   } else if (offset) {
-    if(!rhrdt__valid_offset(dt, offset/RHR_SECONDS_PER_DAYD)){
-      rb_raise(rb_eArgError, "invalid date");
-    } 
+    rhrdt__set_offset(dt, offset/RHR_SECONDS_PER_DAYD);
   }
 }
 
@@ -448,10 +446,8 @@ VALUE rhrdt__new_offset(VALUE self, double offset) {
   rhrdt_t *dt;
   long offset_min;
 
-  if(offset < RHR_MIN_OFFSET_FRACT || offset > RHR_MAX_OFFSET_FRACT) {
-    rb_raise(rb_eArgError, "invalid offset (%f)", offset);
-  } 
   offset_min = lround(offset * 1440.0);
+  rhrdt__check_offset(offset_min);
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_NANOS(dt)
@@ -490,9 +486,7 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   }
 
   x = NUM2LONG(rb_ary_entry(ary, 2));
-  if (x > RHR_MAX_OFFSET_MINUTES || x < RHR_MIN_OFFSET_MINUTES) {
-    rb_raise(rb_eArgError, "invalid offset: %ld minutes", x);
-  }
+  rhrdt__check_offset(x);
   d->offset = x;
   
   d->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
@@ -576,10 +570,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   if (!rhrdt__valid_civil(dt, year, month, day)) {
     rb_raise(rb_eArgError, "invalid date (year: %li, month: %li, day: %li)", year, month, day);
   }
-  if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
-    rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
-  }
-
+  rhrdt__set_time(dt, hour, minute, second, offset);
   return rdt;
 }
 
@@ -640,10 +631,7 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
   if(!rhrdt__valid_commercial(dt, cwyear, cweek, cwday)) {
     rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %li, cwday: %li)", cwyear, cweek, cwday);
   }
-  if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
-    rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
-  }
-
+  rhrdt__set_time(dt, hour, minute, second, offset);
   return rdt;
 }
 
@@ -686,10 +674,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
 
   RHR_CHECK_JD(dt)
   dt->flags = RHR_HAVE_JD;
-  if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
-    rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
-  }
-
+  rhrdt__set_time(dt, hour, minute, second, offset);
   return rdt;
 }
 
@@ -723,9 +708,7 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
     case 2:
     case 3:
       offset = NUM2DBL(argv[1]);
-      if (!rhrdt__valid_offset(dt, offset)) {
-        rb_raise(rb_eArgError, "invalid offset (%f)", offset);
-      }
+      rhrdt__set_offset(dt, offset);
     case 1:
       offset += NUM2DBL(argv[0]) + 0.5;
       dt->jd = offset;
@@ -813,9 +796,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
     RHR_CHECK_JD(dt)
     rb_raise(rb_eArgError, "invalid date (year: %li, yday: %li)", year, day);
   }
-  if (!rhrdt__valid_time(dt, hour, minute, second, offset)) {
-    rb_raise(rb_eArgError, "invalid time (hour: %li, minute: %li, second: %li, offset: %f)", hour, minute, second, offset);
-  }
+  rhrdt__set_time(dt, hour, minute, second, offset);
   return rdt;
 }
 
