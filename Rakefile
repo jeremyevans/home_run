@@ -2,7 +2,7 @@ require "rake"
 require "rake/clean"
 require 'rbconfig'
 
-CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc' 
+CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc coverage' 
 RUBY=ENV['RUBY'] || File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
 
 desc "Build the RDoc documentation"
@@ -19,6 +19,11 @@ task :default => :spec
 task :spec do
   ENV['RUBY'] ||= RUBY
   sh %{mspec}
+end
+
+desc "Run a coverage report for the pure ruby file"
+task :coverage do
+  sh %{cd spec && ../bin/home_run mspec -o ../coverage -t rcov -- ../ext/date/format.rb date*/*}
 end
 
 desc "Build the gem"
