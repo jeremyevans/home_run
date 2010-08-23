@@ -283,6 +283,14 @@ describe "Date#parse with ' ' separator" do
   end
 
   it_should_behave_like "date_parse"
+
+  it "can parse a 'DD mmm BC YYYY' string into a Date object" do
+    d = Date.parse("23 feb BC 2008")
+    d.year.should  == -2007
+    d.month.should == 2
+    d.day.should   == 23
+  end
+
 end
 
 describe "Date#parse with '/' separator US-style" do
@@ -437,6 +445,87 @@ describe "Date::Format::STYLE" do
     d.year.should  == 2007
     d.month.should == 1
     d.day.should   == 10
+  end
+
+  it "Can parse DD/DD/'DD with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("12/11/'10").should == Date.civil(2010, 11, 12)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("12/11/'10").should == Date.civil(2010, 11, 12)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("12/11/'10").should == Date.civil(2010, 12, 11)
+  end
+
+  it "Can parse 'DD/DD/DD with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("'12/11/10").should == Date.civil(2012, 11, 10)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("'12/11/10").should == Date.civil(2012, 11, 10)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("'12/11/10").should == Date.civil(2012, 11, 10)
+  end
+
+  it "Can parse DD/'DD/DD with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("12/'11/10").should == Date.civil(2011, 10, 12)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("12/'11/10").should == Date.civil(2011, 12, 10)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("12/'11/10").should == Date.civil(2011, 12, 10)
+  end
+
+  it "Can parse DD/'DD with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("12/'11").should == Date.civil(2011, 12, 1)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("12/'11").should == Date.civil(2011, 12, 1)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("12/'11").should == Date.civil(2011, 12, 1)
+  end
+
+  it "Can parse 'DD/DD with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("'12/11").should == Date.civil(2012, 11, 1)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("'12/11").should == Date.civil(2012, 11, 1)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("'12/11").should == Date.civil(2012, 11, 1)
+  end
+
+  it "Can parse 'D/DD with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("'2/11").should == Date.civil(2002, 11, 1)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("'2/11").should == Date.civil(2002, 11, 1)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("'2/11").should == Date.civil(2002, 11, 1)
+  end
+
+  it "Can parse DD/DD with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("12/11").should == Date.civil(Time.now.year, 12, 11)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("12/11").should == Date.civil(Time.now.year, 11, 12)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("12/11").should == Date.civil(Time.now.year, 12, 11)
+  end
+
+  it "Can parse DDDD/DD as year/month with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("2012/11").should == Date.civil(2012, 11, 1)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("2012/11").should == Date.civil(2012, 11, 1)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("2012/11").should == Date.civil(2012, 11, 1)
+  end
+
+  it "Can parse DD/DDDD as month/year with all three types" do
+    Date::Format::STYLE[:slash] = :ymd
+    Date.parse("11/2012").should == Date.civil(2012, 11, 1)
+    Date::Format::STYLE[:slash] = :dmy
+    Date.parse("11/2012").should == Date.civil(2012, 11, 1)
+    Date::Format::STYLE[:slash] = :mdy
+    Date.parse("11/2012").should == Date.civil(2012, 11, 1)
   end
 end
 
