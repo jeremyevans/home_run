@@ -297,6 +297,8 @@ home_run has been tested on the following:
 
 === Ruby Versions
 
+* jruby cext branch (as of commit 1969c504229bfd6f2de1, 2010-08-23,
+  compiles and runs specs correctly, segfaults on benchmarks)
 * rbx head (as of commit 0e265b92727cf3536053, 2010-08-16)
 * ruby 1.8.6 (p0, p398, p399)
 * ruby 1.8.7 (p174, p248, p299, p302)
@@ -315,7 +317,6 @@ above, please test and send me a report including:
 
 == Todo
 
-* Get it working on jruby with the cext branch
 * Add more specs for greater code coverage
 * Expand main ragel parser to handle more formats
 * Add ragel versions of the 1.9 date parsing functions
