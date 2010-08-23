@@ -87,9 +87,45 @@ describe "DateTime#parse" do
     DateTime.parse("10 01:02:03").should == DateTime.civil(Date.today.year, Date.today.month, 10, 1, 2, 3)
   end
 
+  it "can handle DDz as day and zone" do
+    DateTime.parse("10z").should == DateTime.civil(Date.today.year, Date.today.month, 10)
+  end
+
+  it "can handle DD+DD as day and zone" do
+    DateTime.parse("10+11").should == DateTime.civil(Date.today.year, Date.today.month, 10, 0, 0, 0, 11/24.0)
+  end
+
+  it "can handle DD[DDDD] as day and zone" do
+    DateTime.parse("10[1112]").should == DateTime.civil(Date.today.year, Date.today.month, 10, 0, 0, 0, 11.2/24.0)
+  end
+
+  it "can handle DD.D as second" do
+    DateTime.parse("11.1").should == DateTime.civil(Date.today.year, Date.today.month, Date.today.day, 0, 0, 11) + 0.1/86400
+  end
+
+  it "can handle DDtDD as hour" do
+    DateTime.parse("11t12").should == DateTime.civil(Date.today.year, Date.today.month, 11, 12, 0, 0)
+  end
+
+  it "can handle DDtDDDD as hour and minute" do
+    DateTime.parse("11t1213").should == DateTime.civil(Date.today.year, Date.today.month, 11, 12, 13, 0)
+  end
+
+  it "can handle DDtDDDDDD as hour, minute, and second" do
+    DateTime.parse("11t121314").should == DateTime.civil(Date.today.year, Date.today.month, 11, 12, 13, 14)
+  end
+
+  it "can handle DDtDDDDDD.D as hour, minute, and second" do
+    DateTime.parse("11t121314.1").should == DateTime.civil(Date.today.year, Date.today.month, 11, 12, 13, 14) + 0.1/86400
+  end
+
   it "can handle DDD as year day number" do
     DateTime.parse("050").should == DateTime.civil(Date.today.year, 2, 19)
     DateTime.parse("050 1:02:03").should == DateTime.civil(Date.today.year, 2, 19, 1, 2, 3)
+  end
+
+  it "can handle DDD.D as minute and second" do
+    DateTime.parse("211.1").should == DateTime.civil(Date.today.year, Date.today.month, Date.today.day, 0, 2, 11) + 0.1/86400
   end
 
   it "can handle MMDD as month and day" do
@@ -97,9 +133,17 @@ describe "DateTime#parse" do
     DateTime.parse("1108 10:02:03").should == DateTime.civil(Date.today.year, 11, 8, 10, 2, 3)
   end
 
+  it "can handle DDDD.D as minute and second" do
+    DateTime.parse("1211.1").should == DateTime.civil(Date.today.year, Date.today.month, Date.today.day, 0, 12, 11) + 0.1/86400
+  end
+
   it "can handle YYDDD as year and day number" do
     DateTime.parse("10100").should == DateTime.civil(2010, 4, 10)
     DateTime.parse("10100 23:02:03").should == DateTime.civil(2010, 4, 10, 23, 2, 3)
+  end
+
+  it "can handle DDDDD.D as hour, minute, and second" do
+    DateTime.parse("31211.1").should == DateTime.civil(Date.today.year, Date.today.month, Date.today.day, 3, 12, 11) + 0.1/86400
   end
 
   it "can handle YYMMDD as year month and day" do
@@ -107,15 +151,40 @@ describe "DateTime#parse" do
     DateTime.parse("201023 23:02:03 +0800").should == DateTime.civil(2020, 10, 23, 23, 2, 3, 8/24.0)
   end
 
+  it "can handle DDDDDD.D as hour, minute, and second" do
+    DateTime.parse("131211.1").should == DateTime.civil(Date.today.year, Date.today.month, Date.today.day, 13, 12, 11) + 0.1/86400
+  end
+
   it "can handle YYYYDDD as year and day number" do
     DateTime.parse("1910100").should == DateTime.civil(1910, 4, 10)
     DateTime.parse("1910100 23:02:03 -0101").should == DateTime.civil(1910, 4, 10, 23, 2, 3, -61/1440.0)
+  end
+
+  it "can handle DDDDDDD.D as day, hour, minute, and second" do
+    DateTime.parse("4131211.1").should == DateTime.civil(Date.today.year, Date.today.month, 4, 13, 12, 11) + 0.1/86400
   end
 
   it "can handle YYYYMMDD as year and day number" do
     DateTime.parse("19101101").should == DateTime.civil(1910, 11, 1)
     DateTime.parse("19101101T23:02:03 +0000").should == DateTime.civil(1910, 11, 1, 23, 2, 3)
   end
+
+  it "can handle DDDDDDDD.D as day, hour, minute, and second" do
+    DateTime.parse("14131211.1").should == DateTime.civil(Date.today.year, Date.today.month, 14, 13, 12, 11) + 0.1/86400
+  end
+
+  it "can handle DDDDDDDD.D as month, day, hour, minute, and second" do
+    DateTime.parse("1014131211.1").should == DateTime.civil(Date.today.year, 10, 14, 13, 12, 11) + 0.1/86400
+  end
+
+  it "can handle DDDDDDDDDD.D as year, month, day, hour, minute, and second" do
+    DateTime.parse("091014131211.1").should == DateTime.civil(2009, 10, 14, 13, 12, 11) + 0.1/86400
+  end
+
+  it "can handle DDDDDDDDDDDD.D as year, month, day, hour, minute, and second" do
+    DateTime.parse("20091014131211.1").should == DateTime.civil(2009, 10, 14, 13, 12, 11) + 0.1/86400
+  end
+
 end
 
 describe :date_parse, :shared => true do
