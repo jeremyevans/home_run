@@ -19,29 +19,6 @@
   action set_iso_zone { iso_state |= RHRR_ISO_ZONE_SET; }
   action set_parser_iso { parsers |= RHRR_ISO_PARSER; }
 
-  action set_values {
-    switch(parsers) {
-      case RHRR_ISO_PARSER:
-        year = atol(t_iso_year);
-        month = atol(t_iso_month);
-        day = atol(t_iso_day);
-        state |= RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET;
-        if (iso_state & RHRR_ISO_TIME_SET) {
-          hour = atol(t_iso_hour);
-          minute = atol(t_iso_minute);
-          second = atol(t_iso_second);
-          state |= RHRR_HOUR_SET | RHRR_MINUTE_SET | RHRR_SECOND_SET;
-        }
-        if (iso_state & RHRR_ISO_ZONE_SET) {
-          zone = t_iso_zone;
-          zone_len = p - zone;
-          offset = atol(zone) * 3600 + atol(zone + 4) * 60;
-          state |= RHRR_ZONE_SET | RHRR_OFFSET_SET;
-        }
-        break;
-    }
-  }
-
   iso_year = ('-'? . digit{4}) >tag_iso_year;
   iso_month = ('0' . [1-9] | '1' . [0-2]) >tag_iso_month;
   iso_day = ('0' . [1-9] | [12] . [0-9] | '3' . [01]) >tag_iso_day;
@@ -51,10 +28,11 @@
   iso_zone = ([+\-] . digit{2} . ':' . digit{2}) > tag_iso_zone;
   iso_date = (iso_year . '-' . iso_month . '-' . iso_day);
   iso_time = (iso_hour . ':' . iso_minute . ':' . iso_second . (iso_zone %set_iso_zone)?) %set_iso_time;
-  iso_date_time = (iso_date . ([T ] . iso_time)?) %set_parser_iso;
+  iso_date_time = (iso_date . ([Tt ] . iso_time)? . space*) %/set_parser_iso;
+
   date_time = (iso_date_time);
   
-  main := (space* . date_time . space*) %/set_values;
+  main := (space* . date_time);
   write data;
 }%%
 
@@ -93,6 +71,26 @@ VALUE rhrd__ragel_parse(char * p, long len) {
 
   %%write init;
   %%write exec;
+
+  switch(parsers) {
+    case RHRR_ISO_PARSER:
+      year = atol(t_iso_year);
+      month = atol(t_iso_month);
+      day = atol(t_iso_day);
+      state |= RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET;
+      if (iso_state & RHRR_ISO_TIME_SET) {
+        hour = atol(t_iso_hour);
+        minute = atol(t_iso_minute);
+        second = atol(t_iso_second);
+        state |= RHRR_HOUR_SET | RHRR_MINUTE_SET | RHRR_SECOND_SET;
+        if (iso_state & RHRR_ISO_ZONE_SET) {
+          zone = t_iso_zone;
+          offset = atol(zone) * 3600 + atol(zone + 4) * 60;
+          state |= RHRR_ZONE_SET | RHRR_OFFSET_SET;
+        }
+      }
+    break;
+  }
 
   if (!state) {
     return Qnil;
