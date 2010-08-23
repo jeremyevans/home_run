@@ -9,6 +9,7 @@ ruby_version_is "1.9" do
 
     it "._iso8601 should parse an ISO8601 format" do
       Date._iso8601("2009-01-02").should == {:year=>2009, :mon=>1, :mday=>2}
+      Date._iso8601("--1002").should == {:mon=>10, :mday=>2}
     end
 
     it "._jisx03010 should parse an JIS X 0301 format" do

@@ -9,6 +9,8 @@ ruby_version_is "1.9" do
 
     it "._iso8601 should parse an ISO8601 format" do
       DateTime._iso8601("2009-01-02T03:04:05+12:00").should == {:year=>2009, :mon=>1, :mday=>2, :hour=>3, :min=>4, :sec=>5, :offset=>43200, :zone=>'+12:00'}
+      DateTime._iso8601("03:04:05+12:00").should == {:hour=>3, :min=>4, :sec=>5, :offset=>43200, :zone=>'+12:00'}
+      DateTime._iso8601(" 030405.1+1200").should == {:hour=>3, :min=>4, :sec=>5, :offset=>43200, :zone=>'+1200', :sec_fraction=>0.1}
     end
 
     it "._jisx03010 should parse an JIS X 0301 format" do
