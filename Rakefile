@@ -37,7 +37,7 @@ task :distclean  do
   Rake::Task[:clean].invoke
 end
 
-if RUBY_PLATFORM !~ /win|w32/ and File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
+if RUBY_PLATFORM !~ /mswin|mingw/ and File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
 begin
   require "rake/extensiontask"
   ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
@@ -106,7 +106,7 @@ task :bench_all => [:bench, :mem_bench, :garbage_bench]
 
 desc "Run comparative memory benchmarks"
 task :mem_bench do
-  if RUBY_PLATFORM =~ /win|w32/
+  if RUBY_PLATFORM =~ /mswin|mingw/
     puts "Memory benchmarks not supported on Windows"
     next
   end
@@ -122,7 +122,7 @@ end
 
 desc "Run comparative garbage creation benchmarks"
 task :garbage_bench do
-  if RUBY_PLATFORM =~ /win|w32/
+  if RUBY_PLATFORM =~ /mswin|mingw/
     puts "Garbage creation benchmarks not supported on Windows"
     next
   end
