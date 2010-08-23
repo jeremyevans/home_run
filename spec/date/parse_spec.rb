@@ -73,7 +73,54 @@ describe "Date.parse" do
     d.should == Date.civil(Date.today.year, Date.today.month, 5)
   end
   
+  it "can handle 'DD as a year" do
+    Date.parse("'12").should == Date.civil(2012, 1, 1)
+  end
+
+  it "can handle JIS X 301 format" do
+    Date.parse("H22.01.06").should == Date.civil(2010, 1, 6)
+  end
+
+  it "can handle DDDD-MMM-DD VMS format" do
+    Date.parse("2012-jan-06").should == Date.civil(2012, 1, 6)
+  end
+
+  it "can handle MMM-DDDD-DD VMS format" do
+    Date.parse("jan-2012-06").should == Date.civil(2012, 1, 6)
+  end
+
+  # Less common ISO formats
+
+  it "can handle DDDD-wDD-D as a commercial week date" do
+    Date.parse("2011-w12-6").should == Date.commercial(2011, 12, 6)
+  end
+
+  it "can handle -wDD-D as a commercial week date in the current year" do
+    Date.parse("-w12-6").should == Date.commercial(Time.now.year, 12, 6)
+  end
+
+  it "can handle -w-D as a commercial week date in the current year" do
+    Date.parse("-w-6").should == Date.commercial(Time.now.year, 1, 6)
+  end
+
+  it "can handle ---DD as a day in the current month" do
+    Date.parse("---06").should == Date.civil(Time.now.year, Time.now.month, 6)
+  end
+
+  it "can handle --DDDD as a month and day in the current year" do
+    Date.parse("--1206").should == Date.civil(Time.now.year, 12, 6)
+  end
+
+  it "can handle DDDD-DDD as an ordinal date" do
+    Date.parse("2012-106").should == Date.ordinal(2012, 106)
+  end
+
+  it "can handle -DDD as an ordinal day in the current year" do
+    Date.parse("blah-106").should == Date.ordinal(Time.now.year, 106)
+  end
+
   # Specs using numbers
+
   it "can't handle a single digit" do
     lambda{ Date.parse("1") }.should raise_error(ArgumentError)
   end
