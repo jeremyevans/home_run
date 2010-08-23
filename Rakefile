@@ -104,6 +104,11 @@ end
 desc "Run all benchmarks"
 task :bench_all => [:bench, :mem_bench, :garbage_bench]
 
+desc "Run comparative benchmarks"
+task :parser_bench do
+  sh %{#{RUBY} bench/parser_bench.rb}
+end
+
 desc "Run comparative memory benchmarks"
 task :mem_bench do
   if RUBY_PLATFORM =~ /mswin|mingw/
