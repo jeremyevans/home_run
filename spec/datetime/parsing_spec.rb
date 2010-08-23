@@ -40,6 +40,8 @@ ruby_version_is "1.9" do
 
     it "._xmlschema should parse an ISO8601 format" do
       DateTime._xmlschema("2009-01-02T03:04:05+12:00").should == {:year=>2009, :mon=>1, :mday=>2, :hour=>3, :min=>4, :sec=>5, :offset=>43200, :zone=>'+12:00'}
+      DateTime._xmlschema("03:04:05+12:00").should == {:hour=>3, :min=>4, :sec=>5, :offset=>43200, :zone=>'+12:00'}
+      DateTime._xmlschema("---01+12:00").should == {:mday=>1, :offset=>43200, :zone=>'+12:00'}
     end
 
     it ".httpdate should parse an HTTP format" do
