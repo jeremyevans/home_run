@@ -36,8 +36,8 @@ some comparative results for common methods:
 The standard library Date class is slow enough to be the
 bottleneck in much (if not most) of code that uses it.
 Here's a real world benchmark showing the retrieval of
-data from a database, first without home_run, and then
-with home_run.
+data from a database (using Sequel), first without home_run,
+and then with home_run.
 
   $ script/console production
   Loading production environment (Rails 2.3.5)
