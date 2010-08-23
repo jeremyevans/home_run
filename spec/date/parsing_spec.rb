@@ -5,6 +5,10 @@ ruby_version_is "1.9" do
     it "._httpdate should parse an HTTP format" do
       Date._httpdate("Fri, 02 Jan 2009 00:00:00 GMT").should ==
         {:year=>2009, :mon=>1, :mday=>2, :wday=>5, :hour=>0, :min=>0, :sec=>0, :offset=>0, :zone=>'GMT'}
+      Date._httpdate("Friday, 02-Jan-09 00:00:00 GMT").should ==
+        {:year=>2009, :mon=>1, :mday=>2, :wday=>5, :hour=>0, :min=>0, :sec=>0, :offset=>0, :zone=>'GMT'}
+      Date._httpdate("Fri Jan 2 00:00:00 2009").should == 
+        {:year=>2009, :mon=>1, :mday=>2, :wday=>5, :hour=>0, :min=>0, :sec=>0}
     end
 
     it "._iso8601 should parse an ISO8601 format" do
@@ -20,10 +24,16 @@ ruby_version_is "1.9" do
       Date._jisx0301("M06.01.02").should == {:year=>1873, :mon=>1, :mday=>2}
       Date._jisx0301("1872-01-02").should == {:year=>1872, :mon=>1, :mday=>2}
       Date._jisx0301("1867-01-02").should == {:year=>1867, :mon=>1, :mday=>2}
+
+      Date._jisx0301("21.01.02").should == {:year=>2009, :mon=>1, :mday=>2}
     end
 
     it "._rfc2822 should parse an RFC2822 format" do
       Date._rfc2822("Fri, 2 Jan 2009 00:00:00 +0000").should == 
+        {:year=>2009, :mon=>1, :mday=>2, :wday=>5, :hour=>0, :min=>0, :sec=>0, :offset=>0, :zone=>'+0000'}
+      Date._rfc2822("Fri, 2 Jan 09 00:00:00 +0000").should == 
+        {:year=>2009, :mon=>1, :mday=>2, :wday=>5, :hour=>0, :min=>0, :sec=>0, :offset=>0, :zone=>'+0000'}
+      Date._rfc2822("Fri, 2 Jan 109 00:00:00 +0000").should == 
         {:year=>2009, :mon=>1, :mday=>2, :wday=>5, :hour=>0, :min=>0, :sec=>0, :offset=>0, :zone=>'+0000'}
     end
 
