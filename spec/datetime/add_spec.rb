@@ -27,10 +27,10 @@ describe "DateTime#+" do
   end
 
   it "should raise an error on non numeric parameters" do
-    lambda { DateTime.civil(2007,2,27) + :hello }.should raise_error(TypeError)
-    lambda { DateTime.civil(2007,2,27) + "hello" }.should raise_error(TypeError)
-    lambda { DateTime.civil(2007,2,27) + DateTime.new(2007,2,27) }.should raise_error(TypeError)
-    lambda { DateTime.civil(2007,2,27) + Object.new }.should raise_error(TypeError)
+    lambda { DateTime.civil(2007,2,27) + :hello }.should raise_error
+    lambda { DateTime.civil(2007,2,27) + "hello" }.should raise_error
+    lambda { DateTime.civil(2007,2,27) + DateTime.new(2007,2,27) }.should raise_error
+    lambda { DateTime.civil(2007,2,27) + Object.new }.should raise_error
   end
   
 end
