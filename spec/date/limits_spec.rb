@@ -59,8 +59,8 @@ describe "Date limits: " do
   end
 
   it ".commercial should raise RangeError for dates that are too large or small" do
-    proc{Date.commercial(@d1.cwyear, @d1.cwday == 6 ? @d1.cweek + 1 : @d1.cweek, @d1.cwday == 6 ? @d1.cwday : @d1.cwday + 1)}.should raise_error(RangeError)
-    proc{Date.commercial(@d2.cwyear, @d2.cweek, @d2.cwday - 1)}.should raise_error(RangeError)
+    proc{Date.commercial(@d1.cwyear, @d1.cwday == 6 ? @d1.cweek + 1 : @d1.cweek, @d1.cwday == 6 ? 1 : @d1.cwday + 1)}.should raise_error(RangeError)
+    proc{Date.commercial(@d2.cwyear, @d2.cwday == 1 ? @d2.cweek - 1 : @d2.cweek, @d2.cwday == 1 ? 7 : @d2.cwday - 1)}.should raise_error(RangeError)
   end
 
   it ".commercial should not raise for dates that are not too large or small" do
