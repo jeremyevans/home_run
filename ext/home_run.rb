@@ -1,0 +1,5 @@
+Object.send(:remove_const, :Date) if defined?(Date)
+Object.send(:remove_const, :DateTime) if defined?(DateTime)
+dir = File.dirname(File.expand_path(__FILE__))
+load File.join(dir, 'date.rb')
+load File.join(dir, 'date', 'format.rb') unless defined?(Date::Format)

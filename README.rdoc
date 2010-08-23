@@ -109,6 +109,17 @@ using home_run:
 This manipulates the RUBYLIB and RUBYOPT environment variables so
 that home_run's Date/DateTime classes will be used.
 
+You can also just require the library:
+
+  require 'home_run'
+
+This should only be used as a last resort.  Because rubygems requires
+date, you can end up with situations where the Date instances created
+before the require use the standard library version of Date, while the
+Date instances created after the require use this library's version.
+However, in some cases (such as on Heroku), this is the only way to
+easily use this library. 
+
 == Running the specs
 
 You can run the rubyspec based specs after installing the gem, if
