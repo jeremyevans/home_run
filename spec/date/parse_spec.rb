@@ -73,6 +73,15 @@ describe "Date.parse" do
     d.should == Date.civil(Date.today.year, Date.today.month, 5)
   end
   
+  it "can handle BC/BCE in the string as being a negative year" do
+    Date.parse("BC 2012-11-10").should == Date.civil(-2011, 11, 10)
+    Date.parse("2012-11-10 BCE").should == Date.civil(-2011, 11, 10)
+  end
+
+  it "can handle a leftover DD string as a day if time has been parsed" do
+    Date.parse("'09 10:20:30 13").should == Date.civil(2009, 1, 13)
+  end
+
   it "can handle 'DD as a year" do
     Date.parse("'12").should == Date.civil(2012, 1, 1)
   end
@@ -93,6 +102,10 @@ describe "Date.parse" do
 
   it "can handle DDDD-wDD-D as a commercial week date" do
     Date.parse("2011-w12-6").should == Date.commercial(2011, 12, 6)
+  end
+
+  it "can handle DD-wDD-D as a commercial week date" do
+    Date.parse("11-w12-6").should == Date.commercial(2011, 12, 6)
   end
 
   it "can handle -wDD-D as a commercial week date in the current year" do

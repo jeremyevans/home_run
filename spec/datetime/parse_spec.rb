@@ -82,6 +82,10 @@ describe "DateTime#parse" do
     proc{DateTime.parse(Time.now.to_s)}.should_not raise_error
   end
 
+  it "can handle a leftover DD as an hour if the day has already been parsed" do
+    DateTime.parse("2009-12-13 10").should == DateTime.civil(2009, 12, 13, 10)
+  end
+
   it "can handle DD as month day number" do
     DateTime.parse("10").should == DateTime.civil(Date.today.year, Date.today.month, 10)
     DateTime.parse("10 01:02:03").should == DateTime.civil(Date.today.year, Date.today.month, 10, 1, 2, 3)
