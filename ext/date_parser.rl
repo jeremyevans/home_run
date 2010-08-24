@@ -28,7 +28,7 @@ long rhrd__rfc_zone_offset(char * str) {
     }
   }
 
-  return -1;
+  return RHRR_BAD_OFFSET;
 }
 
 long rhrd__month_num(char * str) {
