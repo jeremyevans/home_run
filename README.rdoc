@@ -289,18 +289,20 @@ home_run has been tested on the following:
 * Linux (x86_64, i386)
 * Mac OS X 10.6 (x86_64, i386)
 * OpenBSD (amd64, i386)
+* Solaris 10 (sparc)
 * Windows XP (i386)
 
 === Compiler Versions
 
 * gcc (3.3.5, 4.2.1, 4.4.3, 4.5.0)
+* Sun Studio Compiler (5.9)
 
 === Ruby Versions
 
 * jruby cext branch (as of commit 1969c504229bfd6f2de1, 2010-08-23,
   compiles and runs specs correctly, segfaults on benchmarks)
 * rbx head (as of commit 0e265b92727cf3536053, 2010-08-16)
-* ruby 1.8.6 (p0, p398, p399)
+* ruby 1.8.6 (p0, p110, p398, p399)
 * ruby 1.8.7 (p174, p248, p299, p302)
 * ruby 1.9.1 (p243, p378, p429, p430)
 * ruby 1.9.2 (p0)
