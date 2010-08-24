@@ -1,6 +1,7 @@
 
 #define RHRR_ISO_PARSER 0x1
 #define RHRR_RFC_PARSER 0x2
+#define RHRR_CLF_PARSER 0x4
 
 #define RHRR_ISO_TIME_SET 0x1
 #define RHRR_ISO_ZONE_SET 0x2
@@ -9,6 +10,9 @@
 #define RHRR_RFC_ZONE_SET 0x2
 #define RHRR_RFC_ZONE_NUM_SET 0x4
 #define RHRR_RFC_ZONE_NAME_SET 0x8
+
+#define RHRR_CLF_TIME_SET 0x1
+#define RHRR_CLF_ZONE_SET 0x2
 
 #define RHRR_BAD_OFFSET 86400
 
@@ -58,6 +62,10 @@ long rhrd__weekday_num(char * str) {
 %%{
   machine date_parser;
 
+  # Shared
+
+  abbr_month_name = /jan/i | /feb/i | /mar/i | /apr/i | /may/i | /jun/i |
+                    /jul/i | /aug/i | /sep/i | /oct/i | /nov/i | /dec/i;
   # ISO 8601
 
   action tag_iso_year { t_iso_year = p; }
@@ -111,8 +119,7 @@ long rhrd__weekday_num(char * str) {
 
   rfc_wday = (/sun/i | /mon/i | /tue/i | /wed/i | /thu/i | /fri/i | /sat/i) >tag_rfc_wday;
   rfc_day = ([ 0] . [1-9] | [12] . [0-9] | '3' . [01]) >tag_rfc_day;
-  rfc_month = (/jan/i | /feb/i | /mar/i | /apr/i | /may/i | /jun/i |
-               /jul/i | /aug/i | /sep/i | /oct/i | /nov/i | /dec/i) >tag_rfc_month;
+  rfc_month = abbr_month_name >tag_rfc_month;
   rfc_year = ('-'? . digit{4}) >tag_rfc_year;
   rfc_hour = ([0-1] . [0-9] | '2' . [0-4]) >tag_rfc_hour;
   rfc_minute = ([0-5] . [0-9]) >tag_rfc_minute;
@@ -125,7 +132,36 @@ long rhrd__weekday_num(char * str) {
   rfc_time = (rfc_hour . ':' . rfc_minute . ':' . rfc_second . (space* . rfc_zone)?) %set_rfc_time;
   rfc_date_time = (rfc_date . (space* . rfc_time)? . space*) %/set_parser_rfc;
 
-  date_time = (iso_date_time | rfc_date_time);
+  # Common Log Format
+
+  action tag_clf_day { t_clf_day = p; }
+  action tag_clf_month { t_clf_month = p; }
+  action tag_clf_year { t_clf_year = p; }
+  action tag_clf_hour { t_clf_hour = p; }
+  action tag_clf_minute { t_clf_minute = p; }
+  action tag_clf_second { t_clf_second = p; }
+  action tag_clf_zone { t_clf_zone = p; }
+
+  action set_clf_time { clf_state |= RHRR_CLF_TIME_SET; }
+  action set_clf_zone {
+    t_clf_zone_end = p;
+    clf_state |= RHRR_CLF_ZONE_SET;
+  }
+  action set_parser_clf { parsers |= RHRR_CLF_PARSER; }
+
+  clf_year = ('-'? . digit{4}) >tag_clf_year;
+  clf_month = abbr_month_name >tag_clf_month;
+  clf_day = ('0' . [1-9] | [12] . [0-9] | '3' . [01]) >tag_clf_day;
+  clf_hour = ([0-1] . [0-9] | '2' . [0-4]) >tag_clf_hour;
+  clf_minute = ([0-5] . [0-9]) >tag_clf_minute;
+  clf_second = ([0-5] . [0-9]) >tag_clf_second;
+  clf_zone = ([+\-] . digit{4}) > tag_clf_zone;
+
+  clf_date = (clf_day . '/' . clf_month . '/' . clf_year);
+  clf_time = (clf_hour . ':' . clf_minute . ':' . clf_second . (space* . clf_zone %set_clf_zone)?) %set_clf_time;
+  clf_date_time = (clf_date . (':' . clf_time)? . space*) %/set_parser_clf;
+
+  date_time = (iso_date_time | rfc_date_time | clf_date_time);
   main := (space* . date_time);
   write data;
 }%%
@@ -169,6 +205,16 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   char * t_rfc_second = NULL;
   char * t_rfc_zone = NULL;
   char * t_rfc_zone_end = NULL;
+
+  long clf_state = 0;
+  char * t_clf_year = NULL;
+  char * t_clf_month = NULL;
+  char * t_clf_day = NULL;
+  char * t_clf_hour= NULL;
+  char * t_clf_minute = NULL;
+  char * t_clf_second = NULL;
+  char * t_clf_zone = NULL;
+  char * t_clf_zone_end = NULL;
 
   int cs = 0;
   char * eof;
@@ -225,6 +271,25 @@ VALUE rhrd__ragel_parse(char * p, long len) {
               state |= RHRR_OFFSET_SET;
             }
           }
+        }
+      }
+      break;
+    case RHRR_CLF_PARSER:
+      year = atol(t_clf_year);
+      month = rhrd__month_num(t_clf_month);
+      day = atol(t_clf_day);
+      state |= RHRR_YEAR_SET | RHRR_MONTH_SET | RHRR_DAY_SET;
+      if (clf_state & RHRR_ISO_TIME_SET) {
+        hour = atol(t_clf_hour);
+        minute = atol(t_clf_minute);
+        second = atol(t_clf_second);
+        state |= RHRR_HOUR_SET | RHRR_MINUTE_SET | RHRR_SECOND_SET;
+        if (clf_state & RHRR_ISO_ZONE_SET) {
+          zone = t_clf_zone;
+          zone_len = t_clf_zone_end - zone;
+          offset = atol(zone);
+          offset = (offset/100) * 3600 + (labs(offset) % 100) * 60 * (offset < 0 ? -1 : 1);
+          state |= RHRR_ZONE_SET | RHRR_OFFSET_SET;
         }
       }
       break;
