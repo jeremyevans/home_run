@@ -311,11 +311,11 @@ home_run has been tested on the following:
 If your platform, compiler version, or ruby version is not listed
 above, please test and send me a report including:
 
-* Your operating system and platform (e.g. i386, x86_64/amd64)
-* Your compiler
-* Your ruby version
-* The output of home_run --spec
-* The output of home_run --bench
+  * Your operating system and platform (e.g. i386, x86_64/amd64)
+  * Your compiler
+  * Your ruby version
+  * The output of home_run --spec
+  * The output of home_run --bench
 
 == Author
 
