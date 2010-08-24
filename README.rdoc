@@ -317,11 +317,6 @@ above, please test and send me a report including:
 * The output of home_run --spec
 * The output of home_run --bench
 
-== Todo
-
-* Expand main ragel parser to handle more formats
-* Add ragel versions of the 1.9 date parsing functions
-
 == Author
 
 Jeremy Evans <code@jeremyevans.net>
