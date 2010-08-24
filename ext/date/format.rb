@@ -1,7 +1,7 @@
 # format.rb: Written by Tadayoshi Funaba 1999-2009
 # $Id: format.rb,v 2.43 2008-01-17 20:16:31+09 tadf Exp $
 
-require 'date' unless defined?(Date)
+require 'date' unless defined?(Date::ZONES)
 
 class Date
   # Holds some constants used by the pure ruby parsing code.
