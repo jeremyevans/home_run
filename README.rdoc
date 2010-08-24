@@ -294,7 +294,7 @@ home_run has been tested on the following:
 
 === Compiler Versions
 
-* gcc (3.3.5, 4.2.1, 4.4.3, 4.5.0)
+* gcc (3.3.5, 4.0.1, 4.2.1, 4.4.3, 4.5.0)
 * Sun Studio Compiler (5.9)
 
 === Ruby Versions
