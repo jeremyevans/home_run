@@ -29,7 +29,7 @@
   iso_minute = ([0-5] . [0-9]) >tag_iso_minute;
   iso_second = ([0-5] . [0-9]) >tag_iso_second;
   iso_zone = ([+\-] . digit{2} . ':' . digit{2}) > tag_iso_zone;
-  iso_date = (iso_year . '-' . iso_month . '-' . iso_day);
+  iso_date = (iso_year . [\-/] . iso_month . [\-/] . iso_day);
   iso_time = (iso_hour . ':' . iso_minute . ':' . iso_second . (iso_zone %set_iso_zone)?) %set_iso_time;
   iso_date_time = (iso_date . ([Tt ] . iso_time)? . space*) %/set_parser_iso;
 
