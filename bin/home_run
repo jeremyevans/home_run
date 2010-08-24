@@ -1,13 +1,14 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'rbconfig'
 
 command = :run
 lib = File.expand_path('../../ext', __FILE__)
 
 opts = OptionParser.new do |opts|
   opts.banner = "home_run: Fast Date/DateTime classes for ruby"
-  opts.define_head "Usage: home_run (--install | --uninstall | --bench | --spec | command)"
+  opts.define_head "Usage: home_run (--option | command)"
   opts.separator ""
   opts.separator "Options:"
 
@@ -36,7 +37,6 @@ opts.order!
 case command
 when :bench
   Dir.chdir(File.join(lib, '..'))
-  require 'rbconfig'
   ENV['RUBY'] = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
   require 'rubygems'
   require 'rake'
@@ -44,7 +44,6 @@ when :bench
   Rake::Task[:bench_all].invoke
 when :spec
   Dir.chdir(File.join(lib, '..'))
-  require 'rbconfig'
   ENV['PATH'] = [RbConfig::CONFIG['bindir'], ENV['PATH']].join(File::PATH_SEPARATOR)
   ENV['RUBY'] = File.join(RbConfig::CONFIG['ruby_install_name'])
   require 'rubygems'
@@ -53,7 +52,6 @@ when :spec
   Rake::Task[:default].invoke
 when :install
   Dir.chdir(lib)
-  require 'rbconfig'
   require 'fileutils'
   FUV = FileUtils::Verbose
   FUV.cp("date.rb", RbConfig::CONFIG['sitelibdir'])
@@ -73,7 +71,6 @@ when :install
     end
   end
 when :uninstall
-  require 'rbconfig'
   require 'fileutils'
   FUV = FileUtils::Verbose
   FUV.rm_f(File.join(RbConfig::CONFIG['sitelibdir'], 'date.rb'))
