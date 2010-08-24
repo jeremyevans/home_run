@@ -287,7 +287,7 @@ home_run has been tested on the following:
 === Operating Systems/Platforms
 
 * Linux (x86_64, i386)
-* Mac OS X 10.6 (x86_64, i386)
+* Mac OS X 10.6 (x86_64, i386), 10.5 (i386)
 * OpenBSD (amd64, i386)
 * Solaris 10 (sparc)
 * Windows XP (i386)
