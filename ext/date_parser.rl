@@ -16,7 +16,10 @@
   action tag_iso_zone { t_iso_zone = p; }
 
   action set_iso_time { iso_state |= RHRR_ISO_TIME_SET; }
-  action set_iso_zone { iso_state |= RHRR_ISO_ZONE_SET; }
+  action set_iso_zone {
+    t_iso_zone_end = p;
+    iso_state |= RHRR_ISO_ZONE_SET;
+  }
   action set_parser_iso { parsers |= RHRR_ISO_PARSER; }
 
   iso_year = ('-'? . digit{4}) >tag_iso_year;
@@ -62,6 +65,7 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   char * t_iso_minute = NULL;
   char * t_iso_second = NULL;
   char * t_iso_zone = NULL;
+  char * t_iso_zone_end = NULL;
 
   int cs = 0;
   char * eof;
@@ -85,6 +89,7 @@ VALUE rhrd__ragel_parse(char * p, long len) {
         state |= RHRR_HOUR_SET | RHRR_MINUTE_SET | RHRR_SECOND_SET;
         if (iso_state & RHRR_ISO_ZONE_SET) {
           zone = t_iso_zone;
+          zone_len = t_iso_zone_end - zone;
           offset = atol(zone) * 3600 + atol(zone + 4) * 60;
           state |= RHRR_ZONE_SET | RHRR_OFFSET_SET;
         }
