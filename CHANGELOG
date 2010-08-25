@@ -1,3 +1,33 @@
+=== HEAD
+
+* Support Date/DateTime#step without a block returning an Enumerator on 1.9 (jeremyevans) (#6)
+
+* Support ruby build with CALC_EXACT_MALLOC_SIZE (nocode) (#5)
+
+* Add Ragel parser for Apache Common Log Format date format (jeremyevans)
+
+* Add Ragel parser for RFC 822 date format (jeremyevans)
+
+* Fix loading date/format.rb directly where the date extension hasn't been included but the Date class has been opened (jeremyevans) (#3)
+
+* Don't override ruby's default extension optimization flags (jeremyevans)
+
+* Fix compilation on Solaris with the Sun Studio Compiler (ankopainting)
+
+* Handle YYYY/MM/DD date format in the ISO 8601 Ragel parser (jeremyevans)
+
+* Add a home_run.rb file to allow you to require 'home_run' to load the extension, useful on Heroku with ruby 1.8 (jeremyevans) (#2)
+
+* Don't think that Mac OS X/Darwin users are on Windows (jeremyevans) (#1)
+
+* Tighten up offset limits to exactly 14 hours from UTC (jeremyevans)
+
+* Make dates outside of the allowed range raise RangeErrors (jeremyevans)
+
+* Add range check for DateTime#+ and related methods (jeremyevans)
+
+* Add range check for DateTime#new! (jeremyevans)
+
 === 0.9.0 (2010-08-20)
 
 * Initial Public Release
