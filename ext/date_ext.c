@@ -192,6 +192,7 @@ ID rhrd_id_offset;
 ID rhrd_id_slice;
 ID rhrd_id_split;
 ID rhrd_id_sub_b;
+ID rhrd_id_to_enum;
 ID rhrd_id_to_i;
 #ifdef RUBY19
 ID rhrd_id_nsec;
@@ -224,6 +225,7 @@ VALUE rhrd_sym_offset;
 VALUE rhrd_sym_sec;
 VALUE rhrd_sym_sec_fraction;
 VALUE rhrd_sym_seconds;
+VALUE rhrd_sym_step;
 VALUE rhrd_sym_wday;
 VALUE rhrd_sym_wnum0;
 VALUE rhrd_sym_wnum1;
@@ -2583,24 +2585,33 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   rhrd_t *d, *n, *newd;
   rhrdt_t *ndt;
   long step, limit, current;
-  VALUE rlimit, new;
+  VALUE rlimit, new, rstep;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
 
-  rb_need_block();
   switch(argc) {
     case 1:
       step = 1;
+      rstep = LONG2NUM(step);
       break;
     case 2:
-      step = NUM2LONG(argv[1]);
+      rstep = argv[1];
+      step = NUM2LONG(rstep);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
       break;
   }
-
   rlimit = argv[0];
+
+#ifdef RUBY19
+  if (!rb_block_given_p()) {
+    return rb_funcall(self, rhrd_id_to_enum, 3, rhrd_sym_step, rlimit, rstep);
+  }
+#else
+  rb_need_block();
+#endif
+
   if (RTEST(rb_obj_is_kind_of(rlimit, rb_cNumeric))) {
     limit = NUM2LONG(rlimit);
   } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrdt_class)))) {
@@ -4105,6 +4116,7 @@ void Init_date_ext(void) {
   rhrd_id_slice = rb_intern("slice");
   rhrd_id_split = rb_intern("split");
   rhrd_id_sub_b = rb_intern("sub!");
+  rhrd_id_to_enum = rb_intern("to_enum");
   rhrd_id_to_i = rb_intern("to_i");
 #ifdef RUBY19
   rhrd_id_nsec = rb_intern("nsec");
@@ -4137,6 +4149,7 @@ void Init_date_ext(void) {
   rhrd_sym_sec = ID2SYM(rb_intern("sec"));
   rhrd_sym_sec_fraction = ID2SYM(rb_intern("sec_fraction"));
   rhrd_sym_seconds = ID2SYM(rb_intern("seconds"));
+  rhrd_sym_step = ID2SYM(rb_intern("step"));
   rhrd_sym_wday = ID2SYM(rb_intern("wday"));
   rhrd_sym_wnum0 = ID2SYM(rb_intern("wnum0"));
   rhrd_sym_wnum1 = ID2SYM(rb_intern("wnum1"));

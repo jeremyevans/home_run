@@ -2,8 +2,26 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 describe "DateTime#step" do
   
-  it "should require a block" do
-    proc{DateTime.now.step(DateTime.now)}.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.9" do
+    it "should require a block" do
+      proc{DateTime.now.step(DateTime.now)}.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "should return an enumerator without a block" do
+      ds    = DateTime.civil(2008, 10, 11)
+      de    = DateTime.civil(2008,  9, 29)
+      e = de.step(ds)
+      e.should be_kind_of(Enumerator)
+      count = 0
+      e.each do |d|
+        d.should <= ds
+        d.should >= de
+        count += 1
+      end.should == de
+      count.should == 13
+    end
   end
 
   it "should be able to step forward in time" do

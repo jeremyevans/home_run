@@ -1384,18 +1384,19 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   double step, limit;
   long long step_nanos, limit_nanos, current_nanos;
   long step_jd, limit_jd, current_jd;
-  VALUE rlimit, new;
+  VALUE rlimit, new, rstep;
   Data_Get_Struct(self, rhrdt_t, d);
   Data_Get_Struct(rhrdt__new_offset(self, 0), rhrdt_t, d0);
 
-  rb_need_block();
   switch(argc) {
     case 1:
       step_nanos = 0;
       step_jd = 1;
+      rstep = LONG2NUM(step_jd);
       break;
     case 2:
-      step = NUM2DBL(argv[1]);
+      rstep = argv[1];
+      step = NUM2DBL(rstep);
       step_jd = floor(step);
       step_nanos = llround((step - step_jd)*RHR_NANOS_PER_DAY);
       break;
@@ -1403,8 +1404,16 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
       break;
   }
-
   rlimit = argv[0];
+
+#ifdef RUBY19
+  if (!rb_block_given_p()) {
+    return rb_funcall(self, rhrd_id_to_enum, 3, rhrd_sym_step, rlimit, rstep);
+  }
+#else
+  rb_need_block();
+#endif
+
   if (RTEST(rb_obj_is_kind_of(rlimit, rb_cNumeric))) {
     limit = NUM2DBL(rlimit);
     limit_jd = floor(limit);
