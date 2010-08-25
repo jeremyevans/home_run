@@ -429,7 +429,7 @@ VALUE rhrd__add_days(VALUE self, long n) {
   VALUE new;
   long x;
   Data_Get_Struct(self, rhrd_t, d);
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
 
   if(!(RHR_HAS_JD(d))) {
     x = rhrd__safe_add_long(n, (long)(d->day));
@@ -460,7 +460,7 @@ VALUE rhrd__add_months(VALUE self, long n) {
   long x;
   Data_Get_Struct(self, rhrd_t, d);
 
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
   RHR_FILL_CIVIL(d)
   n = rhrd__safe_add_long(n, (long)(d->month));
   if(n > 1 && n <= 12) {
@@ -863,7 +863,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
  * did not contain valid date information. */
 VALUE rhrd__from_hash(VALUE hash) {
   rhrd_t *d;
-  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, d);
   if(rhrd__fill_from_hash(d, hash)) {
     rb_raise(rb_eArgError, "invalid date");
   } else {
@@ -1599,7 +1599,7 @@ static VALUE rhrd_s__load(VALUE klass, VALUE string) {
   rhrd_t * d;
   VALUE jd, rd;
   jd = rb_marshal_load(string);
-  rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
   d->jd = NUM2LONG(jd);
   RHR_CHECK_JD(d)
   d->flags = RHR_HAVE_JD;
@@ -1660,7 +1660,7 @@ static VALUE rhrd_s_civil(int argc, VALUE *argv, VALUE klass) {
   long year;
   long month = 1;
   long day = 1;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
 
   switch(argc) {
     case 3:
@@ -1704,7 +1704,7 @@ static VALUE rhrd_s_commercial(int argc, VALUE *argv, VALUE klass) {
   long cwyear = RHR_DEFAULT_CWYEAR;
   long cweek = RHR_DEFAULT_CWEEK;
   long cwday = RHR_DEFAULT_CWDAY;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
 
   switch(argc) {
     case 3:
@@ -1752,7 +1752,7 @@ static VALUE rhrd_s_gregorian_leap_q(VALUE klass, VALUE year) {
  */
 static VALUE rhrd_s_jd (int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -1789,7 +1789,7 @@ static VALUE rhrd_s_julian_leap_q(VALUE klass, VALUE y) {
  */
 static VALUE rhrd_s_new_b(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -1822,7 +1822,7 @@ static VALUE rhrd_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   long year;
   long day = 1;
   rhrd_t *d;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
 
   switch(argc) {
     case 2:
@@ -1863,7 +1863,7 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -1894,7 +1894,7 @@ static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -1923,7 +1923,7 @@ static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
  */
 static VALUE rhrd_s_today(int argc, VALUE *argv, VALUE klass) {
   rhrd_t *d;
-  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -2619,7 +2619,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   if (limit > current) {
     if (step > 0) {
       while(limit >= current) {
-        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
         newd->jd = current;
         RHR_CHECK_JD(newd)
         newd->flags = RHR_HAVE_JD;
@@ -2630,7 +2630,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   } else if (limit < current) {
     if (step < 0) {
       while(limit <= current) {
-        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
         newd->jd = current;
         RHR_CHECK_JD(newd)
         newd->flags = RHR_HAVE_JD;
@@ -3015,7 +3015,7 @@ VALUE rhrd__add_years(VALUE self, long n) {
   VALUE new;
   Data_Get_Struct(self, rhrd_t, d);
 
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, newd);
+  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
   RHR_FILL_CIVIL(d)
   newd->year = rhrd__safe_add_long(n, d->year);
   newd->month = d->month;
@@ -3063,7 +3063,7 @@ static VALUE rhrd_s_httpdate(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -3097,7 +3097,7 @@ static VALUE rhrd_s_iso8601(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -3131,7 +3131,7 @@ static VALUE rhrd_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -3165,7 +3165,7 @@ static VALUE rhrd_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -3199,7 +3199,7 @@ static VALUE rhrd_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -3233,7 +3233,7 @@ static VALUE rhrd_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
 
   switch(argc) {
     case 0:
-      rd = Data_Make_Struct(klass, rhrd_t, NULL, free, d);
+      rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
@@ -3569,7 +3569,7 @@ static VALUE rhrd_rfc3339(VALUE self) {
 static VALUE rhrd_to_datetime(VALUE self) {
   rhrd_t *d;
   rhrdt_t *dt;
-  VALUE rdt = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, dt);
   Data_Get_Struct(self, rhrd_t, d);
 
   if (RHR_HAS_CIVIL(d)) {
@@ -3616,7 +3616,7 @@ static VALUE rhrd_to_time(VALUE self) {
 static VALUE rhrd_time_to_date(VALUE self) {
   rhrd_t *d;
   VALUE rd;
-  rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+  rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, d);
   d->jd = rhrd__unix_to_jd(NUM2LONG(rb_funcall(self, rhrd_id_to_i, 0)) + NUM2LONG(rb_funcall(self, rhrd_id_utc_offset, 0)));
   d->flags = RHR_HAVE_JD;
   RHR_CHECK_JD(d)

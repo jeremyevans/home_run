@@ -253,7 +253,7 @@ VALUE rhrdt__from_jd_nanos(long jd, long long nanos, short offset) {
   long t;
   rhrdt_t *dt;
   VALUE new;
-  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
+  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, dt);
   
   if (nanos < 0) {
     t = nanos/RHR_NANOS_PER_DAY - 1;
@@ -317,7 +317,7 @@ VALUE rhrdt__add_months(VALUE self, long n) {
   long x;
   Data_Get_Struct(self, rhrdt_t, d);
 
-  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, newd);
+  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, newd);
   RHRDT_FILL_CIVIL(d)
   memcpy(newd, d, sizeof(rhrdt_t));
 
@@ -470,7 +470,7 @@ static VALUE rhrdt_s__load(VALUE klass, VALUE string) {
   rhrdt_t * d;
   long x;
   VALUE ary, rd;
-  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
 
   ary = rb_marshal_load(string);
   if (!RTEST(rb_obj_is_kind_of(ary, rb_cArray)) || RARRAY_LEN(ary) != 3) {
@@ -540,7 +540,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   long minute = 0;
   long second = 0;
   double offset = 0.0;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 0:
@@ -597,7 +597,7 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
   long minute = 0;
   long second = 0;
   double offset = 0.0;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 8:
@@ -649,7 +649,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   long minute = 0;
   long second = 0;
   double offset = 0.0;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 0:
@@ -699,7 +699,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
 static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
   double offset = 0;
   rhrdt_t *dt;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 0:
@@ -734,7 +734,7 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
  */
 static VALUE rhrdt_s_now(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 0:
@@ -767,7 +767,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   long second = 0;
   double offset = 0.0;
   rhrdt_t *dt;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 7:
@@ -814,7 +814,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
  */
 static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 0:
@@ -848,7 +848,7 @@ static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
  */
 static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *dt;
-  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, free, dt);
+  VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
   switch(argc) {
     case 0:
@@ -1845,7 +1845,7 @@ VALUE rhrdt__add_years(VALUE self, long n) {
   VALUE new;
   Data_Get_Struct(self, rhrdt_t, d);
 
-  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, newd);
+  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, newd);
   RHRDT_FILL_CIVIL(d)
   memcpy(newd, d, sizeof(rhrdt_t));
 
@@ -1924,7 +1924,7 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
 static VALUE rhrdt_s_httpdate(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
-  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -1959,7 +1959,7 @@ static VALUE rhrdt_s_httpdate(int argc, VALUE *argv, VALUE klass) {
 static VALUE rhrdt_s_iso8601(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
-  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -1994,7 +1994,7 @@ static VALUE rhrdt_s_iso8601(int argc, VALUE *argv, VALUE klass) {
 static VALUE rhrdt_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
-  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -2029,7 +2029,7 @@ static VALUE rhrdt_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
 static VALUE rhrdt_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
-  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -2064,7 +2064,7 @@ static VALUE rhrdt_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
 static VALUE rhrdt_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
-  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -2099,7 +2099,7 @@ static VALUE rhrdt_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
 static VALUE rhrdt_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
   rhrdt_t *d;
   VALUE rd;
-  rd = Data_Make_Struct(klass, rhrdt_t, NULL, free, d);
+  rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
 
   switch(argc) {
     case 0:
@@ -2493,7 +2493,7 @@ static VALUE rhrdt_rfc2822(VALUE self) {
 static VALUE rhrdt_to_date(VALUE self) {
   rhrd_t *d;
   rhrdt_t *dt;
-  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, free, d);
+  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, d);
   Data_Get_Struct(self, rhrdt_t, dt);
 
   if (RHR_HAS_CIVIL(dt)) {
@@ -2551,7 +2551,7 @@ static VALUE rhrdt_time_to_datetime(VALUE self) {
   rhrdt_t *dt;
   VALUE rd;
   long t, offset;
-  rd = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, free, dt);
+  rd = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, dt);
 
   offset = NUM2LONG(rb_funcall(self, rhrd_id_utc_offset, 0));
   t = NUM2LONG(rb_funcall(self, rhrd_id_to_i, 0)) + offset;
