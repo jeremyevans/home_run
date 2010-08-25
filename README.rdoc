@@ -213,6 +213,15 @@ you use the standard library.
 Any other differences will either be documented here or considered
 bugs, so please report any other differences you find.
 
+== Known incompatibilities
+
+Some other libraries are known to be incompatible with this
+extension due to the above differences:
+
+* Date::Performance - Date#<=> assumes @ajd instance variable
+  (unnecessary anyway, as home_run is faster)
+* ruby-ole - Depends on DateTime.allocate/#initialize
+
 == Reporting issues/bugs
 
 home_run uses GitHub Issues for tracking issues/bugs:
