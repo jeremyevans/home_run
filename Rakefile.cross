@@ -1,0 +1,9 @@
+require File.join(File.dirname(File.expand_path(__FILE__)), 'Rakefile')
+
+ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
+require 'rake/extensiontask'
+load('home_run.gemspec')
+Rake::ExtensionTask.new('date_ext', HOME_RUN_GEMSPEC) do |ext|
+  ext.cross_compile = true
+  ext.cross_platform = ['x86-mingw32', 'x86-mswin32-60']
+end

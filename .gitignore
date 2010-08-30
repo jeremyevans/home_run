@@ -7,5 +7,6 @@
 *.core
 /pkg
 /lib/1.*
+/lib/date_ext.so
 /tmp
 /coverage

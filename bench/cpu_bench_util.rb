@@ -7,7 +7,7 @@ SD = Date
 SDT = DateTime
 Object.send(:remove_const, :Date)
 Object.send(:remove_const, :DateTime)
-$:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext', 'date_ext'))
+$:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'lib'))
 load 'lib/date.rb'
 load 'lib/date/format.rb'
 HRD = Date

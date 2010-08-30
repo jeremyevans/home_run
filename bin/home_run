@@ -57,8 +57,8 @@ when :install
   FUV.cp("lib/date.rb", RbConfig::CONFIG['sitelibdir'])
   FUV.mkdir_p(File.join(RbConfig::CONFIG['sitelibdir'], 'date'))
   FUV.cp("lib/date/format.rb", File.join(RbConfig::CONFIG['sitelibdir'], 'date'))
-  if File.exists?("ext/date_ext/date_ext.#{RbConfig::CONFIG['DLEXT']}")
-    FUV.cp("ext/date_ext/date_ext.#{RbConfig::CONFIG['DLEXT']}", RbConfig::CONFIG['sitearchdir'])
+  if File.exists?("lib/date_ext.#{RbConfig::CONFIG['DLEXT']}")
+    FUV.cp("lib/date_ext.#{RbConfig::CONFIG['DLEXT']}", RbConfig::CONFIG['sitearchdir'])
   else
     # Windows binary gem files
     if File.exists?('lib/1.8/date_ext.so')

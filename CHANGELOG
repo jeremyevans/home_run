@@ -1,5 +1,9 @@
 === HEAD
 
+* Require rake-compiler when building from source (may need to clean out your ext/date_ext directory manually) (jeremyevans)
+
+* Include the ragel-generated file in the repository, so you don't need ragel to build from source (jeremyevans)
+
 * Respect Encoding.default_internal for returned strings on 1.9 (brianmario, jeremyevans)
 
 * Handle problems with zones in the -HH,DDD or -HH.DDD formats (jeremyevans)

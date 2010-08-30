@@ -240,18 +240,19 @@ To get a copy:
 
 There are a few requirements:
 
-* Rake
+* rake
+* rake-compiler
 * MSpec (not RSpec) for running the specs.  The specs are based on
   the rubyspec specs, which is why they use MSpec.
 * RDoc 2.5.10+ if you want to build the documentation.
 * Ragel 6.5+ if you want to modify the ragel parser.
 
-== Building
+== Compiling
 
-To build the library from a git checkout, after installing the
+To compile the library from a git checkout, after installing the
 requirements:
 
-  rake build
+  rake compile
 
 == Testing
 
@@ -259,7 +260,7 @@ The default rake task runs the specs, so just run:
 
   rake
 
-You need to build the library and install MSpec before running the
+You need to compile the library and install MSpec before running the
 specs.
 
 == Benchmarking
@@ -293,6 +294,7 @@ home_run has been tested on the following:
 * OpenBSD (amd64, i386)
 * Solaris 10 (sparc)
 * Windows XP (i386)
+* Windows 7 (x64)
 
 === Compiler Versions
 
