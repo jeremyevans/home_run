@@ -2,7 +2,7 @@ require "rake"
 require "rake/clean"
 require 'rbconfig'
 
-CLEAN.include %w'ext/date_ext/Makefile ext/date_ext/date_ext.*o **/*.rbc *.core rdoc coverage' 
+CLEAN.include %w'ext/date_ext/Makefile ext/date_ext/*.o ext/date_ext/date_ext.so **/*.rbc *.core rdoc coverage' 
 RUBY=ENV['RUBY'] || File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
 
 desc "Build the RDoc documentation"

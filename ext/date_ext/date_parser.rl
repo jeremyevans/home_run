@@ -1,3 +1,4 @@
+#include "date_ext.h"
 
 #define RHRR_ISO_PARSER 0x1
 #define RHRR_RFC_PARSER 0x2
@@ -15,6 +16,19 @@
 #define RHRR_CLF_ZONE_SET 0x2
 
 #define RHRR_BAD_OFFSET 86400
+
+extern const char * rhrd__abbr_month_names[];
+extern const char * rhrd__abbr_day_names[];
+
+extern VALUE rhrd_sym_hour;
+extern VALUE rhrd_sym_mday;
+extern VALUE rhrd_sym_min;
+extern VALUE rhrd_sym_mon;
+extern VALUE rhrd_sym_offset;
+extern VALUE rhrd_sym_sec;
+extern VALUE rhrd_sym_wday;
+extern VALUE rhrd_sym_year;
+extern VALUE rhrd_sym_zone;
 
 const char * rhrd__rfc_zone_names[] = {"UT", "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", "PDT",
   "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M",

@@ -1,3 +1,57 @@
+#include "date_ext.h"
+
+extern const unsigned char rhrd_days_in_month[];
+extern const long rhrd_cumulative_days_in_month[];
+extern const unsigned char rhrd_yday_to_month[];
+extern const unsigned char rhrd_leap_yday_to_month[];
+
+extern const char * rhrd__abbr_month_names[];
+extern const char * rhrd__abbr_day_names[];
+
+static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self);
+static VALUE rhrdt_to_s(VALUE self);
+VALUE rhrdt__new_offset(VALUE self, double offset);
+void rhrdt__jd_to_civil(rhrdt_t *date);
+void rhrdt__nanos_to_hms(rhrdt_t *d);
+
+extern VALUE rhrd_class;
+extern VALUE rhrdt_class;
+extern VALUE rhrdt_s_class;
+extern ID rhrd_id__parse;
+extern ID rhrd_id_cwday;
+extern ID rhrd_id_cweek;
+extern ID rhrd_id_cwyear;
+extern ID rhrd_id_hash;
+extern ID rhrd_id_now;
+extern ID rhrd_id_offset;
+extern ID rhrd_id_to_i;
+#ifdef RUBY19
+extern ID rhrd_id_nsec;
+#else
+extern ID rhrd_id_usec;
+#endif
+extern ID rhrd_id_utc_offset;
+extern VALUE rhrd_sym_hour;
+extern VALUE rhrd_sym_min;
+extern VALUE rhrd_sym_offset;
+extern VALUE rhrd_sym_sec;
+extern VALUE rhrd_sym_sec_fraction;
+extern VALUE rhrd_sym_seconds;
+
+#ifdef RUBY19
+extern ID rhrd_id__httpdate;
+extern ID rhrd_id__iso8601;
+extern ID rhrd_id__jisx0301;
+extern ID rhrd_id__rfc2822;
+extern ID rhrd_id__rfc3339;
+extern ID rhrd_id__xmlschema;
+
+extern ID rhrd_id_to_enum;
+extern ID rhrd_id_localtime;
+extern ID rhrd_id_utc;
+
+extern VALUE rhrd_sym_step;
+#endif
 
 /* Helper methods */
 
