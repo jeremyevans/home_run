@@ -13,7 +13,8 @@ load 'lib/date/format.rb'
 HRD = Date
 HRDT = DateTime
 NANOS_PER_SEC = 1000000000
-N = 10000
+N = ENV['N'] ? ENV['N'].to_i : 10000
+S = ENV['S'] ? ENV['S'].to_f : 2
 FILTER = ARGV.empty? ? nil : Regexp.new(ARGV[0])
 
 def compare(label, datetime=false, &block)
@@ -24,7 +25,7 @@ def compare(label, datetime=false, &block)
   Object.send(:const_set, :DateTime, SDT)
   stdlib = 0.0
   stdlib_times = 0
-  while stdlib < 2
+  while stdlib < S
     t = Time.now
     yield(datetime ? SDT : SD)
     stdlib += Time.now - t
@@ -37,7 +38,7 @@ def compare(label, datetime=false, &block)
   Object.send(:const_set, :DateTime, HRDT)
   home_run = 0.0
   home_run_times = 0
-  while home_run < 2
+  while home_run < S
     t = Time.now
     yield(datetime ? HRDT : HRD)
     home_run += Time.now - t
