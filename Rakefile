@@ -28,7 +28,7 @@ end
 
 desc "Try to clean up everything"
 task :distclean  do
-  CLEAN.concat(%w'pkg home_run-*.gem lib/1.* tmp rdoc')
+  CLEAN.concat(%w'pkg home_run-*.gem lib/1.* tmp')
   Rake::Task[:clean].invoke
 end
 
