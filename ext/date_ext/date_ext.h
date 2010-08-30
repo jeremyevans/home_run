@@ -119,7 +119,8 @@ so that no calculations can overflow.
 
 #ifdef RHR_ENCODING
 int rhrd_encoding_index;
-#define RHR_ASCII_ENCODING(s) s = rb_enc_associate_index(s, rhrd_encoding_index);
+#define RHR_ASCII_ENCODING(s) s = rb_enc_associate_index(s, rhrd_encoding_index); \
+  if(rb_default_internal_encoding()) {s = rb_str_export_to_enc(s, rb_default_internal_encoding());}
 #else
 #define RHR_ASCII_ENCODING(s) /* do nothing */
 #endif
