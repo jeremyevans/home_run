@@ -1,4 +1,4 @@
-require File.join(File.dirname(File.expand_path(__FILE__)), 'Rakefile')
+load File.join(File.dirname(File.expand_path(__FILE__)), 'Rakefile')
 
 ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
 require 'rake/extensiontask'
