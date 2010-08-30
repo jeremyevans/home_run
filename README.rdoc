@@ -249,10 +249,6 @@ There are a few requirements:
   the rubyspec specs, which is why they use MSpec.
 * RDoc 2.5.10+ if you want to build the documentation.
 
-The directory layout is slightly unusual in that there is no
-lib directory and there are .rb files in the ext directory. This may
-change in a future version.
-
 == Building
 
 To build the library from a git checkout, after installing the
