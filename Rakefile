@@ -65,7 +65,7 @@ end
 desc "Start an IRB shell using the extension"
 task :irb do
   irb = ENV['IRB'] || File.join(RbConfig::CONFIG['bindir'], File.basename(RUBY).sub('ruby', 'irb'))
-  sh %{#{irb} -I ext -r date}
+  sh %{#{irb} -I lib -I ext/date_ext -r date}
 end
 
 desc "Run comparative benchmarks"
