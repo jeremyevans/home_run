@@ -4,7 +4,7 @@ require 'optparse'
 require 'rbconfig'
 
 command = :run
-lib = File.expand_path('../../ext', __FILE__)
+lib = File.dirname(File.dirname(File.expand_path(__FILE__)))
 
 opts = OptionParser.new do |opts|
   opts.banner = "home_run: Fast Date/DateTime classes for ruby"
@@ -36,14 +36,14 @@ opts.order!
 
 case command
 when :bench
-  Dir.chdir(File.join(lib, '..'))
+  Dir.chdir(lib)
   ENV['RUBY'] = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
   require 'rubygems'
   require 'rake'
   load './Rakefile'
   Rake::Task[:bench_all].invoke
 when :spec
-  Dir.chdir(File.join(lib, '..'))
+  Dir.chdir(lib)
   ENV['PATH'] = [RbConfig::CONFIG['bindir'], ENV['PATH']].join(File::PATH_SEPARATOR)
   ENV['RUBY'] = File.join(RbConfig::CONFIG['ruby_install_name'])
   require 'rubygems'
@@ -54,20 +54,20 @@ when :install
   Dir.chdir(lib)
   require 'fileutils'
   FUV = FileUtils::Verbose
-  FUV.cp("date.rb", RbConfig::CONFIG['sitelibdir'])
+  FUV.cp("lib/date.rb", RbConfig::CONFIG['sitelibdir'])
   FUV.mkdir_p(File.join(RbConfig::CONFIG['sitelibdir'], 'date'))
-  FUV.cp("date/format.rb", File.join(RbConfig::CONFIG['sitelibdir'], 'date'))
-  if File.exists?("date_ext.#{RbConfig::CONFIG['DLEXT']}")
-    FUV.cp("date_ext.#{RbConfig::CONFIG['DLEXT']}", RbConfig::CONFIG['sitearchdir'])
+  FUV.cp("lib/date/format.rb", File.join(RbConfig::CONFIG['sitelibdir'], 'date'))
+  if File.exists?("ext/date_ext/date_ext.#{RbConfig::CONFIG['DLEXT']}")
+    FUV.cp("ext/date_ext/date_ext.#{RbConfig::CONFIG['DLEXT']}", RbConfig::CONFIG['sitearchdir'])
   else
     # Windows binary gem files
-    if File.exists?('1.8/date_ext.so')
+    if File.exists?('lib/1.8/date_ext.so')
       FUV.mkdir_p(File.join(RbConfig::CONFIG['sitearchdir'], '1.8'))
-      FUV.cp("1.8/date_ext.so", File.join(RbConfig::CONFIG['sitearchdir'], '1.8'))
+      FUV.cp("lib/1.8/date_ext.so", File.join(RbConfig::CONFIG['sitearchdir'], '1.8'))
     end
-    if File.exists?('1.9/date_ext.so')
+    if File.exists?('lib/1.9/date_ext.so')
       FUV.mkdir_p(File.join(RbConfig::CONFIG['sitearchdir'], '1.9'))
-      FUV.cp("1.9/date_ext.so", File.join(RbConfig::CONFIG['sitearchdir'], '1.9'))
+      FUV.cp("lib/1.9/date_ext.so", File.join(RbConfig::CONFIG['sitearchdir'], '1.9'))
     end
   end
 when :uninstall
@@ -83,6 +83,6 @@ when :uninstall
   FUV.rmdir(File.join(RbConfig::CONFIG['sitearchdir'], '1.9')) rescue nil
 else
   ENV['RUBYOPT'] = "-rdate #{ENV['RUBYOPT']}"
-  ENV['RUBYLIB'] = [lib, ENV['RUBYLIB']].join(File::PATH_SEPARATOR)
+  ENV['RUBYLIB'] = [File.join(lib, 'lib'), File.join(lib, 'ext', 'date_ext'), ENV['RUBYLIB']].join(File::PATH_SEPARATOR)
   exec(*ARGV)
 end
