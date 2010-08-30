@@ -7,9 +7,9 @@ SD = Date
 SDT = DateTime
 Object.send(:remove_const, :Date)
 Object.send(:remove_const, :DateTime)
-$:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext'))
-load 'ext/date.rb'
-load 'ext/date/format.rb'
+$:.unshift(File.join(File.dirname(File.dirname(File.expand_path(__FILE__))), 'ext', 'date_ext'))
+load 'lib/date.rb'
+load 'lib/date/format.rb'
 HRD = Date
 HRDT = DateTime
 NANOS_PER_SEC = 1000000000

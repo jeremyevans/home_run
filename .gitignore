@@ -1,12 +1,11 @@
 *.rbc
-/ext/Makefile
-/ext/date_ext.*o
-/ext/date_parser.c
+/ext/date_ext/Makefile
+/ext/date_ext/date_ext.*o
+/ext/date_ext/date_parser.c
 /rdoc
 /home_run-*.gem
 *.core
 /pkg
-/ext/1.8
-/ext/1.9
+/lib/1.*
 /tmp
 /coverage

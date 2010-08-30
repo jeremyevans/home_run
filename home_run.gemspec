@@ -11,8 +11,8 @@ HOME_RUN_GEMSPEC = Gem::Specification.new do |s|
   s.homepage = "http://github.com/jeremyevans/home_run"
   s.required_ruby_version = ">= 1.8.6"
   s.files = %w(LICENSE CHANGELOG README.rdoc Rakefile default.mspec) + Dir["{bin,ext,spec,bench}/**/*"]
-  s.require_path = "ext"
-  s.extensions << 'ext/extconf.rb'
+  s.require_paths << "ext/date_ext"
+  s.extensions << 'ext/date_ext/extconf.rb'
   s.bindir = 'bin'
   s.executables << 'home_run'
   s.description = <<END

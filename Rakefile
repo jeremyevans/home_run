@@ -2,7 +2,7 @@ require "rake"
 require "rake/clean"
 require 'rbconfig'
 
-CLEAN.include %w'pkg ext/date_ext/Makefile ext/date_ext/date_ext.*o **/*.rbc *.core rdoc coverage' 
+CLEAN.include %w'ext/date_ext/Makefile ext/date_ext/date_ext.*o **/*.rbc *.core rdoc coverage' 
 RUBY=ENV['RUBY'] || File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
 
 desc "Build the RDoc documentation"
@@ -33,7 +33,7 @@ end
 
 desc "Try to clean up everything"
 task :distclean  do
-  CLEAN.concat(%w'pkg home_run-*.gem ext/1.* tmp rdoc ext/date_parser.c')
+  CLEAN.concat(%w'pkg home_run-*.gem lib/1.* tmp rdoc ext/date_ext/date_parser.c')
   Rake::Task[:clean].invoke
 end
 
@@ -53,18 +53,18 @@ end
 
 desc "Build the ragel parser"
 task :parser do
-  sh %{cd ext && ragel date_parser.rl}
+  sh %{cd ext/date_ext && ragel date_parser.rl}
 end
 
 desc "Build the extension"
 task :build=>[:clean] do
-  sh %{cd ext && #{RUBY} extconf.rb && make}
+  sh %{cd ext/date_ext && #{RUBY} extconf.rb && make}
 end
 
 desc "Build debug version of extension"
 task :build_debug=>[:clean] do
   ENV['DEBUG'] = '1'
-  sh %{cd ext && #{RUBY} extconf.rb && make}
+  Rake::Task[:build].invoke
 end
 
 desc "Start an IRB shell using the extension"
@@ -81,7 +81,7 @@ end
 desc "Run all benchmarks"
 task :bench_all => [:bench, :mem_bench, :garbage_bench]
 
-desc "Run comparative benchmarks"
+desc "Run comparative parser benchmarks"
 task :parser_bench do
   sh %{#{RUBY} bench/parser_bench.rb}
 end
@@ -94,11 +94,11 @@ task :mem_bench do
   end
 
   stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/mem_bench.rb`.to_i
-  home_run = `#{RUBY} -I ext bench/mem_bench.rb`.to_i
+  home_run = `#{RUBY} -I lib -I ext/date_ext bench/mem_bench.rb`.to_i
   puts "Date memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
   stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/dt_mem_bench.rb`.to_i
-  home_run = `#{RUBY} -I ext bench/dt_mem_bench.rb`.to_i
+  home_run = `#{RUBY} -I lib -I ext/date_ext bench/dt_mem_bench.rb`.to_i
   puts "DateTime memory use,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
 
@@ -110,10 +110,10 @@ task :garbage_bench do
   end
 
   stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/garbage_bench.rb`.to_i
-  home_run = `#{RUBY} -I ext bench/garbage_bench.rb`.to_i
+  home_run = `#{RUBY} -I lib ext/date_ext bench/garbage_bench.rb`.to_i
   puts "Date garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
   stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/dt_garbage_bench.rb`.to_i
-  home_run = `#{RUBY} -I ext bench/dt_garbage_bench.rb`.to_i
+  home_run = `#{RUBY} -I lib ext/date_ext bench/dt_garbage_bench.rb`.to_i
   puts "DateTime garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
