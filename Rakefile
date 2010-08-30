@@ -105,10 +105,10 @@ task :garbage_bench do
   end
 
   stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/garbage_bench.rb`.to_i
-  home_run = `#{RUBY} -I lib ext/date_ext bench/garbage_bench.rb`.to_i
+  home_run = `#{RUBY} -I lib -I ext/date_ext bench/garbage_bench.rb`.to_i
   puts "Date garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 
   stdlib = `#{RUBY} -I #{RbConfig::CONFIG['rubylibdir']} bench/dt_garbage_bench.rb`.to_i
-  home_run = `#{RUBY} -I lib ext/date_ext bench/dt_garbage_bench.rb`.to_i
+  home_run = `#{RUBY} -I lib -I ext/date_ext bench/dt_garbage_bench.rb`.to_i
   puts "DateTime garbage created,#{stdlib}KB,#{home_run}KB,#{sprintf('%0.1f', stdlib/home_run.to_f)}"
 end
