@@ -2,7 +2,7 @@ require "rake"
 require "rake/clean"
 require 'rbconfig'
 
-CLEAN.include %w'ext/Makefile ext/date_ext.*o **/*.rbc *.core rdoc coverage' 
+CLEAN.include %w'pkg ext/date_ext/Makefile ext/date_ext/date_ext.*o **/*.rbc *.core rdoc coverage' 
 RUBY=ENV['RUBY'] || File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
 
 desc "Build the RDoc documentation"
@@ -11,7 +11,7 @@ task :rdoc do
   FileUtils.rm_rf('rdoc')
   sh 'rdoc --quiet --line-numbers --inline-source --output rdoc --title ' \
      '"home_run: Fast Date/DateTime classes for ruby" --main README.rdoc ' \
-     'README.rdoc CHANGELOG LICENSE ext/**/*.rb ext/*.c'
+     'README.rdoc CHANGELOG LICENSE lib/date.rb lib/date/format.rb ext/date_ext/*.c'
 end
 
 desc "Run the specs with mspec"
@@ -38,40 +38,17 @@ task :distclean  do
 end
 
 if RUBY_PLATFORM !~ /mswin|mingw/ and File.directory?(File.join(File.expand_path(ENV['HOME']), '.rake-compiler'))
-begin
-  require "rake/extensiontask"
-  ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
-  load('home_run.gemspec')
-  desc "Internal--cross compile the windows binary gem"
-  cross_platform = ENV['CROSS_PLATFORM'] || 'i386-mingw32'
-  Rake::ExtensionTask.new('date_ext', HOME_RUN_GEMSPEC) do |ext|
-    ext.name = 'date_ext'
-    ext.ext_dir = 'ext' 
-    ext.lib_dir = 'ext' 
-    ext.cross_compile = true
-    ext.cross_platform = cross_platform
-    ext.source_pattern = '*.c'
-  end
-
-  # FIXME: Incredibly hacky, should figure out how to get
-  # rake compiler to do this correctly
-  desc "Build the cross compiled windows binary gem"
-  task :windows_gem => [:clean, :parser] do
-    sh %{rm -rf tmp pkg home_run-*.gem ext/1.*}
-    system %{rake cross native gem}
-    unless File.directory?('pkg')
-      sh "cp ext/*.c tmp/#{cross_platform}/date_ext/1.8.6"
-      system %{rake cross native gem}
-      sh "cp ext/*.c tmp/#{cross_platform}/date_ext/1.9.1"
-      system %{rake cross native gem}
-      sh %{rake cross native gem}
+  begin
+    ENV['RUBY_CC_VERSION'] = '1.8.6:1.9.1'
+    require 'rake/extensiontask'
+    load('home_run.gemspec')
+    desc "Internal--cross compile the windows binary gem"
+    Rake::ExtensionTask.new('date_ext', HOME_RUN_GEMSPEC) do |ext|
+      ext.cross_compile = true
+      ext.cross_platform = ['x86-mingw32', 'x86-mswin32-60']
     end
-    sh %{rm -rf home_run-*.gem tmp ext/1.*}
-    sh %{mv pkg/home_run-*.gem .}
-    sh %{rmdir pkg}
+  rescue LoadError
   end
-rescue LoadError
-end
 end
 
 desc "Build the ragel parser"
