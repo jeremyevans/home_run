@@ -10,7 +10,7 @@ HOME_RUN_GEMSPEC = Gem::Specification.new do |s|
   s.email = "code@jeremyevans.net"
   s.homepage = "http://github.com/jeremyevans/home_run"
   s.required_ruby_version = ">= 1.8.6"
-  s.files = %w(LICENSE CHANGELOG README.rdoc Rakefile default.mspec) + Dir["{lib,bin,ext,spec,bench}/**/*"]
+  s.files = %w(LICENSE CHANGELOG README.rdoc Rakefile default.mspec bin/home_run) + Dir["{lib,ext,spec,bench}/**/*.{c,h,rb,rl}"]
   s.extensions << 'ext/date_ext/extconf.rb'
   s.executables << 'home_run'
   s.description = <<END
