@@ -1,5 +1,11 @@
 === HEAD
 
+* Compile C files separately, instead of including C files in other C files (jeremyevans)
+
+* On ruby 1.9, return strings in US-ASCII encoding instead of ASCII-8BIT (jeremyevans) (#8)
+
+* Reorganize directory structure to use the standard ruby extension structure (luislavena, jeremyevans)
+
 * Support Date/DateTime#step without a block returning an Enumerator on 1.9 (jeremyevans) (#6)
 
 * Support ruby build with CALC_EXACT_MALLOC_SIZE (nocode) (#5)
