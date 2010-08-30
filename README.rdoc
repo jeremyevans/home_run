@@ -241,20 +241,17 @@ To get a copy:
 There are a few requirements:
 
 * Rake
-* Ragel 6.5+ for building the ragel parser.  The compiled C file is
-  included in the gem, so people installing the gem don't need
-  Ragel.  The compiled C file is not checked into git, so you need
-  Ragel if you are working with a git checkout.
 * MSpec (not RSpec) for running the specs.  The specs are based on
   the rubyspec specs, which is why they use MSpec.
 * RDoc 2.5.10+ if you want to build the documentation.
+* Ragel 6.5+ if you want to modify the ragel parser.
 
 == Building
 
 To build the library from a git checkout, after installing the
 requirements:
 
-  rake parser build
+  rake build
 
 == Testing
 

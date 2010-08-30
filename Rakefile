@@ -28,7 +28,7 @@ end
 
 desc "Try to clean up everything"
 task :distclean  do
-  CLEAN.concat(%w'pkg home_run-*.gem lib/1.* tmp rdoc ext/date_ext/date_parser.c')
+  CLEAN.concat(%w'pkg home_run-*.gem lib/1.* tmp rdoc')
   Rake::Task[:clean].invoke
 end
 
