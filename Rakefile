@@ -21,11 +21,6 @@ task :spec do
   sh %{mspec}
 end
 
-desc "Run a coverage report for the pure ruby file"
-task :coverage do
-  sh %{cd spec && ../bin/home_run mspec -o ../coverage -t rcov -- ../ext/date/format.rb date*/*}
-end
-
 desc "Build the gem"
 task :gem => [:clean, :parser] do
   sh %{gem build home_run.gemspec}

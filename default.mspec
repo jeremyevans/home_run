@@ -7,6 +7,6 @@ unless ENV['HOME']
 end
 
 class MSpecScript
-  set :flags, %w'-I ext -r date'
+  set :flags, %w'-I ext/date_ext -I lib -r date'
   set :files, ['spec/date/*', 'spec/datetime/*']
 end
