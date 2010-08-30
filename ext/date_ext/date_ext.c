@@ -1983,8 +1983,8 @@ VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
       if((s[i] == ',') || (s[i] == '.')) {
         v = rb_funcall(str, rhrd_id_split, 1, rhrd_re_comma_period);
         e = rb_ary_entry(v, 1);
-        return LONG2NUM((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR)
-               + (NUM2LONG(rb_funcall(e, rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR) / (long)pow(10, RSTRING_LEN(rb_str_to_str(e))) * offset);
+        return LONG2NUM(((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR)
+               + ((NUM2LONG(rb_funcall(e, rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR) / (long)pow(10, RSTRING_LEN(rb_str_to_str(e))))) * offset);
       }
     }
     switch (len) {

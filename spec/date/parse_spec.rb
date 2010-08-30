@@ -11,11 +11,16 @@ ruby_version_is "" ... "1.9" do
       Date.zone_to_diff('+08:00').should == 28800
       Date.zone_to_diff('+08:30').should == 30600
       Date.zone_to_diff('+08:30:04').should == 30604
+      Date.zone_to_diff('-08:00').should == -28800
+      Date.zone_to_diff('-08:30').should == -30600
+      Date.zone_to_diff('-08:30:04').should == -30604
     end
 
     it "should return the offset for the given numeric time zone with . or ," do
       Date.zone_to_diff('+08,30').should == 29880
       Date.zone_to_diff('+08.30').should == 29880
+      Date.zone_to_diff('-08,30').should == -29880
+      Date.zone_to_diff('-08.30').should == -29880
     end
 
     it "should return the offset for the given numeric time with all digits" do
