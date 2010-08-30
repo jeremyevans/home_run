@@ -1,9 +1,13 @@
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <ruby.h>
+
+#if defined(HAVE_RUBY_ENCODING_H) && HAVE_RUBY_ENCODING_H
+#define RHR_ENCODING 1
+#include <ruby/encoding.h>
+#endif
 
 #ifdef RUBY19
 #define RHR_DEFAULT_CWYEAR -4713
@@ -109,10 +113,17 @@ so that no calculations can overflow.
 #define RHRDT_FILL_HMS(d) if (!((d)->flags & RHR_HAVE_HMS)) { rhrdt__nanos_to_hms(d); }
 #define RHRDT_FILL_NANOS(d) if (!((d)->flags & RHR_HAVE_NANOS)) { rhrdt__hms_to_nanos(d); }
 
+#ifdef RHR_ENCODING
+int rhrd_encoding_index;
+#define RHR_ASCII_ENCODING(s) s = rb_enc_associate_index(s, rhrd_encoding_index);
+#else
+#define RHR_ASCII_ENCODING(s) /* do nothing */
+#endif
+
 #ifdef RUBY186
 #define RHR_RETURN_RESIZED_STR(s, len) return rb_str_resize(s, len);
 #else
-#define RHR_RETURN_RESIZED_STR(s, len) rb_str_set_len(s, len); return s;
+#define RHR_RETURN_RESIZED_STR(s, len) rb_str_set_len(s, len); RHR_ASCII_ENCODING(s); return s;
 #endif
 
 #define RHR_SPACE_SHIP(x, l, r) if (l < r) { x = -1; } else if (l == r) { x = 0; } else { x = 1; } 
@@ -4156,6 +4167,10 @@ void Init_date_ext(void) {
   rhrd_sym_yday = ID2SYM(rb_intern("yday"));
   rhrd_sym_year = ID2SYM(rb_intern("year"));
   rhrd_sym_zone = ID2SYM(rb_intern("zone"));
+
+#ifdef RHR_ENCODING
+  rhrd_encoding_index = rb_enc_to_index(rb_usascii_encoding());
+#endif
 
   /* Define classes*/
 
