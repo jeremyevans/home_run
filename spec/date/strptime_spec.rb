@@ -191,6 +191,11 @@ describe "Date#strptime" do
     Date.strptime("Thu Apr  6 00:00:00 2000", "%a %b %e %H:%M:%S %Y").should == Date.civil(2000, 4, 6)
   end
 
+  it "parses a full date with trailing digits" do
+    Date.strptime("Thu Apr  6 00:00:00 20000", "%c0").should == Date.civil(2000, 4, 6)
+    Date.strptime("Thu Apr  6 00:00:00 200012", "%c%m").should == Date.civil(2000, 12, 6)
+  end
+
   it "parses a date with slashes" do
     Date.strptime("04/06/00", "%D").should == Date.civil(2000, 4, 6)
     Date.strptime("04/06/00", "%m/%d/%y").should == Date.civil(2000, 4, 6)
@@ -201,9 +206,14 @@ describe "Date#strptime" do
     Date.strptime("2000-04-06", "%Y-%m-%d").should == Date.civil(2000, 4, 6)
   end
 
-  it "parses a commercial week" do
+  it "parses a civil format with month name" do
     Date.strptime(" 9-Apr-2000", "%v").should == Date.civil(2000, 4, 9)
     Date.strptime(" 9-Apr-2000", "%e-%b-%Y").should == Date.civil(2000, 4, 9)
+  end
+  
+  it "parses a civil format with month name with trailing digits" do
+    Date.strptime(" 9-Apr-20000", "%v0").should == Date.civil(2000, 4, 9)
+    Date.strptime(" 9-Apr-200012", "%v%m").should == Date.civil(2000, 12, 9)
   end
   
   it "parses a date given MM/DD/YY" do
@@ -216,4 +226,8 @@ describe "Date#strptime" do
     Date.strptime("Sun Apr  9 00:00:00 +00:00 2000", "%a %b %e %H:%M:%S %Z %Y").should == Date.civil(2000, 4, 9)
   end
 
+  it "parses a date given in full notation with trailing digits" do
+    Date.strptime("Sun Apr  9 00:00:00 +00:00 20000", "%+0").should == Date.civil(2000, 4, 9)
+    Date.strptime("Sun Apr  9 00:00:00 +00:00 200012", "%+%m").should == Date.civil(2000, 12, 9)
+  end
 end
