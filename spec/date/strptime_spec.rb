@@ -84,9 +84,15 @@ describe "Date#strptime" do
     Date.strptime(" 6", "%e").should == Date.civil(d.year, d.month, 6)
   end
 
-  it "parses a commercial year with leading zeroes" do
+  it "parses a commercial year" do
     Date.strptime("2000", "%G").should == Date.civil(2000,  1,  3)
     Date.strptime("2002", "%G").should == Date.civil(2001, 12, 31)
+    Date.strptime("20000", "%G").should == Date.civil(20000,  1,  3)
+  end
+
+  it "parses a commercial year with trailing numbers" do
+    Date.strptime("20000", "%G0").should == Date.civil(2000,  1,  3)
+    Date.strptime("20023", "%G%u").should == Date.civil(2002, 1, 2)
   end
 
   it "parses a commercial year with only two digits" do
@@ -152,8 +158,15 @@ describe "Date#strptime" do
     Date.strptime("2007 4", "%Y %w").should == Date.civil(2007, 1, 4)
   end
 
-  it "parses a year in YYYY format" do
+  it "parses a full year " do
     Date.strptime("2007", "%Y").should == Date.civil(2007, 1, 1)
+    Date.strptime("200", "%Y").should == Date.civil(200, 1, 1)
+    Date.strptime("20000", "%Y").should == Date.civil(20000, 1, 1)
+  end
+
+  it "parses a full year with trailing numbers" do
+    Date.strptime("20000", "%Y0").should == Date.civil(2000, 1, 1)
+    Date.strptime("200002", "%Y%m").should == Date.civil(2000, 2, 1)
   end
 
   it "parses a year in YY format" do
@@ -163,6 +176,11 @@ describe "Date#strptime" do
   it "should be able to parse escapes" do
     Date.strptime("00 % \n \t %1", "%y %% %n %t %%1").should == Date.civil(2000, 1, 1)
   end
+
+  it "parse a %Y%m%d date" do
+    Date.strptime("20000203", "%Y%m%d").should == Date.civil(2000, 2, 3)
+  end
+  
 
   ############################
   # Specs that combine stuff #

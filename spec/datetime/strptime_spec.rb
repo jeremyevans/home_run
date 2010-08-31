@@ -48,6 +48,11 @@ describe "DateTime.strptime" do
     DateTime.strptime("10 500", '%M %L').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0) + (0.5/86400)
   end
   
+  it "should be able to parse the number of milliseconds of the second with trailing numbers" do
+    DateTime.strptime("10 0000", '%M %L0').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0)
+    DateTime.strptime("10 50012", '%M %L%m').should == DateTime.civil(@t.year, 12, 1, 0, 10, 0) + (0.5/86400)
+  end
+  
   it "should be able to parse the minute with leading zero" do
     DateTime.strptime("10", '%M').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0)
     DateTime.strptime("09", '%M').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 9, 0)
@@ -56,6 +61,11 @@ describe "DateTime.strptime" do
   it "should be able to parse the number of nanoseconds of the second" do
     DateTime.strptime("10 000000000", '%M %N').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0)
     DateTime.strptime("10 500000000", '%M %N').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0) + (0.5/86400)
+  end
+  
+  it "should be able to parse the number of nanoseconds of the second with trailing numbers" do
+    DateTime.strptime("10 0000000000", '%M %N0').should == DateTime.civil(@t.year, @t.mon, @t.day, 0, 10, 0)
+    DateTime.strptime("10 50000000012", '%M %N%m').should == DateTime.civil(@t.year, 12, 1, 0, 10, 0) + (0.5/86400)
   end
   
   it "should be able to parse the number of seconds since the unix epoch" do
