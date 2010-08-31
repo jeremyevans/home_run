@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "date_ext.h"
 
 const unsigned char rhrd_days_in_month[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -11,6 +12,7 @@ const char * rhrd__abbr_day_names[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri"
 const char rhrd__zone_re_str[] = "\\A(?:gmt|utc?)?[-+]\\d+(?:[,.:]\\d+(?::\\d+)?)?|[[:alpha:].\\s]+(?:standard|daylight)\\s+time\\b|[[:alpha:]]+(?:\\s+dst)?\\b";
 const char rhrd__zone_dst_re_str[] = "\\s+(?:(?:(standard)|daylight)\\s+time|dst)\\z";
 const char rhrd__zone_sign_re_str[] = "\\A(?:gmt|utc?)?(?:(-)|\\+)";
+const char rhrd__strptime_num_patterns[] = "CDdeFGgHIjkLlMmNQRrSsTUuVvWwXxYy0123456789";
 
 VALUE rhrd_class;
 VALUE rhrd_s_class;
@@ -934,6 +936,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
   long wnum1 = 0;
   long i;
   long fmt_pos;
+  int year_only4 = 0;
   int scan_len;
   VALUE zone = Qnil;
   VALUE hash;
@@ -1043,7 +1046,16 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           state |= RHRR_CWYEAR_SET | RHRR_CENTURY_SET;
           break;
         case 'G':
-          if (sscanf(str + pos, "%ld%n", &cwyear, &scan_len) != 1) {
+#define RHR_PARSE_year_only4 year_only4 = 0;\
+          if (fmt_pos + 1 < fmt_len) {\
+            if(isdigit(fmt_str[fmt_pos + 1])) {\
+              year_only4 = 1;\
+            } else if ((fmt_pos + 2 < fmt_len) && (fmt_str[fmt_pos + 1] == '%') && strchr(rhrd__strptime_num_patterns, fmt_str[fmt_pos + 2])) {\
+              year_only4 = 1;\
+            }\
+          }
+          RHR_PARSE_year_only4 
+          if (sscanf(str + pos, year_only4 ? "%4ld%n" : "%ld%n", &cwyear, &scan_len) != 1) {
             return Qnil;
           }
           state |= RHRR_CWYEAR_SET + RHRR_CENTURY_SET;
@@ -1228,10 +1240,11 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           RHR_PARSE_y
           break;
         case 'Y':
-#define RHR_PARSE_Y if (sscanf(str + pos, "%ld%n", &year, &scan_len) != 1) {\
+#define RHR_PARSE_Y if (sscanf(str + pos, year_only4 ? "%4ld%n" : "%ld%n", &year, &scan_len) != 1) {\
             return Qnil;\
           }\
           state |= RHRR_YEAR_SET + RHRR_CENTURY_SET;
+          RHR_PARSE_year_only4 
           RHR_PARSE_Y
           break;
         case 'z':
@@ -1265,6 +1278,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           RHR_PARSE_sep(':')
           RHR_PARSE_S
           RHR_PARSE_sep(' ')
+          RHR_PARSE_year_only4 
           RHR_PARSE_Y
           break;
         case 'x':
@@ -1309,6 +1323,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           RHR_PARSE_sep('-')
           RHR_PARSE_b
           RHR_PARSE_sep('-')
+          RHR_PARSE_year_only4 
           RHR_PARSE_Y
           break;
         case '+':
@@ -1326,6 +1341,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           RHR_PARSE_sep(' ')
           RHR_PARSE_Z
           RHR_PARSE_sep(' ')
+          RHR_PARSE_year_only4 
           RHR_PARSE_Y
           break;
         default:
