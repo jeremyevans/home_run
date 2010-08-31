@@ -22,7 +22,7 @@ task :spec do
 end
 
 desc "Build the gem"
-task :gem => [:clean, :parser] do
+task :gem => [:distclean] do
   sh %{gem build home_run.gemspec}
 end
 
