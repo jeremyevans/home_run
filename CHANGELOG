@@ -1,4 +1,6 @@
-=== HEAD
+=== 0.9.1 (2010-09-01)
+
+* Fix strptime for %Y%m%d and similar formats (jeremyevans) (#9)
 
 * Require rake-compiler when building from source (may need to clean out your ext/date_ext directory manually) (jeremyevans)
 
