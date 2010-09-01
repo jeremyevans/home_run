@@ -2600,10 +2600,10 @@ static VALUE rhrdt_to_time(VALUE self) {
   RHRDT_FILL_CIVIL(dt)
   RHRDT_FILL_HMS(dt)
 
-  s = dt->nanos/RHR_NANOS_PER_SECOND;
+  s = (long)(dt->nanos/RHR_NANOS_PER_SECOND);
   h = s/RHR_SECONDS_PER_HOUR;
   m = (s % RHR_SECONDS_PER_HOUR) / 60;
-  return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, LONG2NUM(dt->year), LONG2NUM(dt->month), LONG2NUM(dt->day), LONG2NUM(h), LONG2NUM(m), rb_float_new(s % 60 + (dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
+  return rb_funcall(rb_funcall(rb_cTime, rhrd_id_utc, 6, LONG2NUM(dt->year), LONG2NUM(dt->month), LONG2NUM(dt->day), LONG2NUM(h), LONG2NUM(m), rb_float_new(s % 60 + (double)(dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD)), rhrd_id_localtime, 0);
 }
 
 /* call-seq:
@@ -2630,7 +2630,7 @@ static VALUE rhrdt_time_to_datetime(VALUE self) {
 #else
   dt->nanos = rhrd__mod(t, RHR_SECONDS_PER_DAY) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(self, rhrd_id_usec, 0)) * 1000;
 #endif
-  dt->offset = offset/60;
+  dt->offset = (short)(offset/60);
   dt->flags |= RHR_HAVE_JD | RHR_HAVE_NANOS;
   RHR_CHECK_JD(dt);
   return rd;
