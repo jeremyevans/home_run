@@ -290,7 +290,7 @@ void rhrdt__now(rhrdt_t * dt) {
   rt = rb_funcall(rb_cTime, rhrd_id_now, 0);
   offset = NUM2LONG(rb_funcall(rt, rhrd_id_utc_offset, 0));
   t = NUM2LONG(rb_funcall(rt, rhrd_id_to_i, 0)) + offset;
-  dt->jd = rhrd__unix_to_jd(t);
+  dt->jd = rhrd__unix_to_jd((long long)t);
 #ifdef RUBY19
   dt->nanos = rhrd__mod(t, RHR_SECONDS_PER_DAY) * RHR_NANOS_PER_SECOND + NUM2LONG(rb_funcall(rt, rhrd_id_nsec, 0));
 #else
@@ -436,7 +436,7 @@ void rhrdt__fill_from_hash(rhrdt_t *dt, VALUE hash) {
     dt->nanos = time_set*RHR_NANOS_PER_SECOND + nanos;
     dt->hour = time_set/RHR_SECONDS_PER_HOUR;
     dt->minute = (time_set - dt->hour * RHR_SECONDS_PER_HOUR)/60;
-    dt->second = rhrd__mod(time_set, 60);
+    dt->second = rhrd__mod((long)time_set, 60);
     offset /= 60;
     rhrdt__check_offset(offset);
     RHR_CHECK_JD(dt);
@@ -988,10 +988,10 @@ static VALUE rhrdt_asctime(VALUE self) {
   RHRDT_FILL_HMS(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2hhi %02hhi:%02hhi:%02hhi %04li", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2i %02i:%02i:%02i %04li", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
         rhrd__abbr_month_names[d->month],
-        d->day, d->hour, d->minute, d->second,
+        (int)d->day, (int)d->hour, (int)d->minute, (int)d->second,
         d->year);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#asctime (in snprintf)");
@@ -1146,8 +1146,8 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
   long diff;
 
   if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
-    self = rhrdt__new_offset(self, 0);
-    other = rhrdt__new_offset(other, 0);
+    self = rhrdt__new_offset(self, 0.0);
+    other = rhrdt__new_offset(other, 0.0);
     Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrdt_t, odt);
     return rhrdt__spaceship(dt, odt) == 0 ? Qtrue : Qfalse;
@@ -1174,8 +1174,9 @@ static VALUE rhrdt_eql_q(VALUE self, VALUE other) {
  */
 static VALUE rhrdt_hash(VALUE self) {
   rhrdt_t *d;
+  VALUE new = rhrdt__new_offset(self, 0.0); 
   RHR_CACHED_IV(self, rhrd_id_hash)
-  Data_Get_Struct(rhrdt__new_offset(self, 0), rhrdt_t, d);
+  Data_Get_Struct(new, rhrdt_t, d);
   return rb_ivar_set(self, rhrd_id_hash, rb_funcall(rb_ary_new3(2, LONG2NUM(d->jd), LL2NUM(d->nanos)), rhrd_id_hash, 0));
 }
 
@@ -1212,8 +1213,8 @@ static VALUE rhrdt_inspect(VALUE self) {
   RHRDT_FILL_HMS(dt)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "#<DateTime %04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02i>",
-        dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second, dt->offset/60, abs(dt->offset % 60));
+  len = snprintf(RSTRING_PTR(s), 128, "#<DateTime %04li-%02i-%02iT%02i:%02i:%02i%+03i:%02i>",
+        dt->year, (int)dt->month, (int)dt->day, (int)dt->hour, (int)dt->minute, (int)dt->second, dt->offset/60, abs(dt->offset % 60));
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#inspect (in snprintf)");
   }
@@ -1361,7 +1362,7 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
  *   # => #<DateTime 2009-01-03T12:00:00+00:00>
  */
 static VALUE rhrdt_next(VALUE self) {
-   return rhrdt__add_days(self, 1);
+   return rhrdt__add_days(self, 1.0);
 }
 
 /* call-seq:
@@ -1442,9 +1443,10 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   double step, limit;
   long long step_nanos, limit_nanos, current_nanos;
   long step_jd, limit_jd, current_jd;
-  VALUE rlimit, new, rstep;
+  VALUE rlimit, new, rstep, new_off;
+  new_off = rhrdt__new_offset(self, 0.0);
   Data_Get_Struct(self, rhrdt_t, d);
-  Data_Get_Struct(rhrdt__new_offset(self, 0), rhrdt_t, d0);
+  Data_Get_Struct(new_off, rhrdt_t, d0);
 
   switch(argc) {
     case 1:
@@ -1477,7 +1479,7 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
     limit_jd = floor(limit);
     limit_nanos = llround((limit - limit_jd)*RHR_NANOS_PER_DAY);
   } else if (RTEST((rb_obj_is_kind_of(rlimit, rhrdt_class)))) {
-    rlimit = rhrdt__new_offset(rlimit, 0);
+    rlimit = rhrdt__new_offset(rlimit, 0.0);
     Data_Get_Struct(rlimit, rhrdt_t, ndt);
     RHRDT_FILL_JD(ndt)
     RHRDT_FILL_NANOS(ndt)
@@ -1575,8 +1577,8 @@ static VALUE rhrdt_to_s(VALUE self) {
   RHRDT_FILL_HMS(dt)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhiT%02hhi:%02hhi:%02hhi%+03i:%02i",
-        dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second, dt->offset/60, abs(dt->offset % 60));
+  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02i-%02iT%02i:%02i:%02i%+03i:%02i",
+        dt->year, (int)dt->month, (int)dt->day, (int)dt->hour, (int)dt->minute, (int)dt->second, dt->offset/60, abs(dt->offset % 60));
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
   }
@@ -1776,8 +1778,8 @@ static VALUE rhrdt_op_minus(VALUE self, VALUE other) {
     return rhrdt__add_days(self, -NUM2DBL(other));
   }
   if (RTEST((rb_obj_is_kind_of(other, rhrdt_class)))) {
-    self = rhrdt__new_offset(self, 0);
-    other = rhrdt__new_offset(other, 0);
+    self = rhrdt__new_offset(self, 0.0);
+    other = rhrdt__new_offset(other, 0.0);
     Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrdt_t, newdt);
     RHRDT_FILL_JD(dt)
@@ -1785,7 +1787,7 @@ static VALUE rhrdt_op_minus(VALUE self, VALUE other) {
     RHRDT_FILL_JD(newdt)
     RHRDT_FILL_NANOS(newdt)
     if (dt->nanos == newdt->nanos) {
-      return rb_float_new(dt->jd - newdt->jd);
+      return rb_float_new((double)(dt->jd - newdt->jd));
     } else if (dt->jd == newdt->jd) 
       return rb_float_new((dt->nanos - newdt->nanos)/RHR_NANOS_PER_DAYD);
     else {
@@ -1869,8 +1871,8 @@ static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
   int res;
 
   if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
-    self = rhrdt__new_offset(self, 0);
-    other = rhrdt__new_offset(other, 0);
+    self = rhrdt__new_offset(self, 0.0);
+    other = rhrdt__new_offset(other, 0.0);
     Data_Get_Struct(self, rhrdt_t, dt);
     Data_Get_Struct(other, rhrdt_t, odt);
     return LONG2NUM(rhrdt__spaceship(dt, odt));
@@ -1947,7 +1949,7 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
     i = 9;
   }
 
-  l = snprintf(str + len, 128 - len, "T%02hhi:%02hhi:%02hhi", dt->hour, dt->minute, dt->second);
+  l = snprintf(str + len, (size_t)(128 - len), "T%02i:%02i:%02i", (int)dt->hour, (int)dt->minute, (int)dt->second);
   if (l == -1 || l > 127) {
     rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
   }
@@ -1955,14 +1957,14 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
 
   if (i) {
     RHRDT_FILL_NANOS(dt)
-    l = snprintf(str + len, 128 - len, ".%09lli", dt->nanos % RHR_NANOS_PER_SECOND);
+    l = snprintf(str + len, (size_t)(128 - len), ".%09lli", dt->nanos % RHR_NANOS_PER_SECOND);
     if (l == -1 || l > 127) {
       rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
     }
     len += i + 1;
   }
 
-  l = snprintf(str + len, 128 - len, "%+03i:%02i", dt->offset/60, abs(dt->offset % 60));
+  l = snprintf(str + len, (size_t)(128 - len), "%+03i:%02i", dt->offset/60, abs(dt->offset % 60));
   if (l == -1 || l > 127) {
     rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
   }
@@ -2204,11 +2206,11 @@ static VALUE rhrdt_httpdate(VALUE self) {
   RHRDT_FILL_HMS(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s, %02hhi %s %04li %02hhi:%02hhi:%02hhi GMT", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %02i %s %04li %02i:%02i:%02i GMT", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
-        d->day,
+        (int)d->day,
         rhrd__abbr_month_names[d->month],
-        d->year, d->hour, d->minute, d->second);
+        d->year, (int)d->hour, (int)d->minute, (int)d->second);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#httpdate (in snprintf)");
   }
@@ -2254,7 +2256,7 @@ static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
   s = rb_str_buf_new(128);
   str = RSTRING_PTR(s);
 
-  len = snprintf(str, 128, "%04li-%02hhi-%02hhi", dt->year, dt->month, dt->day);
+  len = snprintf(str, 128, "%04li-%02i-%02i", dt->year, (int)dt->month, (int)dt->day);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
   }
@@ -2305,7 +2307,7 @@ static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
   str = RSTRING_PTR(s); 
 
   if (d->jd < 2405160) {
-    len = snprintf(str, 128, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
+    len = snprintf(str, 128, "%04li-%02i-%02i", d->year, (int)d->month, (int)d->day);
   } else {
     if (d->jd >= 2447535) {
       c = 'H';
@@ -2320,7 +2322,7 @@ static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
       c = 'M';
       year = d->year - 1867;
     }
-    len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02hhi.%02hhi", c, year, d->month, d->day);
+    len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02i.%02i", c, year, (int)d->month, (int)d->day);
   }
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#jisx0301 (in snprintf)");
@@ -2535,11 +2537,11 @@ static VALUE rhrdt_rfc2822(VALUE self) {
   RHRDT_FILL_HMS(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s, %hhi %s %04li %02hhi:%02hhi:%02hhi %+03i%02i", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %i %s %04li %02i:%02i:%02i %+03i%02i", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
-        d->day,
+        (int)d->day,
         rhrd__abbr_month_names[d->month],
-        d->year, d->hour, d->minute, d->second, d->offset/60, abs(d->offset % 60));
+        d->year, (int)d->hour, (int)d->minute, (int)d->second, d->offset/60, abs(d->offset % 60));
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#rfc2822 (in snprintf)");
   }

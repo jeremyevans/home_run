@@ -115,7 +115,7 @@ long rhrd__mod(long a, long b) {
 /* Same as above but for long long dividend. */
 long rhrd__modll(long long a, long b) {
   long c;
-  c = a % b;
+  c = (long)(a % b);
   if (c < 0) {
     c += b;
   }
@@ -193,12 +193,12 @@ void rhrd__jd_to_civil(rhrd_t *date) {
   c = (long)floor((b - 122.1) / 365.25);
   d = (long)floor(365.25 * c);
   e = (long)floor((b - d) / 30.6001);
-  date->day = b - d - (long)floor(30.6001 * e);
+  date->day = (unsigned char)(b - d - (long)floor(30.6001 * e));
   if (e <= 13) {
-    date->month = e - 1;
+    date->month = (unsigned char)(e - 1);
     date->year = c - 4716;
   } else {
-    date->month = e - 13;
+    date->month = (unsigned char)(e - 13);
     date->year = c - 4715;
   }
   date->flags |= RHR_HAVE_CIVIL;
@@ -322,13 +322,13 @@ VALUE rhrd__add_months(VALUE self, long n) {
   n = rhrd__safe_add_long(n, (long)(d->month));
   if(n > 1 && n <= 12) {
     newd->year = d->year;
-    newd->month = n;
+    newd->month = (unsigned char)n;
   } else {
     x = n / 12;
     n = n % 12;
     if (n <= 0) {
       newd->year = d->year + x - 1;
-      newd->month = n + 12;
+      newd->month = (unsigned char)(n + 12);
     } else {
       newd->year = d->year + x;
       newd->month = (unsigned char)n;
@@ -409,7 +409,7 @@ void rhrd__fill_commercial(rhrd_t *d) {
   rhrd__jd_to_civil(&n);
   a = n.year;
   d->year = d->jd >= rhrd__commercial_to_jd(a + 1, 1, 1) ? a + 1 : a;
-  d->month = 1 + (d->jd - rhrd__commercial_to_jd(d->year, 1, 1)) / 7;
+  d->month = (unsigned char)(1 + (d->jd - rhrd__commercial_to_jd(d->year, 1, 1)) / 7);
   d->day = (unsigned char)rhrd__jd_to_cwday(d->jd);
 }
 
@@ -523,7 +523,7 @@ long long rhrd__jd_to_unix(long long jd) {
  * julian date, losing any information about
  * fractional days. */
 long rhrd__unix_to_jd(long long t) {
-  return t/RHR_SECONDS_PER_DAY + RHR_UNIX_EPOCH;
+  return (long)(t/RHR_SECONDS_PER_DAY + RHR_UNIX_EPOCH);
 }
 
 /* Fill the given rhrt_d's jd field based on the
@@ -531,7 +531,7 @@ long rhrd__unix_to_jd(long long t) {
 void rhrd__today(rhrd_t * d) {
   VALUE t;
   t = rb_funcall(rb_cTime, rhrd_id_now, 0);
-  d->jd = rhrd__unix_to_jd(NUM2LONG(rb_funcall(t, rhrd_id_to_i, 0)) + NUM2LONG(rb_funcall(t, rhrd_id_utc_offset, 0)));
+  d->jd = rhrd__unix_to_jd((long long)NUM2LONG(rb_funcall(t, rhrd_id_to_i, 0)) + NUM2LONG(rb_funcall(t, rhrd_id_utc_offset, 0)));
   d->flags |= RHR_HAVE_JD;
   RHR_CHECK_JD(d);
 }
@@ -648,7 +648,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
       if(!rhrd__valid_commercial(d, d->year, 1, NUM2LONG(rwday), RHR_NO_RAISE)) {
         return 1;
       }
-      d->flags &= ~RHR_HAVE_CIVIL;
+      d->flags &= (unsigned char)(~RHR_HAVE_CIVIL);
       return 0;
     } else if (RTEST(rwnum0)) {
       d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
@@ -697,7 +697,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
     wday = NUM2LONG(rwday);
     rhrd__today(d);
     d->jd += wday - rhrd__jd_to_wday(d->jd);
-    d->flags &= ~RHR_HAVE_CIVIL;
+    d->flags &= (unsigned char)(~RHR_HAVE_CIVIL);
     return 0;
   } else {
     return -1;
@@ -778,19 +778,19 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%s", rhrd__month_names[d->month]);
           break;
         case 'c':
-          cp += sprintf(str + cp, "%s %s %2hhi %02hhi:%02hhi:%02hhi %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->hour, d->minute, d->second, d->year);
+          cp += sprintf(str + cp, "%s %s %2i %02i:%02i:%02i %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], (int)d->day, (int)d->hour, (int)d->minute, (int)d->second, d->year);
           break;
         case 'C':
           cp += sprintf(str + cp, "%02li", d->year / 100);
           break;
         case 'd':
-          cp += sprintf(str + cp, "%02hhi", d->day);
+          cp += sprintf(str + cp, "%02i", (int)d->day);
           break;
         case 'e':
-          cp += sprintf(str + cp, "%2hhi", d->day);
+          cp += sprintf(str + cp, "%2i", (int)d->day);
           break;
         case 'F':
-          cp += sprintf(str + cp, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
+          cp += sprintf(str + cp, "%04li-%02i-%02i", d->year, (int)d->month, (int)d->day);
           break;
         case 'g':
           cp += sprintf(str + cp, "%02li", cd.year % 100);
@@ -799,28 +799,28 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%04li", cd.year);
           break;
         case 'H':
-          cp += sprintf(str + cp, "%02hhi", d->hour);
+          cp += sprintf(str + cp, "%02i", (int)d->hour);
           break;
         case 'I':
-          cp += sprintf(str + cp, "%02hhi", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12);
+          cp += sprintf(str + cp, "%02i", (int)((d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12));
           break;
         case 'j':
           cp += sprintf(str + cp, "%03li", rhrd__ordinal_day(d->year, d->month, d->day));
           break;
         case 'k':
-          cp += sprintf(str + cp, "%2hhi", d->hour);
+          cp += sprintf(str + cp, "%2i", (int)(d->hour));
           break;
         case 'l':
-          cp += sprintf(str + cp, "%2hhi", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12);
+          cp += sprintf(str + cp, "%2i", (int)((d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12));
           break;
         case 'L':
           cp += sprintf(str + cp, "%03" PRId64, (d->nanos % RHR_NANOS_PER_SECOND)/1000000);
           break;
         case 'm':
-          cp += sprintf(str + cp, "%02hhi", d->month);
+          cp += sprintf(str + cp, "%02i", (int)(d->month));
           break;
         case 'M':
-          cp += sprintf(str + cp, "%02hhi", d->minute);
+          cp += sprintf(str + cp, "%02i", (int)(d->minute));
           break;
         case 'N':
           cp += sprintf(str + cp, "%09" PRId64, (d->nanos % RHR_NANOS_PER_SECOND));
@@ -835,38 +835,38 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, d->hour >= 12 ? "pm" : "am");
           break;
         case 'Q':
-          cp += sprintf(str + cp, "%" PRId64, rhrd__jd_to_unix(d->jd) * 1000 + d->nanos/RHR_NANOS_PER_MILLISECOND - d->offset * 60000);
+          cp += sprintf(str + cp, "%" PRId64, rhrd__jd_to_unix((long long)d->jd) * 1000 + d->nanos/RHR_NANOS_PER_MILLISECOND - d->offset * 60000);
           break;
         case 'r':
-          cp += sprintf(str + cp, "%2hhi:%02hhi:%02hhi %s", (d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12, d->minute, d->second, d->hour >= 12 ? "PM" : "AM");
+          cp += sprintf(str + cp, "%2i:%02i:%02i %s", (int)((d->hour == 12 || d->hour == 0) ? 12 : d->hour % 12), (int)d->minute, (int)d->second, d->hour >= 12 ? "PM" : "AM");
           break;
         case 'R':
-          cp += sprintf(str + cp, "%02hhi:%02hhi", d->hour, d->minute);
+          cp += sprintf(str + cp, "%02i:%02i", (int)d->hour, (int)d->minute);
           break;
         case 's':
-          cp += sprintf(str + cp, "%" PRId64, rhrd__jd_to_unix(d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60);
+          cp += sprintf(str + cp, "%" PRId64, rhrd__jd_to_unix((long long)d->jd) + d->nanos/RHR_NANOS_PER_SECOND - d->offset * 60);
           break;
         case 'S':
-          cp += sprintf(str + cp, "%02hhi", d->second);
+          cp += sprintf(str + cp, "%02i", (int)d->second);
           break;
         case 't':
           cp += sprintf(str + cp, "\t");
           break;
         case 'X':
         case 'T':
-          cp += sprintf(str + cp, "%02hhi:%02hhi:%02hhi", d->hour, d->minute, d->second);
+          cp += sprintf(str + cp, "%02i:%02i:%02i", (int)d->hour, (int)d->minute, (int)d->second);
           break;
         case 'u':
-          cp += sprintf(str + cp, "%hhi", cd.day);
+          cp += sprintf(str + cp, "%i", (int)cd.day);
           break;
         case 'U':
           cp += sprintf(str + cp, "%li", rhrd__jd_to_weeknum(d->jd, 0));
           break;
         case 'v':
-          cp += sprintf(str + cp, "%2hhi-%s-%04li", d->day, rhrd__abbr_month_names[d->month], d->year);
+          cp += sprintf(str + cp, "%2i-%s-%04li", (int)d->day, rhrd__abbr_month_names[d->month], d->year);
           break;
         case 'V':
-          cp += sprintf(str + cp, "%02hhi", cd.month);
+          cp += sprintf(str + cp, "%02i", (int)cd.month);
           break;
         case 'w':
           cp += sprintf(str + cp, "%li", rhrd__jd_to_wday(d->jd));
@@ -876,7 +876,7 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           break;
         case 'D':
         case 'x':
-          cp += sprintf(str + cp, "%02hhi/%02hhi/%02li", d->month, d->day, d->year % 100);
+          cp += sprintf(str + cp, "%02i/%02i/%02li", (int)d->month, (int)d->day, d->year % 100);
           break;
         case 'y':
           cp += sprintf(str + cp, "%02li", d->year % 100);
@@ -891,7 +891,7 @@ VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len) {
           cp += sprintf(str + cp, "%+03i:%02i", d->offset/60, abs(d->offset % 60));
           break;
         case '+':
-          cp += sprintf(str + cp, "%s %s %2hhi %02hhi:%02hhi:%02hhi %+03i:%02i %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], d->day, d->hour, d->minute, d->second, d->offset/60, abs(d->offset % 60), d->year);
+          cp += sprintf(str + cp, "%s %s %2i %02i:%02i:%02i %+03i:%02i %04li", rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)], rhrd__abbr_month_names[d->month], (int)d->day, (int)d->hour, (int)d->minute, (int)d->second, d->offset/60, abs(d->offset % 60), d->year);
           break;
         default:
           str[cp] = c;
@@ -979,7 +979,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           for(i = 0; i < 7; i++) {
             scan_len = strlen(rhrd__day_names[i]);
             if (pos + scan_len <= len) {
-              if(strncasecmp(str + pos, rhrd__day_names[i], scan_len) == 0) {
+              if(strncasecmp(str + pos, rhrd__day_names[i], (size_t)scan_len) == 0) {
                 wday = i;
                 break;
               }
@@ -1012,7 +1012,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           for(i = 1; i < 13; i++) {
             scan_len = strlen(rhrd__month_names[i]);
             if (pos + scan_len <= len) {
-              if(strncasecmp(str + pos, rhrd__month_names[i], scan_len) == 0) {
+              if(strncasecmp(str + pos, rhrd__month_names[i], (size_t)scan_len) == 0) {
                 month = i;
                 break;
               }
@@ -1099,7 +1099,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           if (sscanf(str + pos, "%03ld%n", &sec_fraction_num, &scan_len) != 1) {
             return Qnil;
           }
-          sec_fraction = sec_fraction_num/pow(10, scan_len);
+          sec_fraction = sec_fraction_num/pow(10.0, (double)scan_len);
           state |= RHRR_SEC_FRACTION_SET;
           break;
         case 'm':
@@ -1132,7 +1132,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           if (sscanf(str + pos, "%09ld%n", &sec_fraction_num, &scan_len) != 1) {
             return Qnil;
           }
-          sec_fraction = sec_fraction_num/pow(10, scan_len);
+          sec_fraction = sec_fraction_num/pow(10.0, (double)scan_len);
           state |= RHRR_SEC_FRACTION_SET;
           break;
         case 'P':
@@ -2004,7 +2004,7 @@ VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
         v = rb_funcall(str, rhrd_id_split, 1, rhrd_re_comma_period);
         e = rb_ary_entry(v, 1);
         return LONG2NUM(((NUM2LONG(rb_funcall(rb_ary_entry(v, 0), rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR)
-               + ((NUM2LONG(rb_funcall(e, rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR) / (long)pow(10, RSTRING_LEN(rb_str_to_str(e))))) * offset);
+               + ((NUM2LONG(rb_funcall(e, rhrd_id_to_i, 0)) * RHR_SECONDS_PER_HOUR) / (long)pow(10.0, (double)RSTRING_LEN(rb_str_to_str(e))))) * offset);
       }
     }
     switch (len) {
@@ -2071,10 +2071,10 @@ static VALUE rhrd_asctime(VALUE self) {
   RHR_FILL_JD(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2hhi 00:00:00 %04li", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2i 00:00:00 %04li", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
         rhrd__abbr_month_names[d->month],
-        d->day,
+        (int)d->day,
         d->year);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in Date#asctime (in snprintf)");
@@ -2287,8 +2287,8 @@ static VALUE rhrd_inspect(VALUE self) {
   RHR_FILL_CIVIL(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "#<Date %04li-%02hhi-%02hhi>",
-        d->year, d->month, d->day);
+  len = snprintf(RSTRING_PTR(s), 128, "#<Date %04li-%02i-%02i>",
+        d->year, (int)d->month, (int)d->day);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in Date#inspect (in snprintf)");
   }
@@ -2621,8 +2621,8 @@ static VALUE rhrd_to_s(VALUE self) {
   RHR_FILL_CIVIL(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhi",
-        d->year, d->month, d->day);
+  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02i-%02i",
+        d->year, (int)d->month, (int)d->day);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in Date#to_s (in snprintf)");
   }
@@ -3143,9 +3143,9 @@ static VALUE rhrd_httpdate(VALUE self) {
   RHR_FILL_JD(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s, %02hhi %s %04li 00:00:00 GMT", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %02i %s %04li 00:00:00 GMT", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
-        d->day,
+        (int)d->day,
         rhrd__abbr_month_names[d->month],
         d->year);
   if (len == -1 || len > 127) {
@@ -3176,7 +3176,7 @@ static VALUE rhrd_jisx0301(VALUE self) {
 
   s = rb_str_buf_new(128);
   if (d->jd < 2405160) {
-    len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhi", d->year, d->month, d->day);
+    len = snprintf(RSTRING_PTR(s), 128, "%04li-%02i-%02i", d->year, (int)d->month, (int)d->day);
   } else {
     if (d->jd >= 2447535) {
       c = 'H';
@@ -3191,7 +3191,7 @@ static VALUE rhrd_jisx0301(VALUE self) {
       c = 'M';
       year = d->year - 1867;
     }
-    len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02hhi.%02hhi", c, year, d->month, d->day);
+    len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02i.%02i", c, year, (int)d->month, (int)d->day);
   }
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in Date#jisx0301 (in snprintf)");
@@ -3398,9 +3398,9 @@ static VALUE rhrd_rfc2822(VALUE self) {
   RHR_FILL_JD(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s, %hhi %s %04li 00:00:00 +0000", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %i %s %04li 00:00:00 +0000", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
-        d->day,
+        (int)d->day,
         rhrd__abbr_month_names[d->month],
         d->year);
   if (len == -1 || len > 127) {
@@ -3427,7 +3427,7 @@ static VALUE rhrd_rfc3339(VALUE self) {
   RHR_FILL_CIVIL(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02hhi-%02hhiT00:00:00+00:00", d->year, d->month, d->day);
+  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02i-%02iT00:00:00+00:00", d->year, (int)d->month, (int)d->day);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in Date#rfc3339 (in snprintf)");
   }
@@ -4113,7 +4113,7 @@ void Init_date_ext(void) {
   rb_ary_push(rhrd_monthnames, Qnil);
   rb_ary_push(rhrd_abbr_monthnames, Qnil);
   for(i = 1; i < 13; i++) {
-    rb_ary_push(rhrd_monthnames, rb_str_new2(rhrd__month_names[i]));
+    rb_ary_push(rhrd_monthnames, rb_str_new2((const char *)rhrd__month_names[i]));
     rb_ary_push(rhrd_abbr_monthnames, rb_str_new2(rhrd__abbr_month_names[i]));
   }
 
@@ -4303,9 +4303,9 @@ void Init_date_ext(void) {
   /* Define some static regexps. The 1 for the options makes
    * it case insensitive, as I don't want to deal with including
    * the ruby regex header just to get it. */
-  rhrd_zone_re = rb_reg_new(rhrd__zone_re_str, strlen(rhrd__zone_re_str), 1);
-  rhrd_zone_dst_re = rb_reg_new(rhrd__zone_dst_re_str, strlen(rhrd__zone_dst_re_str), 1);
-  rhrd_zone_sign_re = rb_reg_new(rhrd__zone_sign_re_str, strlen(rhrd__zone_sign_re_str), 1);
+  rhrd_zone_re = rb_reg_new(rhrd__zone_re_str, (int)strlen(rhrd__zone_re_str), 1);
+  rhrd_zone_dst_re = rb_reg_new(rhrd__zone_dst_re_str, (int)strlen(rhrd__zone_dst_re_str), 1);
+  rhrd_zone_sign_re = rb_reg_new(rhrd__zone_sign_re_str, (int)strlen(rhrd__zone_sign_re_str), 1);
   rhrd_re_comma_period = rb_reg_new("[,.]", 4, 0);
 
   /* Register global variables with Garbage collector, so users

@@ -134,7 +134,7 @@ so that no calculations can overflow.
 #define RHR_SPACE_SHIP(x, l, r) if (l < r) { x = -1; } else if (l == r) { x = 0; } else { x = 1; } 
 
 #define RHR_CHECK_JD(d) if ((d->jd > RHR_JD_MAX) || (d->jd < RHR_JD_MIN)) { rb_raise(rb_eRangeError, "date out of range: jd = %li", d->jd);}
-#define RHR_CHECK_CIVIL(d) if (!rhrd__valid_civil_limits(d->year, d->month, d->day)) { rb_raise(rb_eRangeError, "date out of range: year = %li, month = %hhi, day = %hhi", d->year, d->month, d->day);}
+#define RHR_CHECK_CIVIL(d) if (!rhrd__valid_civil_limits(d->year, d->month, d->day)) { rb_raise(rb_eRangeError, "date out of range: year = %li, month = %i, day = %i", d->year, (int)d->month, (int)d->day);}
 
 #define RHR_CACHED_IV(self, iv) VALUE v = rb_ivar_get(self, iv); if (RTEST(v)) {return v;} 
 
