@@ -648,7 +648,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
       if(!rhrd__valid_commercial(d, d->year, 1, NUM2LONG(rwday), RHR_NO_RAISE)) {
         return 1;
       }
-      d->flags &= ~RHR_HAVE_CIVIL;
+      d->flags &= (unsigned char)~RHR_HAVE_CIVIL;
       return 0;
     } else if (RTEST(rwnum0)) {
       d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
@@ -697,7 +697,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
     wday = NUM2LONG(rwday);
     rhrd__today(d);
     d->jd += wday - rhrd__jd_to_wday(d->jd);
-    d->flags &= ~RHR_HAVE_CIVIL;
+    d->flags &= (unsigned char)~RHR_HAVE_CIVIL;
     return 0;
   } else {
     return -1;

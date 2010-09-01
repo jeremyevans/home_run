@@ -71,10 +71,10 @@ so that no calculations can overflow.
 #define RHR_DAY_MIN 8
 #endif
 
-#define RHR_HAVE_JD ((unsigned char)1)
-#define RHR_HAVE_CIVIL ((unsigned char)2)
-#define RHR_HAVE_NANOS ((unsigned char)4)
-#define RHR_HAVE_HMS ((unsigned char)8)
+#define RHR_HAVE_JD 1
+#define RHR_HAVE_CIVIL 2
+#define RHR_HAVE_NANOS 4
+#define RHR_HAVE_HMS 8
 
 #define RHR_NO_RAISE 0
 #define RHR_OVERLIMIT_RAISE 1

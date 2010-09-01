@@ -142,7 +142,7 @@ void rhrdt__set_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   if (h == 24 && m == 0 && s == 0) {
     RHRDT_FILL_JD(dt)
     dt->jd++;
-    dt->flags &= ~RHR_HAVE_CIVIL;
+    dt->flags &= (unsigned char)~RHR_HAVE_CIVIL;
     h = 0;
   } else if (h < 0 || m < 0 || s < 0 || h > 23 || m > 59 || s > 59) {
     rb_raise(rb_eArgError, "invalid time: %ld hours, %ld minutes, %ld seconds", h, m, s);
@@ -397,7 +397,7 @@ VALUE rhrdt__add_months(VALUE self, long n) {
   x = rhrd__days_in_month(newd->year, newd->month);
   newd->day = (unsigned char)(d->day > x ? x : d->day);
   RHR_CHECK_CIVIL(newd)
-  newd->flags &= ~RHR_HAVE_JD;
+  newd->flags &= (unsigned char)~RHR_HAVE_JD;
   return new;
 }
 
@@ -1924,7 +1924,7 @@ VALUE rhrdt__add_years(VALUE self, long n) {
   } 
 
   RHR_CHECK_CIVIL(newd)
-  newd->flags &= ~RHR_HAVE_JD;
+  newd->flags &= (unsigned char)~RHR_HAVE_JD;
   return new;
 }
 
