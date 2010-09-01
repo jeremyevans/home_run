@@ -769,9 +769,9 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
       rhrdt__set_offset(dt, offset);
     case 1:
       offset += NUM2DBL(argv[0]) + 0.5;
-      dt->jd = offset;
+      dt->jd = (long)offset;
       RHR_CHECK_JD(dt)
-      dt->nanos = (offset - dt->jd)*RHR_NANOS_PER_DAY;
+      dt->nanos = (long long)((offset - dt->jd)*RHR_NANOS_PER_DAY);
       dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
       break;
     default:
