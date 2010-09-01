@@ -1,5 +1,9 @@
 #include "date_ext.h"
 
+#ifdef RHR_ENCODING
+extern int rhrd_encoding_index;
+#endif
+
 #define RHRR_ISO_PARSER 0x1
 #define RHRR_RFC_PARSER 0x2
 #define RHRR_CLF_PARSER 0x4

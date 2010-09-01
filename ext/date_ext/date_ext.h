@@ -119,7 +119,6 @@ so that no calculations can overflow.
 #define RHRDT_FILL_NANOS(d) if (!((d)->flags & RHR_HAVE_NANOS)) { rhrdt__hms_to_nanos(d); }
 
 #ifdef RHR_ENCODING
-int rhrd_encoding_index;
 #define RHR_ASCII_ENCODING(s) s = rb_enc_associate_index(s, rhrd_encoding_index); \
   if(rb_default_internal_encoding()) {s = rb_str_export_to_enc(s, rb_default_internal_encoding());}
 #else

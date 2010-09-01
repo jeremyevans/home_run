@@ -1,5 +1,9 @@
 #include "date_ext.h"
 
+#ifdef RHR_ENCODING
+extern int rhrd_encoding_index;
+#endif
+
 extern const unsigned char rhrd_days_in_month[];
 extern const long rhrd_cumulative_days_in_month[];
 extern const unsigned char rhrd_yday_to_month[];

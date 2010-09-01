@@ -2,6 +2,10 @@
 #line 1 "date_parser.rl"
 #include "date_ext.h"
 
+#ifdef RHR_ENCODING
+extern int rhrd_encoding_index;
+#endif
+
 #define RHRR_ISO_PARSER 0x1
 #define RHRR_RFC_PARSER 0x2
 #define RHRR_CLF_PARSER 0x4
@@ -76,7 +80,7 @@ long rhrd__weekday_num(char * str) {
 }
 
 
-#line 80 "date_parser.c"
+#line 84 "date_parser.c"
 static const char _date_parser_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	3, 1, 4, 1, 5, 1, 6, 1, 
@@ -392,7 +396,7 @@ static const int date_parser_error = 0;
 static const int date_parser_en_main = 1;
 
 
-#line 181 "date_parser.rl"
+#line 185 "date_parser.rl"
 
 
 VALUE rhrd__ragel_parse(char * p, long len) {
@@ -452,14 +456,14 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   eof = pe;
 
   
-#line 456 "date_parser.c"
+#line 460 "date_parser.c"
 	{
 	cs = date_parser_start;
 	}
 
-#line 240 "date_parser.rl"
+#line 244 "date_parser.rl"
   
-#line 463 "date_parser.c"
+#line 467 "date_parser.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -534,134 +538,134 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 85 "date_parser.rl"
+#line 89 "date_parser.rl"
 	{ t_iso_year = p; }
 	break;
 	case 1:
-#line 86 "date_parser.rl"
+#line 90 "date_parser.rl"
 	{ t_iso_month = p; }
 	break;
 	case 2:
-#line 87 "date_parser.rl"
+#line 91 "date_parser.rl"
 	{ t_iso_day = p; }
 	break;
 	case 3:
-#line 88 "date_parser.rl"
+#line 92 "date_parser.rl"
 	{ t_iso_hour = p; }
 	break;
 	case 4:
-#line 89 "date_parser.rl"
+#line 93 "date_parser.rl"
 	{ t_iso_minute = p; }
 	break;
 	case 5:
-#line 90 "date_parser.rl"
+#line 94 "date_parser.rl"
 	{ t_iso_second = p; }
 	break;
 	case 6:
-#line 91 "date_parser.rl"
+#line 95 "date_parser.rl"
 	{ t_iso_zone = p; }
 	break;
 	case 7:
-#line 93 "date_parser.rl"
+#line 97 "date_parser.rl"
 	{ iso_state |= RHRR_ISO_TIME_SET; }
 	break;
 	case 8:
-#line 94 "date_parser.rl"
+#line 98 "date_parser.rl"
 	{
     t_iso_zone_end = p;
     iso_state |= RHRR_ISO_ZONE_SET;
   }
 	break;
 	case 10:
-#line 114 "date_parser.rl"
+#line 118 "date_parser.rl"
 	{ t_rfc_wday = p; }
 	break;
 	case 11:
-#line 115 "date_parser.rl"
+#line 119 "date_parser.rl"
 	{ t_rfc_day = p; }
 	break;
 	case 12:
-#line 116 "date_parser.rl"
+#line 120 "date_parser.rl"
 	{ t_rfc_month = p; }
 	break;
 	case 13:
-#line 117 "date_parser.rl"
+#line 121 "date_parser.rl"
 	{ t_rfc_year = p; }
 	break;
 	case 14:
-#line 118 "date_parser.rl"
+#line 122 "date_parser.rl"
 	{ t_rfc_hour = p; }
 	break;
 	case 15:
-#line 119 "date_parser.rl"
+#line 123 "date_parser.rl"
 	{ t_rfc_minute = p; }
 	break;
 	case 16:
-#line 120 "date_parser.rl"
+#line 124 "date_parser.rl"
 	{ t_rfc_second = p; }
 	break;
 	case 17:
-#line 121 "date_parser.rl"
+#line 125 "date_parser.rl"
 	{ t_rfc_zone = p; }
 	break;
 	case 18:
-#line 123 "date_parser.rl"
+#line 127 "date_parser.rl"
 	{ rfc_state |= RHRR_RFC_TIME_SET; }
 	break;
 	case 19:
-#line 124 "date_parser.rl"
+#line 128 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NUM_SET;
   }
 	break;
 	case 20:
-#line 128 "date_parser.rl"
+#line 132 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NAME_SET;
   }
 	break;
 	case 22:
-#line 151 "date_parser.rl"
+#line 155 "date_parser.rl"
 	{ t_clf_day = p; }
 	break;
 	case 23:
-#line 152 "date_parser.rl"
+#line 156 "date_parser.rl"
 	{ t_clf_month = p; }
 	break;
 	case 24:
-#line 153 "date_parser.rl"
+#line 157 "date_parser.rl"
 	{ t_clf_year = p; }
 	break;
 	case 25:
-#line 154 "date_parser.rl"
+#line 158 "date_parser.rl"
 	{ t_clf_hour = p; }
 	break;
 	case 26:
-#line 155 "date_parser.rl"
+#line 159 "date_parser.rl"
 	{ t_clf_minute = p; }
 	break;
 	case 27:
-#line 156 "date_parser.rl"
+#line 160 "date_parser.rl"
 	{ t_clf_second = p; }
 	break;
 	case 28:
-#line 157 "date_parser.rl"
+#line 161 "date_parser.rl"
 	{ t_clf_zone = p; }
 	break;
 	case 29:
-#line 159 "date_parser.rl"
+#line 163 "date_parser.rl"
 	{ clf_state |= RHRR_CLF_TIME_SET; }
 	break;
 	case 30:
-#line 160 "date_parser.rl"
+#line 164 "date_parser.rl"
 	{
     t_clf_zone_end = p;
     clf_state |= RHRR_CLF_ZONE_SET;
   }
 	break;
-#line 665 "date_parser.c"
+#line 669 "date_parser.c"
 		}
 	}
 
@@ -678,58 +682,58 @@ _again:
 	while ( __nacts-- > 0 ) {
 		switch ( *__acts++ ) {
 	case 7:
-#line 93 "date_parser.rl"
+#line 97 "date_parser.rl"
 	{ iso_state |= RHRR_ISO_TIME_SET; }
 	break;
 	case 8:
-#line 94 "date_parser.rl"
+#line 98 "date_parser.rl"
 	{
     t_iso_zone_end = p;
     iso_state |= RHRR_ISO_ZONE_SET;
   }
 	break;
 	case 9:
-#line 98 "date_parser.rl"
+#line 102 "date_parser.rl"
 	{ parsers |= RHRR_ISO_PARSER; }
 	break;
 	case 18:
-#line 123 "date_parser.rl"
+#line 127 "date_parser.rl"
 	{ rfc_state |= RHRR_RFC_TIME_SET; }
 	break;
 	case 19:
-#line 124 "date_parser.rl"
+#line 128 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NUM_SET;
   }
 	break;
 	case 20:
-#line 128 "date_parser.rl"
+#line 132 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NAME_SET;
   }
 	break;
 	case 21:
-#line 132 "date_parser.rl"
+#line 136 "date_parser.rl"
 	{ parsers |= RHRR_RFC_PARSER; }
 	break;
 	case 29:
-#line 159 "date_parser.rl"
+#line 163 "date_parser.rl"
 	{ clf_state |= RHRR_CLF_TIME_SET; }
 	break;
 	case 30:
-#line 160 "date_parser.rl"
+#line 164 "date_parser.rl"
 	{
     t_clf_zone_end = p;
     clf_state |= RHRR_CLF_ZONE_SET;
   }
 	break;
 	case 31:
-#line 164 "date_parser.rl"
+#line 168 "date_parser.rl"
 	{ parsers |= RHRR_CLF_PARSER; }
 	break;
-#line 733 "date_parser.c"
+#line 737 "date_parser.c"
 		}
 	}
 	}
@@ -737,7 +741,7 @@ _again:
 	_out: {}
 	}
 
-#line 241 "date_parser.rl"
+#line 245 "date_parser.rl"
 
   switch(parsers) {
     case RHRR_ISO_PARSER:
