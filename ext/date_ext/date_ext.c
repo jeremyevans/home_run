@@ -648,7 +648,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
       if(!rhrd__valid_commercial(d, d->year, 1, NUM2LONG(rwday), RHR_NO_RAISE)) {
         return 1;
       }
-      d->flags &= (unsigned char)(~RHR_HAVE_CIVIL);
+      d->flags &= ~RHR_HAVE_CIVIL;
       return 0;
     } else if (RTEST(rwnum0)) {
       d->jd = rhrd__weeknum_to_jd(year, NUM2LONG(rwnum0), RTEST(rwday) ? NUM2LONG(rwday) : (RTEST(rcwday) ? rhrd__mod(NUM2LONG(rcwday), 7) : 0), 0);
@@ -697,7 +697,7 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
     wday = NUM2LONG(rwday);
     rhrd__today(d);
     d->jd += wday - rhrd__jd_to_wday(d->jd);
-    d->flags &= (unsigned char)(~RHR_HAVE_CIVIL);
+    d->flags &= ~RHR_HAVE_CIVIL;
     return 0;
   } else {
     return -1;
@@ -977,7 +977,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           break;
         case 'A':
           for(i = 0; i < 7; i++) {
-            scan_len = strlen(rhrd__day_names[i]);
+            scan_len = (int)strlen(rhrd__day_names[i]);
             if (pos + scan_len <= len) {
               if(strncasecmp(str + pos, rhrd__day_names[i], (size_t)scan_len) == 0) {
                 wday = i;
@@ -1010,7 +1010,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
           break;
         case 'B':
           for(i = 1; i < 13; i++) {
-            scan_len = strlen(rhrd__month_names[i]);
+            scan_len = (int)strlen(rhrd__month_names[i]);
             if (pos + scan_len <= len) {
               if(strncasecmp(str + pos, rhrd__month_names[i], (size_t)scan_len) == 0) {
                 month = i;
@@ -1422,7 +1422,7 @@ VALUE rhrd__strptime(VALUE rstr, const char *fmt_str, long fmt_len) {
   } 
   if(state & RHRR_UNIXM_SET) {
     rb_hash_aset(hash, rhrd_sym_seconds, LL2NUM(milliseconds/1000));
-    rb_hash_aset(hash, rhrd_sym_sec_fraction, rb_float_new((milliseconds % 1000)/1000.0));
+    rb_hash_aset(hash, rhrd_sym_sec_fraction, rb_float_new((double)(milliseconds % 1000)/1000.0));
   } 
   if(RTEST(zone)) {
     rb_hash_aset(hash, rhrd_sym_zone, zone);
@@ -2788,7 +2788,7 @@ static VALUE rhrd_op_minus(VALUE self, VALUE other) {
     RHR_FILL_JD(d)
     RHRDT_FILL_JD(newdt)
     RHRDT_FILL_NANOS(newdt)
-    return rb_float_new(d->jd - (newdt->jd + newdt->nanos/RHR_NANOS_PER_DAYD));
+    return rb_float_new(d->jd - (newdt->jd + (double)newdt->nanos/RHR_NANOS_PER_DAYD));
   }
   if (RTEST((rb_obj_is_kind_of(other, rhrd_class)))) {
     Data_Get_Struct(other, rhrd_t, newd);
@@ -3701,11 +3701,11 @@ static VALUE rhrd_s_day_fraction_to_time(VALUE klass, VALUE rf) {
   int h, m, s;
  
   f = NUM2DBL(rf) * 24;
-  h = floor(f);
+  h = (int)floor(f);
   f = (f - h) * 60;
-  m = floor(f);
+  m = (int)floor(f);
   f = (f - m) * 60;
-  s = floor(f);
+  s = (int)floor(f);
   f = (f - s)/RHR_SECONDS_PER_DAY;
   return rb_ary_new3(4, LONG2NUM(h), LONG2NUM(m), LONG2NUM(s), rb_float_new(f));
 }

@@ -319,31 +319,31 @@ VALUE rhrd__ragel_parse(char * p, long len) {
 
   hash = rb_hash_new();
   if(state & RHRR_WDAY_SET) {
-    rb_hash_aset(hash, rhrd_sym_wday, INT2NUM(wday));
+    rb_hash_aset(hash, rhrd_sym_wday, LONG2NUM(wday));
   } 
   if(state & RHRR_YEAR_SET) {
-    rb_hash_aset(hash, rhrd_sym_year, INT2NUM(year));
+    rb_hash_aset(hash, rhrd_sym_year, LONG2NUM(year));
   } 
   if(state & RHRR_MONTH_SET) {
-    rb_hash_aset(hash, rhrd_sym_mon, INT2NUM(month));
+    rb_hash_aset(hash, rhrd_sym_mon, LONG2NUM(month));
   } 
   if(state & RHRR_DAY_SET) {
-    rb_hash_aset(hash, rhrd_sym_mday, INT2NUM(day));
+    rb_hash_aset(hash, rhrd_sym_mday, LONG2NUM(day));
   } 
   if(state & RHRR_HOUR_SET) {
-    rb_hash_aset(hash, rhrd_sym_hour, INT2NUM(hour));
+    rb_hash_aset(hash, rhrd_sym_hour, LONG2NUM(hour));
   } 
   if(state & RHRR_MINUTE_SET) {
-    rb_hash_aset(hash, rhrd_sym_min, INT2NUM(minute));
+    rb_hash_aset(hash, rhrd_sym_min, LONG2NUM(minute));
   } 
   if(state & RHRR_SECOND_SET) {
-    rb_hash_aset(hash, rhrd_sym_sec, INT2NUM(second));
+    rb_hash_aset(hash, rhrd_sym_sec, LONG2NUM(second));
   } 
   if(state & RHRR_ZONE_SET) {
     rzone = rb_str_new(zone, zone_len);
     rb_hash_aset(hash, rhrd_sym_zone, rzone);
     if (state & RHRR_OFFSET_SET) {
-        rb_hash_aset(hash, rhrd_sym_offset, INT2NUM(offset));
+        rb_hash_aset(hash, rhrd_sym_offset, LONG2NUM(offset));
     } else {
       rzone = rhrd_s_zone_to_diff(rzone, rzone);
       if(RTEST(rzone)) {
