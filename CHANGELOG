@@ -1,3 +1,9 @@
+=== HEAD
+
+* Remove the use of the %hhi sprintf format specifier, for greater standards compatibility (jeremyevans)
+
+* Fix a bug where the same symbol was present in multiple objects, causing build failures with -fno-common (jeremyevans) (#10)
+
 === 0.9.1 (2010-09-01)
 
 * Fix strptime for %Y%m%d and similar formats (jeremyevans) (#9)
