@@ -1400,17 +1400,27 @@ static VALUE rhrdt_sec(VALUE self) {
 /* call-seq:
  *   sec_fraction() -> Float
  *
- * Returns a +Float+ representing the fraction of the second as a
+ * On ruby 1.8, returns a +Float+ representing the fraction of the second as a
  * fraction of the day, which will always be in the range [0.0, 1/86400.0).
  * 
  *   (DateTime.civil(2009, 1, 2, 12, 13, 14) + (1.5/86400)).sec_fraction
  *   # => 0.000005787037
+ *
+ * On ruby 1.9, returns a +Float+ representing the fraction of the second, which
+ * will always be in the range [0,1).
+ * 
+ *   (DateTime.civil(2009, 1, 2, 12, 13, 14) + (1.5/86400)).sec_fraction
+ *   # => 0.5
  */
 static VALUE rhrdt_sec_fraction(VALUE self) {
   rhrdt_t *dt;
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_NANOS(dt)
+#ifdef RUBY19
+  return rb_float_new((double)(dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_SECONDD);
+#else
   return rb_float_new((double)(dt->nanos % RHR_NANOS_PER_SECOND)/RHR_NANOS_PER_DAYD);
+#endif
 } 
 
 /* call-seq:

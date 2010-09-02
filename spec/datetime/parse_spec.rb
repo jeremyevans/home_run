@@ -1,7 +1,16 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
-describe "DateTime#parse" do
+describe "DateTime._parse" do
+  it "should return a hash of values" do
+    DateTime._parse("01:02:03").should == {:hour=>1, :min=>2, :sec=>3}
+  end
 
+  it "should have :sec_fraction entry be the fraction of second" do
+    DateTime._parse('12:13:15.678900')[:sec_fraction].should be_close(0.6789, 0.0000000000001)
+  end 
+end
+
+describe "DateTime.parse" do
   it "should have defaults and an optional sg value" do
     DateTime.parse('2008-10-11').should == DateTime.civil(2008, 10, 11)
     DateTime.parse('2008-10-11', true).should == DateTime.civil(2008, 10, 11)

@@ -40,10 +40,19 @@ describe "DateTime#sec" do
 end
 
 describe "DateTime#sec_fraction" do
-  it "should be the fraction of a second as a fraction of the day" do
-    DateTime.new(2008, 1, 1).sec_fraction.should == 0.0
-    DateTime.parse('12:13:15.678900').sec_fraction.should be_close(7.85763888888889e-06, 0.0000000000001)
-  end 
+  ruby_version_is "" ... "1.9" do
+    it "should be the fraction of a second as a fraction of the day" do
+      DateTime.new(2008, 1, 1).sec_fraction.should == 0.0
+      DateTime.parse('12:13:15.678900').sec_fraction.should be_close(7.85763888888889e-06, 0.0000000000001)
+    end 
+  end
+
+  ruby_version_is "1.9" do
+    it "should be the fraction of a second" do
+      DateTime.new(2008, 1, 1).sec_fraction.should == 0.0
+      DateTime.parse('12:13:15.678900').sec_fraction.should be_close(0.6789, 0.0000000000001)
+    end 
+  end
 end
 
 describe "DateTime#zone" do
