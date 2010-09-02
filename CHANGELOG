@@ -1,5 +1,7 @@
 === HEAD
 
+* Make DateTime#sec_fraction on ruby 1.9 to be compatible with 1.9 stdlib (jeremyevans)
+
 * Remove the use of the %hhi sprintf format specifier, for greater standards compatibility (jeremyevans)
 
 * Fix a bug where the same symbol was present in multiple objects, causing build failures with -fno-common (jeremyevans) (#10)
