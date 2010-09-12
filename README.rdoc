@@ -78,9 +78,6 @@ and 1.9.
 
 == Installing into site_ruby
 
-This is only necessary on ruby 1.8, as on ruby 1.9, gem directories
-come before the standard library directories in the load path.
-
 After installing the gem:
 
   home_run --install
@@ -93,9 +90,6 @@ If you ever want to uninstall from site_ruby:
   home_run --uninstall
 
 == Running without installing into site_ruby
-
-Just like installing into site_ruby, this should only be necessary
-on ruby 1.8.
 
 If you don't want to install into site_ruby, you can use home_run's
 Date/DateTime classes for specific programs by running your script
@@ -118,7 +112,9 @@ date, you can end up with situations where the Date instances created
 before the require use the standard library version of Date, while the
 Date instances created after the require use this library's version.
 However, in some cases (such as on Heroku), this is the only way to
-easily use this library. 
+easily use this library.  If you need to do this and you are using
+Rails 3, make sure you require home_run before rails/all in
+config/application.rb.
 
 == Running the specs
 
