@@ -1,3 +1,7 @@
+=== 0.9.3 (2010-09-20)
+
+* Don't attempt to undefine already undefined method if you require date_ext twice with two different paths (jeremyevans)
+
 === 0.9.2 (2010-09-13)
 
 * Make DateTime#sec_fraction on ruby 1.9 to be compatible with 1.9 stdlib (jeremyevans)

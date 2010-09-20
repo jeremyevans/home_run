@@ -2744,7 +2744,9 @@ void Init_datetime(void) {
 
   /* Define methods for all ruby versions*/
 
-  rb_undef(rhrdt_s_class, rb_intern("today"));
+  if(rb_respond_to(rhrdt_class, rb_intern("today"))) {
+    rb_undef(rhrdt_s_class, rb_intern("today"));
+  }
   rb_define_method(rhrdt_s_class, "_load", rhrdt_s__load, 1);
   rb_define_method(rhrdt_s_class, "_strptime", rhrdt_s__strptime, -1);
   rb_define_method(rhrdt_s_class, "civil", rhrdt_s_civil, -1);
