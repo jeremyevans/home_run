@@ -216,7 +216,6 @@ extension due to the above differences:
 
 * Date::Performance - Date#<=> assumes @ajd instance variable
   (unnecessary anyway, as home_run is faster)
-* ruby-ole - Depends on DateTime.allocate/#initialize
 
 == Reporting issues/bugs
 
