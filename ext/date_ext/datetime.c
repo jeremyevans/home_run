@@ -307,11 +307,11 @@ void rhrdt__now(rhrdt_t * dt) {
  * the number per day by subtracting from or adding to the jd.
  * It should ensure that the stored nanos value is in the range
  * [0, RHR_NANOS_PER_DAY). */
-VALUE rhrdt__from_jd_nanos(long jd, long long nanos, short offset) {
+VALUE rhrdt__from_jd_nanos(VALUE klass, long jd, long long nanos, short offset) {
   long t;
   rhrdt_t *dt;
   VALUE new;
-  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, dt);
+  new = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
   
   if (nanos < 0) {
     t = (long)(nanos/RHR_NANOS_PER_DAY - 1);
@@ -363,7 +363,7 @@ VALUE rhrdt__add_days(VALUE self, double n) {
   RHRDT_FILL_NANOS(dt)
   l = (long)floor(n);
   nanos = llround((n - l) * RHR_NANOS_PER_DAY);
-  return rhrdt__from_jd_nanos(rhrd__safe_add_long(dt->jd, l), dt->nanos + nanos, dt->offset);
+  return rhrdt__from_jd_nanos(rb_obj_class(self), rhrd__safe_add_long(dt->jd, l), dt->nanos + nanos, dt->offset);
 }
 
 /* Similar to rhrd__add_months, but for ruby DateTime
@@ -375,7 +375,7 @@ VALUE rhrdt__add_months(VALUE self, long n) {
   long x;
   Data_Get_Struct(self, rhrdt_t, d);
 
-  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, newd);
+  new = Data_Make_Struct(rb_obj_class(self), rhrdt_t, NULL, -1, newd);
   RHRDT_FILL_CIVIL(d)
   memcpy(newd, d, sizeof(rhrdt_t));
 
@@ -509,7 +509,7 @@ VALUE rhrdt__new_offset(VALUE self, double offset) {
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_NANOS(dt)
-  return rhrdt__from_jd_nanos(dt->jd, dt->nanos - (dt->offset - offset_min)*RHR_NANOS_PER_MINUTE, (short)offset_min);
+  return rhrdt__from_jd_nanos(rb_obj_class(self), dt->jd, dt->nanos - (dt->offset - offset_min)*RHR_NANOS_PER_MINUTE, (short)offset_min);
 }
 
 /* Class methods */
@@ -1453,7 +1453,7 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
   double step, limit;
   long long step_nanos, limit_nanos, current_nanos;
   long step_jd, limit_jd, current_jd;
-  VALUE rlimit, new, rstep, new_off;
+  VALUE rlimit, new, rstep, new_off, klass;
   new_off = rhrdt__new_offset(self, 0.0);
   Data_Get_Struct(self, rhrdt_t, d);
   Data_Get_Struct(new_off, rhrdt_t, d0);
@@ -1475,6 +1475,7 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
       break;
   }
   rlimit = argv[0];
+  klass = rb_obj_class(self);
 
 #ifdef RUBY19
   if (!rb_block_given_p()) {
@@ -1510,12 +1511,12 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
 
   current_jd = d0->jd;
   current_nanos = d0->nanos;
-  new = rhrdt__from_jd_nanos(current_jd, current_nanos, d->offset);
+  new = rhrdt__from_jd_nanos(klass, current_jd, current_nanos, d->offset);
   if (limit_jd > current_jd || (limit_jd == current_jd && limit_nanos > current_nanos)) {
     if (step_jd > 0 || (step_jd == 0 && step_nanos > 0)) {
       while (limit_jd > current_jd || (limit_jd == current_jd && limit_nanos >= current_nanos)) {
         rb_yield(new);
-        new = rhrdt__from_jd_nanos(current_jd + step_jd, current_nanos + step_nanos, d->offset);
+        new = rhrdt__from_jd_nanos(klass, current_jd + step_jd, current_nanos + step_nanos, d->offset);
         Data_Get_Struct(new, rhrdt_t, ndt);
         current_jd = ndt->jd;
         current_nanos = ndt->nanos;
@@ -1525,7 +1526,7 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
     if (step_jd < 0 || (step_jd == 0 && step_nanos < 0)) {
       while (limit_jd < current_jd || (limit_jd == current_jd && limit_nanos <= current_nanos)) {
         rb_yield(new);
-        new = rhrdt__from_jd_nanos(current_jd + step_jd, current_nanos + step_nanos, d->offset);
+        new = rhrdt__from_jd_nanos(klass, current_jd + step_jd, current_nanos + step_nanos, d->offset);
         Data_Get_Struct(new, rhrdt_t, ndt);
         current_jd = ndt->jd;
         current_nanos = ndt->nanos;
@@ -1924,7 +1925,7 @@ VALUE rhrdt__add_years(VALUE self, long n) {
   VALUE new;
   Data_Get_Struct(self, rhrdt_t, d);
 
-  new = Data_Make_Struct(rhrdt_class, rhrdt_t, NULL, -1, newd);
+  new = Data_Make_Struct(rb_obj_class(self), rhrdt_t, NULL, -1, newd);
   RHRDT_FILL_CIVIL(d)
   memcpy(newd, d, sizeof(rhrdt_t));
 
@@ -2605,7 +2606,7 @@ static VALUE rhrdt_to_time(VALUE self) {
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_JD(dt)
   RHRDT_FILL_NANOS(dt)
-  self = rhrdt__from_jd_nanos(dt->jd, dt->nanos - dt->offset * RHR_NANOS_PER_MINUTE, 0);
+  self = rhrdt__from_jd_nanos(rb_obj_class(self), dt->jd, dt->nanos - dt->offset * RHR_NANOS_PER_MINUTE, 0);
   Data_Get_Struct(self, rhrdt_t, dt);
   RHRDT_FILL_CIVIL(dt)
   RHRDT_FILL_HMS(dt)
