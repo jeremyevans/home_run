@@ -286,7 +286,7 @@ VALUE rhrd__add_days(VALUE self, long n) {
   VALUE new;
   long x;
   Data_Get_Struct(self, rhrd_t, d);
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
+  new = Data_Make_Struct(rb_obj_class(self), rhrd_t, NULL, -1, newd);
 
   if(!(RHR_HAS_JD(d))) {
     x = rhrd__safe_add_long(n, (long)(d->day));
@@ -317,7 +317,7 @@ VALUE rhrd__add_months(VALUE self, long n) {
   long x;
   Data_Get_Struct(self, rhrd_t, d);
 
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
+  new = Data_Make_Struct(rb_obj_class(self), rhrd_t, NULL, -1, newd);
   RHR_FILL_CIVIL(d)
   n = rhrd__safe_add_long(n, (long)(d->month));
   if(n > 1 && n <= 12) {
@@ -718,9 +718,9 @@ int rhrd__fill_from_hash(rhrd_t *d, VALUE hash) {
 /* Returns a new ruby object filled with information from
  * the given hash, or raises an error if the given hash
  * did not contain valid date information. */
-VALUE rhrd__from_hash(VALUE hash) {
+VALUE rhrd__from_hash(VALUE klass, VALUE hash) {
   rhrd_t *d;
-  VALUE rd = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, d);
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
   if(rhrd__fill_from_hash(d, hash)) {
     rb_raise(rb_eArgError, "invalid date");
   } else {
@@ -1736,10 +1736,10 @@ static VALUE rhrd_s_parse(int argc, VALUE *argv, VALUE klass) {
       d->flags = RHR_HAVE_JD;
       return rd;
     case 1:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__parse, 1, argv[0]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__parse, 1, argv[0]));
     case 2:
     case 3:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__parse, 2, argv[0], argv[1]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__parse, 2, argv[0], argv[1]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
       break;
@@ -1779,7 +1779,7 @@ static VALUE rhrd_s_strptime(int argc, VALUE *argv, VALUE klass) {
 
   rd = rhrd_s__strptime(argc, argv, klass);
   if (RTEST(rd)) {
-    return rhrd__from_hash(rd);
+    return rhrd__from_hash(klass, rd);
   }
   rb_raise(rb_eArgError, "invalid date");
 }
@@ -2452,7 +2452,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   rhrd_t *d, *n, *newd;
   rhrdt_t *ndt;
   long step, limit, current;
-  VALUE rlimit, new, rstep;
+  VALUE rlimit, new, rstep, klass;
   Data_Get_Struct(self, rhrd_t, d);
   RHR_FILL_JD(d)
 
@@ -2470,6 +2470,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
       break;
   }
   rlimit = argv[0];
+  klass = rb_obj_class(self);
 
 #ifdef RUBY19
   if (!rb_block_given_p()) {
@@ -2497,7 +2498,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   if (limit > current) {
     if (step > 0) {
       while(limit >= current) {
-        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
+        new = Data_Make_Struct(klass, rhrd_t, NULL, -1, newd);
         newd->jd = current;
         RHR_CHECK_JD(newd)
         newd->flags = RHR_HAVE_JD;
@@ -2508,7 +2509,7 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
   } else if (limit < current) {
     if (step < 0) {
       while(limit <= current) {
-        new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
+        new = Data_Make_Struct(klass, rhrd_t, NULL, -1, newd);
         newd->jd = current;
         RHR_CHECK_JD(newd)
         newd->flags = RHR_HAVE_JD;
@@ -2893,7 +2894,7 @@ VALUE rhrd__add_years(VALUE self, long n) {
   VALUE new;
   Data_Get_Struct(self, rhrd_t, d);
 
-  new = Data_Make_Struct(rhrd_class, rhrd_t, NULL, -1, newd);
+  new = Data_Make_Struct(rb_obj_class(self), rhrd_t, NULL, -1, newd);
   RHR_FILL_CIVIL(d)
   newd->year = rhrd__safe_add_long(n, d->year);
   newd->month = d->month;
@@ -2946,7 +2947,7 @@ static VALUE rhrd_s_httpdate(int argc, VALUE *argv, VALUE klass) {
       return rd;
     case 1:
     case 2:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__httpdate, 1, argv[0]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__httpdate, 1, argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
@@ -2980,7 +2981,7 @@ static VALUE rhrd_s_iso8601(int argc, VALUE *argv, VALUE klass) {
       return rd;
     case 1:
     case 2:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__iso8601, 1, argv[0]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__iso8601, 1, argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
@@ -3014,7 +3015,7 @@ static VALUE rhrd_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
       return rd;
     case 1:
     case 2:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__jisx0301, 1, argv[0]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__jisx0301, 1, argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
@@ -3048,7 +3049,7 @@ static VALUE rhrd_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
       return rd;
     case 1:
     case 2:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__rfc2822, 1, argv[0]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__rfc2822, 1, argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
@@ -3082,7 +3083,7 @@ static VALUE rhrd_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
       return rd;
     case 1:
     case 2:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__rfc3339, 1, argv[0]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__rfc3339, 1, argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
@@ -3116,7 +3117,7 @@ static VALUE rhrd_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
       return rd;
     case 1:
     case 2:
-      return rhrd__from_hash(rb_funcall(klass, rhrd_id__xmlschema, 1, argv[0]));
+      return rhrd__from_hash(klass, rb_funcall(klass, rhrd_id__xmlschema, 1, argv[0]));
     default:
       rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
       break;
