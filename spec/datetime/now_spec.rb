@@ -15,4 +15,9 @@ describe "DateTime.now" do
   it "should accept an optional sg value" do
     DateTime.now(1).to_s.should == DateTime.now.to_s
   end
+
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.now.should be_kind_of(c)
+  end
 end

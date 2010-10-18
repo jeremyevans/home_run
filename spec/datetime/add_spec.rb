@@ -26,6 +26,11 @@ describe "DateTime#+" do
     d.should == DateTime.civil(2007, 2, 16, 12)
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.jd.+(10).should be_kind_of(c)
+  end
+
   it "should raise an error on non numeric parameters" do
     lambda { DateTime.civil(2007,2,27) + :hello }.should raise_error
     lambda { DateTime.civil(2007,2,27) + "hello" }.should raise_error

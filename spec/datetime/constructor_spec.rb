@@ -139,4 +139,14 @@ describe "DateTime constructors" do
     DateTime.ordinal(2008, 1, 0, 0, 0, 0).should == DateTime.ordinal(2008, 1, 0, 0, 0, 0)
     DateTime.ordinal(2008, 1, 1, 1, 1, 0.5, 1).should == DateTime.ordinal(2008, 1, 1, 1, 1, 0.5)
   end
+
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.jd.should be_kind_of(c)
+    c.civil.should be_kind_of(c)
+    c.commercial.should be_kind_of(c)
+    c.ordinal.should be_kind_of(c)
+    c.new!.should be_kind_of(c)
+    c.new.should be_kind_of(c)
+  end
 end

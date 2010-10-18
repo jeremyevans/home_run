@@ -18,6 +18,11 @@ ruby_version_is "1.9" do
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).next_day).day_fraction.should == 0.5
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).next_day).offset.should == 0.5
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(DateTime)
+      c.jd.next_day.should be_kind_of(c)
+    end
   end 
 
   describe "DateTime#prev_day" do
@@ -36,6 +41,11 @@ ruby_version_is "1.9" do
     it "should keep the same fractional part and offset" do
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).prev_day).day_fraction.should == 0.5
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).prev_day).offset.should == 0.5
+    end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(DateTime)
+      c.jd.prev_day.should be_kind_of(c)
     end
   end 
 
@@ -62,6 +72,11 @@ ruby_version_is "1.9" do
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).next_month).day_fraction.should == 0.5
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).next_month).offset.should == 0.5
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(DateTime)
+      c.jd.next_month.should be_kind_of(c)
+    end
   end 
 
   describe "DateTime#prev_month" do
@@ -87,6 +102,11 @@ ruby_version_is "1.9" do
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).prev_month).day_fraction.should == 0.5
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).prev_month).offset.should == 0.5
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(DateTime)
+      c.jd.prev_month.should be_kind_of(c)
+    end
   end 
 
   describe "DateTime#next_year" do
@@ -110,6 +130,11 @@ ruby_version_is "1.9" do
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).next_year).day_fraction.should == 0.5
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).next_year).offset.should == 0.5
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(DateTime)
+      c.jd.next_year.should be_kind_of(c)
+    end
   end 
 
   describe "DateTime#prev_year" do
@@ -132,6 +157,11 @@ ruby_version_is "1.9" do
     it "should keep the same fractional part and offset" do
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).prev_year).day_fraction.should == 0.5
       (DateTime.civil(2007,2,27, 12, 0, 0, 0.5).prev_year).offset.should == 0.5
+    end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(DateTime)
+      c.jd.prev_year.should be_kind_of(c)
     end
   end 
 

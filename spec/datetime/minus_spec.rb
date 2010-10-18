@@ -16,6 +16,11 @@ describe "DateTime#-" do
     (DateTime.ordinal(2008, 325, 6) - 315.25).should == DateTime.ordinal(2008, 10)
   end
   
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.jd.-(10).should be_kind_of(c)
+  end
+
   it "should substract a negative number of days from a DateTime" do
     d = DateTime.civil(2007, 4, 19).-(-13)
     d.should == DateTime.civil(2007, 5 ,2) 

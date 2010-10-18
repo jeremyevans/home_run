@@ -14,6 +14,11 @@ describe "DateTime#succ" do
     ds.succ.should == DateTime.ordinal(2009, 1)
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.jd.succ.should be_kind_of(c)
+  end
+
   it "should be aliased as next" do
     DateTime.civil(2008, 10, 11).next.should == DateTime.civil(2008, 10, 12)
   end

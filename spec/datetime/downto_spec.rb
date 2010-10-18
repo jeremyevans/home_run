@@ -36,4 +36,10 @@ describe "DateTime#downto" do
     count.should == 17
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.jd.downto(c.jd - 2) do |d|
+      d.should be_kind_of(c)
+    end.should be_kind_of(c)
+  end
 end

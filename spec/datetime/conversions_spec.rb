@@ -9,6 +9,11 @@ describe "DateTime conversions" do
     DateTime.new(2008, 1, 1).new_offset(0.5).should == DateTime.new(2008, 1, 1)
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.jd.new_offset.should be_kind_of(c)
+  end
+
   ruby_version_is "" ... "1.9" do
     it "#newof should be a separate datetime with a modified offset" do
       DateTime.new(2008, 1, 1).newof(0.5).to_s.should == DateTime.new(2008, 1, 1, 12, 0, 0, 0.5).to_s

@@ -77,5 +77,16 @@ ruby_version_is "1.9" do
     it ".xmlschema should parse an ISO8601 format" do
       DateTime.xmlschema("2009-01-02T03:04:05+12:00").should == DateTime.new(2009, 1, 2, 3, 4, 5, 0.5)
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(DateTime)
+      c.httpdate("Fri, 02 Jan 2009 00:00:00 GMT").should be_kind_of(c)
+      c.iso8601("2009-01-02").should be_kind_of(c)
+      c.jisx0301("H21.01.02").should be_kind_of(c)
+      c.rfc2822("Fri, 2 Jan 2009 00:00:00 +0000").should be_kind_of(c)
+      c.rfc822("Fri, 2 Jan 2009 00:00:00 +0000").should be_kind_of(c)
+      c.rfc3339("2009-01-02T00:00:00+00:00").should be_kind_of(c)
+      c.xmlschema("2009-01-02").should be_kind_of(c)
+    end
   end
 end

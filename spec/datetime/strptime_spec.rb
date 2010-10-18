@@ -21,6 +21,12 @@ describe "DateTime.strptime" do
     DateTime.strptime("2000-04-06T10:11:12+00:00").should == DateTime.civil(2000, 4, 6, 10, 11, 12)
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.strptime.should be_kind_of(c)
+    c.strptime('2008-10-11', '%Y-%m-%d').should be_kind_of(c)
+  end
+
   it "should be able to parse the hour in a 24 hour clock with leading zero" do
     DateTime.strptime("10", '%H').should == DateTime.civil(@t.year, @t.mon, @t.day, 10, 0, 0)
     DateTime.strptime("09", '%H').should == DateTime.civil(@t.year, @t.mon, @t.day, 9, 0, 0)

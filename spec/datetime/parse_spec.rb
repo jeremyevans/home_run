@@ -18,6 +18,12 @@ describe "DateTime.parse" do
     DateTime.parse.should == DateTime.jd
   end
   
+  it "should keep the same class as the receiver" do
+    c = Class.new(DateTime)
+    c.parse.should be_kind_of(c)
+    c.parse('2008-10-11').should be_kind_of(c)
+  end
+
   it "can't handle a empty string" do
     lambda{ DateTime.parse("") }.should raise_error(ArgumentError)
   end
