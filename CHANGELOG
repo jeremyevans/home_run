@@ -1,3 +1,7 @@
+=== 0.9.4 (2010-10-18)
+
+* Have methods of subclasses of Date and DateTime return instances of the subclass (jeremyevans)
+
 === 0.9.3 (2010-09-20)
 
 * Don't attempt to undefine already undefined method if you require date_ext twice with two different paths (jeremyevans)
