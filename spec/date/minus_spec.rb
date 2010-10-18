@@ -14,6 +14,11 @@ describe "Date#-" do
     d.should == Date.civil(2007, 5 ,2) 
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.jd.-(10).should be_kind_of(c)
+  end
+
   it "should be able to compute the different between two dates" do
     (Date.civil(2007,2,27) - Date.civil(2007,2,27)).should == 0
     (Date.civil(2007,2,27) - Date.civil(2007,2,26)).should == 1

@@ -13,6 +13,11 @@ ruby_version_is "1.9" do
     it "should handle a negative argument by subtracting days" do
       (Date.civil(2007,2,27).next_day(-2)).should == Date.civil(2007, 2, 25)
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(Date)
+      c.jd.next_day.should be_kind_of(c)
+    end
   end 
 
   describe "Date#prev_day" do
@@ -26,6 +31,11 @@ ruby_version_is "1.9" do
 
     it "should handle a negative argument by adding days" do
       (Date.civil(2007,2,27).prev_day(-2)).should == Date.civil(2007, 3, 1)
+    end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(Date)
+      c.jd.prev_day.should be_kind_of(c)
     end
   end 
 
@@ -47,6 +57,11 @@ ruby_version_is "1.9" do
       (Date.civil(2008,1,31).next_month).should == Date.civil(2008, 2, 29)
       (Date.civil(2007,1,31).next_month(3)).should == Date.civil(2007, 4, 30)
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(Date)
+      c.jd.next_month.should be_kind_of(c)
+    end
   end 
 
   describe "Date#prev_month" do
@@ -67,6 +82,11 @@ ruby_version_is "1.9" do
       (Date.civil(2008,3,31).prev_month).should == Date.civil(2008, 2, 29)
       (Date.civil(2007,3,31).prev_month(4)).should == Date.civil(2006, 11, 30)
     end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(Date)
+      c.jd.prev_month.should be_kind_of(c)
+    end
   end 
 
   describe "Date#next_year" do
@@ -84,6 +104,11 @@ ruby_version_is "1.9" do
 
     it "should handle adding a year where the new date is not a valid date" do
       (Date.civil(2008,2,29).next_year).should == Date.civil(2009, 2, 28)
+    end
+
+    it "should keep the same class as the receiver" do
+      c = Class.new(Date)
+      c.jd.next_year.should be_kind_of(c)
     end
   end 
 
@@ -103,6 +128,10 @@ ruby_version_is "1.9" do
     it "should handle adding a year where the new date is not a valid date" do
       (Date.civil(2008,2,29).prev_year).should == Date.civil(2007, 2, 28)
     end
-  end 
 
+    it "should keep the same class as the receiver" do
+      c = Class.new(Date)
+      c.jd.prev_year.should be_kind_of(c)
+    end
+  end 
 end

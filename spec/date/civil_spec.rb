@@ -67,6 +67,11 @@ describe "Date.civil" do
     proc{Date.civil(2008, 2, 30)}.should raise_error(ArgumentError)
     proc{Date.civil(2009, 2, 29)}.should raise_error(ArgumentError)
   end
+
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.civil.should be_kind_of(c)
+  end
 end
 
 describe "Date.new" do
@@ -143,5 +148,4 @@ describe "Date.valid_civil?" do
       Date.valid_civil?(2008, -11, -10).should == true
     end
   end
-
 end

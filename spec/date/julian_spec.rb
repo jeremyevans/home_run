@@ -24,6 +24,11 @@ describe "Date.jd" do
     proc{Date.jd(Date::JULIAN)}.should raise_error
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.jd.should be_kind_of(c)
+  end
+
   ruby_version_is "" ... "1.9" do
     it ".new1 should be the same as jd" do
       Date.new1(2454156).should == Date.jd(2454156)
@@ -43,6 +48,11 @@ describe "Date.new!" do
     Date.new!(2008, 1, 1).should == Date.jd(2008)
   end
   
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.new!.should be_kind_of(c)
+  end
+
   it "should not accept more than 3 arguments" do
     proc{Date.new!(2008, 1, 1, 1)}.should raise_error(ArgumentError)
   end

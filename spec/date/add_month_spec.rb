@@ -17,6 +17,11 @@ describe "Date#>>" do
     d.should == Date.civil(2008, 4, 30)
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.jd.>>(-10).should be_kind_of(c)
+  end
+
   it "should raise an error on non numeric parameters" do
     lambda { Date.civil(2007,2,27) >> "hello" }.should raise_error(TypeError)
     lambda { Date.civil(2007,2,27) >> Date.new }.should raise_error(TypeError)

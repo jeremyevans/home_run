@@ -91,6 +91,11 @@ describe "Date.commercial" do
     proc{Date.commercial(2008, 54, 6)}.should raise_error(ArgumentError)
     proc{Date.commercial(2009, 1, 8)}.should raise_error(ArgumentError)
   end
+
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.commercial.should be_kind_of(c)
+  end
 end
 
 ruby_version_is "" ... "1.9" do

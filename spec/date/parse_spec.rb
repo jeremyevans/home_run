@@ -57,6 +57,12 @@ describe "Date.parse" do
     Date.parse('2008-10-11', true, 1).should == Date.civil(2008, 10, 11)
   end
   
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.parse.should be_kind_of(c)
+    c.parse('20081011').should be_kind_of(c)
+  end
+
   it "raises errors for invalid dates" do
     lambda { Date.parse("") }.should raise_error(ArgumentError)
     lambda { Date.parse("2009-02-29") }.should raise_error(ArgumentError)

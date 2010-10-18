@@ -22,6 +22,12 @@ describe "Date#strptime" do
     Date.strptime('2008-10-11', '%Y-%m-%d', 1).should == Date.civil(2008, 10, 11)
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.strptime.should be_kind_of(c)
+    c.strptime('20081011', '%Y%m%d').should be_kind_of(c)
+  end
+
   it "raises errors for invalid dates" do
     lambda { Date.strptime("") }.should raise_error(ArgumentError)
     lambda { Date.strptime("", "") }.should raise_error(ArgumentError)

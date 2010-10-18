@@ -9,6 +9,11 @@ describe "Date#new_start" do
     Date.civil(1752,  9, 13).new_start(Date::ENGLAND).should == Date.civil(1752,  9, 13, Date::ENGLAND)
   end
   
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.jd.new_start.should be_kind_of(c)
+  end
+
   ruby_version_is "" ... "1.9" do
     it "#newsg should be the same as new_start" do
       Date.civil(1582, 10, 14, Date::ENGLAND).newsg.should == Date.civil(1582, 10, 14, Date::ENGLAND).new_start
@@ -44,6 +49,11 @@ describe "Date#gregorian" do
   it "should convert a date object into another with the Gregorian calendar" do
     Date.civil(1582, 10, 14).gregorian.should == Date.civil(1582, 10, 14, Date::GREGORIAN)
     Date.civil(1752,  9, 14).gregorian.should == Date.civil(1752,  9, 14, Date::GREGORIAN)
+  end
+
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.jd.gregorian.should be_kind_of(c)
   end
 end
 

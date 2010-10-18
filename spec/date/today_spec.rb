@@ -12,4 +12,9 @@ describe "Date.today" do
   it ".today should have an optional sg value" do
     Date.today(1).should == Date.today
   end
+
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.today.should be_kind_of(c)
+  end
 end

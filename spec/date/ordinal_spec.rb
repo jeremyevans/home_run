@@ -25,6 +25,11 @@ describe "Date.ordinal" do
     lambda { Date.ordinal(2008, 367) }.should raise_error(ArgumentError)
   end
 
+  it "should keep the same class as the receiver" do
+    c = Class.new(Date)
+    c.ordinal.should be_kind_of(c)
+  end
+
   ruby_version_is "" ... "1.9" do
     it ".new2 should be the same as ordinal" do
       Date.new2(2008, 10).should == Date.ordinal(2008, 10)
