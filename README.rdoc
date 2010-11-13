@@ -216,6 +216,7 @@ extension due to the above differences:
 
 * Date::Performance - Date#<=> assumes @ajd instance variable
   (unnecessary anyway, as home_run is faster)
+* Runt - assumes @ajd instance variable
 
 == Reporting issues/bugs
 
