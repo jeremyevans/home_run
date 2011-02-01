@@ -29,7 +29,6 @@ VALUE rhrd_abbr_daynames;
 VALUE rhrd_zone_re;
 VALUE rhrd_zone_dst_re;
 VALUE rhrd_zone_sign_re;
-VALUE rhrd_zones_hash;
 VALUE rhrd_empty_string;
 VALUE rhrd_start_num;
 VALUE rhrd_string_colon;
@@ -64,6 +63,8 @@ ID rhrd_id_usec;
 #endif
 ID rhrd_id_utc;
 ID rhrd_id_utc_offset;
+ID rhrd_id_Format;
+ID rhrd_id_ZONES;
 
 #ifdef RUBY19
 ID rhrd_id__httpdate;
@@ -1969,7 +1970,7 @@ VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
   long offset = 0;
   long len, i, j;
   char *s;
-  VALUE v, e;
+  VALUE v, e, zones;
 
   str = rb_funcall(str, rhrd_id_downcase, 0);
   if(RTEST(rb_funcall(str, rhrd_id_sub_b, 2, rhrd_zone_dst_re, rhrd_empty_string))) {
@@ -1978,8 +1979,12 @@ VALUE rhrd_s_zone_to_diff(VALUE klass, VALUE str) {
     }
   }
 
-  if(RTEST(v = rb_hash_aref(rhrd_zones_hash, str))) {
-    return LONG2NUM(offset + NUM2LONG(v));
+  zones = rb_const_get(rhrd_class, rhrd_id_Format);
+  if (RTEST(zones) && RTEST(rb_obj_is_kind_of(zones, rb_cModule))) {
+    zones = rb_const_get(zones, rhrd_id_ZONES);
+    if(RTEST(zones) && RTEST(rb_obj_is_kind_of(zones, rb_cHash)) && RTEST(v = rb_hash_aref(zones, str))) {
+      return LONG2NUM(offset + NUM2LONG(v));
+    }
   }
 
   if(RTEST(rb_funcall(str, rhrd_id_sub_b, 2, rhrd_zone_sign_re, rhrd_empty_string))) {
@@ -3991,6 +3996,8 @@ void Init_date_ext(void) {
 #endif
   rhrd_id_utc = rb_intern("utc");
   rhrd_id_utc_offset = rb_intern("utc_offset");
+  rhrd_id_Format = rb_intern("Format");
+  rhrd_id_ZONES = rb_intern("ZONES");
 
 #ifdef RUBY19
   rhrd_id__httpdate = rb_intern("_httpdate");
@@ -4125,178 +4132,6 @@ void Init_date_ext(void) {
     rb_ary_push(rhrd_abbr_daynames, rb_str_new2(rhrd__abbr_day_names[i]));
   }
 
-  rhrd_zones_hash = rb_hash_new();
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("a"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("adt"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("afghanistan"), INT2FIX(16200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ahst"), INT2FIX(-36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("akdt"), INT2FIX(-28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("akst"), INT2FIX(-32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("alaskan"), INT2FIX(-32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("arab"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("arabian"), INT2FIX(14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("arabic"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("art"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ast"), INT2FIX(-14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("at"), INT2FIX(-7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("atlantic"), INT2FIX(-14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("aus central"), INT2FIX(34200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("aus eastern"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("azores"), INT2FIX(-3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("b"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("brst"), INT2FIX(-7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("brt"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("bst"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("bt"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("c"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("canada central"), INT2FIX(-21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cape verde"), INT2FIX(-3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cat"), INT2FIX(-36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("caucasus"), INT2FIX(14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cct"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cdt"), INT2FIX(-18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cen. australia"), INT2FIX(34200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central"), INT2FIX(-21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central america"), INT2FIX(-21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central asia"), INT2FIX(21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central europe"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central european"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("central pacific"), INT2FIX(39600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cest"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cet"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("china"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("clst"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("clt"), INT2FIX(-14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("cst"), INT2FIX(-21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("d"), INT2FIX(14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("dateline"), INT2FIX(-43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e"), INT2FIX(18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. africa"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. australia"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. europe"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("e. south america"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eadt"), INT2FIX(39600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("east"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eastern"), INT2FIX(-18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eat"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("edt"), INT2FIX(-14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eest"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("eet"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("egypt"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ekaterinburg"), INT2FIX(18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("est"), INT2FIX(-18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("f"), INT2FIX(21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fiji"), INT2FIX(43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fle"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fst"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("fwt"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("g"), INT2FIX(25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("gmt"), INT2FIX(0));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("greenland"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("greenwich"), INT2FIX(0));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("gst"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("gtb"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("h"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hadt"), INT2FIX(-32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hast"), INT2FIX(-36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hawaiian"), INT2FIX(-36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hdt"), INT2FIX(-32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("hst"), INT2FIX(-36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("i"), INT2FIX(32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("idle"), INT2FIX(43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("idlw"), INT2FIX(-43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("india"), INT2FIX(19800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("iran"), INT2FIX(12600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ist"), INT2FIX(19800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("jerusalem"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("jst"), INT2FIX(32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("k"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("korea"), INT2FIX(32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("kst"), INT2FIX(32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("l"), INT2FIX(39600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("m"), INT2FIX(43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("malay peninsula"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mdt"), INT2FIX(-21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mest"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mesz"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("met"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mewt"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mexico"), INT2FIX(-21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mez"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mid-atlantic"), INT2FIX(-7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mountain"), INT2FIX(-25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("msd"), INT2FIX(14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("msk"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("mst"), INT2FIX(-25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("myanmar"), INT2FIX(23400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("n"), INT2FIX(-3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("n. central asia"), INT2FIX(21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ndt"), INT2FIX(-9000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nepal"), INT2FIX(20700));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("new zealand"), INT2FIX(43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("newfoundland"), INT2FIX(-12600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("north asia"), INT2FIX(25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("north asia east"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nst"), INT2FIX(-12600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nt"), INT2FIX(-39600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nzdt"), INT2FIX(46800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nzst"), INT2FIX(43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("nzt"), INT2FIX(43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("o"), INT2FIX(-7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("p"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pacific"), INT2FIX(-28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pacific sa"), INT2FIX(-14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pdt"), INT2FIX(-25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("pst"), INT2FIX(-28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("q"), INT2FIX(-14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("r"), INT2FIX(-18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("romance"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("russian"), INT2FIX(10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("s"), INT2FIX(-21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sa eastern"), INT2FIX(-10800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sa pacific"), INT2FIX(-18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sa western"), INT2FIX(-14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("samoa"), INT2FIX(-39600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sast"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("se asia"), INT2FIX(25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sgt"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("south africa"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sri lanka"), INT2FIX(21600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("sst"), INT2FIX(7200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("swt"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("t"), INT2FIX(-25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("taipei"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("tasmania"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("tokyo"), INT2FIX(32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("tonga"), INT2FIX(46800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("u"), INT2FIX(-28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("us eastern"), INT2FIX(-18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("us mountain"), INT2FIX(-25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ut"), INT2FIX(0));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("utc"), INT2FIX(0));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("v"), INT2FIX(-32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("vladivostok"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w"), INT2FIX(-36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w. australia"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w. central africa"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("w. europe"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wadt"), INT2FIX(28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wast"), INT2FIX(25200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wat"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("west"), INT2FIX(3600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("west asia"), INT2FIX(18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("west pacific"), INT2FIX(36000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("wet"), INT2FIX(0));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("x"), INT2FIX(-39600));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("y"), INT2FIX(-43200));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("yakutsk"), INT2FIX(32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("ydt"), INT2FIX(-28800));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("yst"), INT2FIX(-32400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("z"), INT2FIX(0));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp4"), INT2FIX(14400));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp5"), INT2FIX(18000));
-  rb_hash_aset(rhrd_zones_hash, rb_str_new2("zp6"), INT2FIX(21600));
-
   rhrd_start_num = LONG2NUM(RHR_JD_MIN - 1);
   rhrd_empty_string = rb_str_new("", 0);
   rhrd_string_colon = rb_str_new(":", 1);
@@ -4312,7 +4147,6 @@ void Init_date_ext(void) {
   /* Register global variables with Garbage collector, so users
    * who remove constants can't crash the interpreter. */
 
-  rb_global_variable(&rhrd_zones_hash);
   rb_global_variable(&rhrd_monthnames);
   rb_global_variable(&rhrd_abbr_monthnames);
   rb_global_variable(&rhrd_daynames);
@@ -4336,9 +4170,6 @@ void Init_date_ext(void) {
   /* An integer higher than the highest supported julian day number */
   rb_define_const(rhrd_class, "JULIAN", LONG2NUM(RHR_JD_MAX + 1));
 
-  /* A hash mapping lowercase time zone names to offsets
-   * in seconds<br />ZONES['pst'] => -28800 */
-  rb_define_const(rhrd_class, "ZONES", rhrd_zones_hash);
   /* An array of month names<br />MONTHNAMES[1] => 'January' */
   rb_define_const(rhrd_class, "MONTHNAMES", rhrd_monthnames);
   /* An array of abbreviated month names<br />ABBR_MONTHNAMES[1] => 'Jan' */
