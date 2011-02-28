@@ -1509,6 +1509,9 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
       step = NUM2DBL(rstep);
       step_jd = (long)floor(step);
       step_nanos = llround((step - step_jd)*RHR_NANOS_PER_DAY);
+      if (step_jd == 0 && step_nanos == 0) {
+        rb_raise(rb_eArgError, "step can't be 0");
+      }
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);

@@ -2513,6 +2513,9 @@ static VALUE rhrd_step(int argc, VALUE *argv, VALUE self) {
     case 2:
       rstep = argv[1];
       step = NUM2LONG(rstep);
+      if (step == 0) {
+        rb_raise(rb_eArgError, "step can't be 0");
+      }
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);

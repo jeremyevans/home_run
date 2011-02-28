@@ -100,13 +100,6 @@ describe "DateTime#step" do
     count.should == 1
 
     count = 0
-    ds.step(ds, 0) do |d|
-      d.should == ds
-      count += 1
-    end.should == ds
-    count.should == 1
-
-    count = 0
     ds.step(ds, -1) do |d|
       d.should == ds
       count += 1
@@ -117,12 +110,6 @@ describe "DateTime#step" do
   it "should not yield if the target date is greater than the receiver, and step is not positive" do
     ds = DateTime.civil(2008, 10, 11)
     count = 0
-    ds.step(ds.next, 0) do |d|
-      count += 1
-    end.should == ds
-    count.should == 0
-
-    count = 0
     ds.step(ds.next, -1) do |d|
       count += 1
     end.should == ds
@@ -131,12 +118,6 @@ describe "DateTime#step" do
   
   it "should not yield if the target date is less than the receiver, and step is not negative" do
     ds = DateTime.civil(2008, 10, 11)
-    count = 0
-    ds.next.step(ds, 0) do |d|
-      count += 1
-    end.should == ds.next
-    count.should == 0
-
     count = 0
     ds.next.step(ds, 1) do |d|
       count += 1
@@ -174,6 +155,13 @@ describe "DateTime#step" do
 
   end
   
+  it "should raise an ArgumentError for a 0 step" do
+    ds = DateTime.civil(2008, 10, 11)
+    proc{ds.step(ds, 0){|d|}}.should raise_error(ArgumentError)
+    proc{ds.step(ds+1, 0){|d|}}.should raise_error(ArgumentError)
+    proc{ds.step(ds-1, 0){|d|}}.should raise_error(ArgumentError)
+  end
+
   it "should keep the same class as the receiver" do
     c = Class.new(DateTime)
     c.jd.step(c.jd + 2) do |d|
