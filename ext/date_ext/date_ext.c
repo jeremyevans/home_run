@@ -2089,6 +2089,20 @@ static VALUE rhrd_asctime(VALUE self) {
 }
 
 /* call-seq:
+ *   clone() -> Date
+ *
+ * Returns a clone of the receiver.
+ */
+static VALUE rhrd_clone(VALUE self) {
+  rhrd_t *d, *nd;
+  VALUE rd = Data_Make_Struct(rb_obj_class(self), rhrd_t, NULL, -1, nd);
+  Data_Get_Struct(self, rhrd_t, d);
+  memcpy(nd, d, sizeof(rhrd_t));
+  CLONESETUP(rd, self);
+  return rd;
+}
+
+/* call-seq:
  *   cwday() -> Integer
  *
  * Returns the commercial week day as an +Integer+. Example:
@@ -2199,6 +2213,20 @@ static VALUE rhrd_downto(VALUE self, VALUE other) {
   argv[0] = other;
   argv[1] = INT2FIX(-1);
   return rhrd_step(2, argv, self);
+}
+
+/* call-seq:
+ *   dup() -> Date
+ *
+ * Returns a dup of the receiver.
+ */
+static VALUE rhrd_dup(VALUE self) {
+  rhrd_t *d, *nd;
+  VALUE rd = Data_Make_Struct(rb_obj_class(self), rhrd_t, NULL, -1, nd);
+  Data_Get_Struct(self, rhrd_t, d);
+  memcpy(nd, d, sizeof(rhrd_t));
+  DUPSETUP(rd, self);
+  return rd;
 }
 
 /* call-seq:
@@ -4067,12 +4095,14 @@ void Init_date_ext(void) {
 
   rb_define_method(rhrd_class, "_dump", rhrd__dump, 1);
   rb_define_method(rhrd_class, "asctime", rhrd_asctime, 0);
+  rb_define_method(rhrd_class, "clone", rhrd_clone, 0);
   rb_define_method(rhrd_class, "cwday", rhrd_cwday, 0);
   rb_define_method(rhrd_class, "cweek", rhrd_cweek, 0);
   rb_define_method(rhrd_class, "cwyear", rhrd_cwyear, 0);
   rb_define_method(rhrd_class, "day", rhrd_day, 0);
   rb_define_method(rhrd_class, "day_fraction", rhrd_day_fraction, 0);
   rb_define_method(rhrd_class, "downto", rhrd_downto, 1);
+  rb_define_method(rhrd_class, "dup", rhrd_dup, 0);
   rb_define_method(rhrd_class, "eql?", rhrd_eql_q, 1);
   rb_define_method(rhrd_class, "gregorian", rhrd_gregorian, 0);
   rb_define_method(rhrd_class, "gregorian?", rhrd_gregorian_q, 0);
