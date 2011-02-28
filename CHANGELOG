@@ -1,3 +1,13 @@
+=== 1.0.1 (2011-02-28)
+
+* Make #step with a 0 step value raise an ArgumentError (jeremyevans)
+
+* Fix #dup and #clone to work correctly (jeremyevans) (#21)
+
+=== 1.0.0 (2011-02-01)
+
+* Define the ZONES hash in ruby to work around probably interpreter bug (jeremyevans)
+
 === 0.9.4 (2010-10-18)
 
 * Have methods of subclasses of Date and DateTime return instances of the subclass (jeremyevans)
