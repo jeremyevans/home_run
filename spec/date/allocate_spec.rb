@@ -1,7 +1,7 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "Date.allocate" do
-  it "should not be defined" do
-    proc{Date.allocate}.should raise_error
+  it "should be the same as jd" do
+    Date.allocate.should == Date.jd
   end
 end

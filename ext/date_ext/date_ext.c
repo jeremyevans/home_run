@@ -1517,6 +1517,18 @@ static VALUE rhrd_s__strptime(int argc, VALUE *argv, VALUE klass) {
 }
 
 /* call-seq:
+ *   allocate() -> Date <br />
+ *
+ * Returns a +Date+ object for julian day 0.
+ */
+static VALUE rhrd_s_allocate(VALUE klass) {
+  rhrd_t *d;
+  VALUE rd = Data_Make_Struct(klass, rhrd_t, NULL, -1, d);
+  d->flags = RHR_HAVE_JD;
+  return rd;
+}
+
+/* call-seq:
  *   civil() -> Date <br />
  *   civil(year, month=1, day=1, sg=nil) -> Date
  *
@@ -2095,10 +2107,12 @@ static VALUE rhrd_asctime(VALUE self) {
  */
 static VALUE rhrd_clone(VALUE self) {
   rhrd_t *d, *nd;
-  VALUE rd = Data_Make_Struct(rb_obj_class(self), rhrd_t, NULL, -1, nd);
-  Data_Get_Struct(self, rhrd_t, d);
-  memcpy(nd, d, sizeof(rhrd_t));
-  CLONESETUP(rd, self);
+  VALUE rd = rb_call_super(0, NULL);
+  if (!rb_obj_is_kind_of(self, rhrdt_class)) {
+    Data_Get_Struct(self, rhrd_t, d);
+    Data_Get_Struct(rd, rhrd_t, nd);
+    memcpy(nd, d, sizeof(rhrd_t));
+  }
   return rd;
 }
 
@@ -2222,10 +2236,12 @@ static VALUE rhrd_downto(VALUE self, VALUE other) {
  */
 static VALUE rhrd_dup(VALUE self) {
   rhrd_t *d, *nd;
-  VALUE rd = Data_Make_Struct(rb_obj_class(self), rhrd_t, NULL, -1, nd);
-  Data_Get_Struct(self, rhrd_t, d);
-  memcpy(nd, d, sizeof(rhrd_t));
-  DUPSETUP(rd, self);
+  VALUE rd = rb_call_super(0, NULL);
+  if (!rb_obj_is_kind_of(self, rhrdt_class)) {
+    Data_Get_Struct(self, rhrd_t, d);
+    Data_Get_Struct(rd, rhrd_t, nd);
+    memcpy(nd, d, sizeof(rhrd_t));
+  }
   return rd;
 }
 
@@ -4065,7 +4081,7 @@ void Init_date_ext(void) {
   /* Define classes*/
 
   rhrd_class = rb_define_class("Date", rb_cObject);
-  rb_undef_alloc_func(rhrd_class);
+  rb_define_alloc_func(rhrd_class, rhrd_s_allocate);
   rhrd_s_class = rb_singleton_class(rhrd_class);
 
   /* Define methods for all ruby versions */

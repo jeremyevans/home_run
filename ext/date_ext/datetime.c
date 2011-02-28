@@ -580,6 +580,18 @@ static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
 }
 
 /* call-seq:
+ *   allocate() -> DateTime <br />
+ *
+ * Returns a +DateTime+ object for julian day 0.
+ */
+static VALUE rhrdt_s_allocate(VALUE klass) {
+  rhrdt_t *d;
+  VALUE rd = Data_Make_Struct(klass, rhrdt_t, NULL, -1, d);
+  d->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
+  return rd;
+}
+
+/* call-seq:
  *   civil() -> DateTime <br />
  *   civil(year, month=1, day=1, hour=0, minute=0, second=0, offset=0, sg=nil) -> DateTime
  *
@@ -1007,10 +1019,10 @@ static VALUE rhrdt_asctime(VALUE self) {
  */
 static VALUE rhrdt_clone(VALUE self) {
   rhrdt_t *d, *nd;
-  VALUE rd = Data_Make_Struct(rb_obj_class(self), rhrdt_t, NULL, -1, nd);
+  VALUE rd = rb_call_super(0, NULL);
   Data_Get_Struct(self, rhrdt_t, d);
+  Data_Get_Struct(rd, rhrdt_t, nd);
   memcpy(nd, d, sizeof(rhrdt_t));
-  CLONESETUP(rd, self);
   return rd;
 }
 
@@ -1124,10 +1136,10 @@ static VALUE rhrdt_day_fraction(VALUE self) {
  */
 static VALUE rhrdt_dup(VALUE self) {
   rhrdt_t *d, *nd;
-  VALUE rd = Data_Make_Struct(rb_obj_class(self), rhrdt_t, NULL, -1, nd);
+  VALUE rd = rb_call_super(0, NULL);
   Data_Get_Struct(self, rhrdt_t, d);
+  Data_Get_Struct(rd, rhrdt_t, nd);
   memcpy(nd, d, sizeof(rhrdt_t));
-  DUPSETUP(rd, self);
   return rd;
 }
 
@@ -2769,6 +2781,7 @@ void Init_datetime(void) {
   /* Define class */
 
   rhrdt_class = rb_define_class("DateTime", rhrd_class);
+  rb_define_alloc_func(rhrdt_class, rhrdt_s_allocate);
   rhrdt_s_class = rb_singleton_class(rhrdt_class);
 
   /* Define methods for all ruby versions*/

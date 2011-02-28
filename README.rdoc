@@ -182,9 +182,8 @@ you use the standard library.
 * DateTime offsets are stored in minutes, so it will round offsets
   with fractional minutes to the nearest minute.
 * All public class and instance methods for both Date and DateTime
-  are implemented, except that the allocate class method is not
-  available and on 1.9, _dump and _load are used instead of
-  marshal_dump and marshal_load.
+  are implemented, except that on 1.9, _dump and _load are used
+  instead of marshal_dump and marshal_load.
 * Only the public API is compatible, the private methods in the
   standard library are not implemented.
 * The marshalling format differs from the one used by the standard
