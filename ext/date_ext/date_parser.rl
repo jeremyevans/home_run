@@ -107,7 +107,7 @@ long rhrd__weekday_num(char * str) {
   iso_hour = ([0-1] . [0-9] | '2' . [0-4]) >tag_iso_hour;
   iso_minute = ([0-5] . [0-9]) >tag_iso_minute;
   iso_second = ([0-5] . [0-9]) >tag_iso_second;
-  iso_zone = ([+\-] . digit{2} . ':' . digit{2}) > tag_iso_zone;
+  iso_zone = ([+\-] . digit{2} . ':'? . digit{2}?) > tag_iso_zone;
 
   iso_date = (iso_year . [\-/] . iso_month . [\-/] . iso_day);
   iso_time = (iso_hour . ':' . iso_minute . ':' . iso_second . (iso_zone %set_iso_zone)?) %set_iso_time;
@@ -257,7 +257,15 @@ VALUE rhrd__ragel_parse(char * p, long len) {
         if (iso_state & RHRR_ISO_ZONE_SET) {
           zone = t_iso_zone;
           zone_len = t_iso_zone_end - zone;
-          offset = atol(zone) * 3600 + atol(zone + 4) * 60;
+          if (zone_len == 3) { /* case for postgresql +03 */
+            offset = atol(zone) * 3600;
+          } else if (zone_len == 6) { /* standart iso */
+            offset = atol(zone) * 3600 + atol(zone + 4) * 60;
+          } else if (zone_len == 5) { /* case for sqlite +0300 */
+            char hours[3] = { zone[1], zone[2], 0};
+            offset = atol(hours) * 3600 + atol(zone + 3) * 60;
+            offset *= (zone[0] == '-') ? -1 : 1;
+          }
           state |= RHRR_ZONE_SET | RHRR_OFFSET_SET;
         }
       }
