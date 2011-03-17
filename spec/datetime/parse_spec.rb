@@ -8,6 +8,21 @@ describe "DateTime._parse" do
   it "should have :sec_fraction entry be the fraction of second" do
     DateTime._parse('12:13:15.678900')[:sec_fraction].should be_close(0.6789, 0.0000000000001)
   end 
+  
+  it "should parse zone format returned by postgresql" do
+    DateTime._parse('2001-01-01 01:01:01+03').should == {:year=>2001, :mon=>1, :mday=>1, :hour=>1, :min=>1, :sec=>1, :zone=>'+03', :offset=>10800}
+  end
+  
+  it "should parse microseconds and zone by postgresql format" do
+    hash = DateTime._parse('2001-01-01 01:01:01.00001-03')
+    hash[:sec_fraction].should be_close(0.00001, 1e-14)
+    hash[:zone].should == '-03'
+    hash[:offset].should == -10800
+  end
+  
+  it "should parse zone format as returned by sqlite3" do
+    DateTime._parse('2001-01-01 01:01:01+0300').should == {:year=>2001, :mon=>1, :mday=>1, :hour=>1, :min=>1, :sec=>1, :zone=>'+0300', :offset=>10800}
+  end
 end
 
 describe "DateTime.parse" do
