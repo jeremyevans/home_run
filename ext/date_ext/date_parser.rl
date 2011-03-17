@@ -10,6 +10,7 @@ extern int rhrd_encoding_index;
 
 #define RHRR_ISO_TIME_SET 0x1
 #define RHRR_ISO_ZONE_SET 0x2
+#define RHRR_ISO_SEC_FRACTION_SET 0x4
 
 #define RHRR_RFC_TIME_SET 0x1
 #define RHRR_RFC_ZONE_SET 0x2
@@ -30,6 +31,7 @@ extern VALUE rhrd_sym_min;
 extern VALUE rhrd_sym_mon;
 extern VALUE rhrd_sym_offset;
 extern VALUE rhrd_sym_sec;
+extern VALUE rhrd_sym_sec_fraction;
 extern VALUE rhrd_sym_wday;
 extern VALUE rhrd_sym_year;
 extern VALUE rhrd_sym_zone;
@@ -92,9 +94,11 @@ long rhrd__weekday_num(char * str) {
   action tag_iso_hour { t_iso_hour = p; }
   action tag_iso_minute { t_iso_minute = p; }
   action tag_iso_second { t_iso_second = p; }
+  action tag_iso_sec_fraction { t_iso_sec_fraction = p; }
   action tag_iso_zone { t_iso_zone = p; }
 
   action set_iso_time { iso_state |= RHRR_ISO_TIME_SET; }
+  action set_iso_sec_fraction { iso_state |= RHRR_ISO_SEC_FRACTION_SET; }
   action set_iso_zone {
     t_iso_zone_end = p;
     iso_state |= RHRR_ISO_ZONE_SET;
@@ -107,10 +111,13 @@ long rhrd__weekday_num(char * str) {
   iso_hour = ([0-1] . [0-9] | '2' . [0-4]) >tag_iso_hour;
   iso_minute = ([0-5] . [0-9]) >tag_iso_minute;
   iso_second = ([0-5] . [0-9]) >tag_iso_second;
+  iso_sec_fraction = ('.' . digit{0,6}) >tag_iso_sec_fraction;
   iso_zone = ([+\-] . digit{2} . ':'? . digit{2}?) > tag_iso_zone;
 
   iso_date = (iso_year . [\-/] . iso_month . [\-/] . iso_day);
-  iso_time = (iso_hour . ':' . iso_minute . ':' . iso_second . (iso_zone %set_iso_zone)?) %set_iso_time;
+  iso_time = (iso_hour . ':' . iso_minute . ':' . iso_second . 
+              (iso_sec_fraction %set_iso_sec_fraction)? .
+              (iso_zone %set_iso_zone)? ) %set_iso_time;
   iso_date_time = (iso_date . ([Tt ] . iso_time)? . space*) %/set_parser_iso;
 
   # RFC 2822 / HTTP
@@ -197,6 +204,7 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  double sec_fraction = 0;
 
   VALUE rzone;
   char * zone = NULL;
@@ -210,6 +218,7 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   char * t_iso_hour= NULL;
   char * t_iso_minute = NULL;
   char * t_iso_second = NULL;
+  char * t_iso_sec_fraction = NULL;
   char * t_iso_zone = NULL;
   char * t_iso_zone_end = NULL;
 
@@ -254,6 +263,10 @@ VALUE rhrd__ragel_parse(char * p, long len) {
         minute = atol(t_iso_minute);
         second = atol(t_iso_second);
         state |= RHRR_HOUR_SET | RHRR_MINUTE_SET | RHRR_SECOND_SET;
+        if (iso_state & RHRR_ISO_SEC_FRACTION_SET) {
+          sec_fraction = rb_cstr_to_dbl(t_iso_sec_fraction, Qfalse);
+          state |= RHRR_SEC_FRACTION_SET;
+        }
         if (iso_state & RHRR_ISO_ZONE_SET) {
           zone = t_iso_zone;
           zone_len = t_iso_zone_end - zone;
@@ -347,6 +360,9 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   if(state & RHRR_SECOND_SET) {
     rb_hash_aset(hash, rhrd_sym_sec, LONG2NUM(second));
   } 
+  if(state & RHRR_SEC_FRACTION_SET) {
+    rb_hash_aset(hash, rhrd_sym_sec_fraction, rb_float_new(sec_fraction));
+  }
   if(state & RHRR_ZONE_SET) {
     rzone = rb_str_new(zone, zone_len);
     rb_hash_aset(hash, rhrd_sym_zone, rzone);

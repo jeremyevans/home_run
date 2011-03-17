@@ -12,6 +12,7 @@ extern int rhrd_encoding_index;
 
 #define RHRR_ISO_TIME_SET 0x1
 #define RHRR_ISO_ZONE_SET 0x2
+#define RHRR_ISO_SEC_FRACTION_SET 0x4
 
 #define RHRR_RFC_TIME_SET 0x1
 #define RHRR_RFC_ZONE_SET 0x2
@@ -32,6 +33,7 @@ extern VALUE rhrd_sym_min;
 extern VALUE rhrd_sym_mon;
 extern VALUE rhrd_sym_offset;
 extern VALUE rhrd_sym_sec;
+extern VALUE rhrd_sym_sec_fraction;
 extern VALUE rhrd_sym_wday;
 extern VALUE rhrd_sym_year;
 extern VALUE rhrd_sym_zone;
@@ -80,20 +82,22 @@ long rhrd__weekday_num(char * str) {
 }
 
 
-#line 84 "date_parser.c"
+#line 86 "date_parser.c"
 static const char _date_parser_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	3, 1, 4, 1, 5, 1, 6, 1, 
-	7, 1, 9, 1, 10, 1, 11, 1, 
-	12, 1, 13, 1, 14, 1, 15, 1, 
-	16, 1, 17, 1, 18, 1, 21, 1, 
-	23, 1, 24, 1, 25, 1, 26, 1, 
-	27, 1, 28, 1, 29, 1, 31, 2, 
-	0, 22, 2, 7, 9, 2, 8, 7, 
-	2, 18, 21, 2, 19, 18, 2, 20, 
-	18, 2, 29, 31, 2, 30, 29, 3, 
-	8, 7, 9, 3, 19, 18, 21, 3, 
-	20, 18, 21, 3, 30, 29, 31
+	7, 1, 8, 1, 11, 1, 12, 1, 
+	13, 1, 14, 1, 15, 1, 16, 1, 
+	17, 1, 18, 1, 19, 1, 20, 1, 
+	23, 1, 25, 1, 26, 1, 27, 1, 
+	28, 1, 29, 1, 30, 1, 31, 1, 
+	33, 2, 0, 24, 2, 8, 11, 2, 
+	9, 7, 2, 9, 8, 2, 10, 8, 
+	2, 20, 23, 2, 21, 20, 2, 22, 
+	20, 2, 31, 33, 2, 32, 31, 3, 
+	9, 8, 11, 3, 10, 8, 11, 3, 
+	21, 20, 23, 3, 22, 20, 23, 3, 
+	32, 31, 33
 };
 
 static const short _date_parser_key_offsets[] = {
@@ -113,9 +117,10 @@ static const short _date_parser_key_offsets[] = {
 	286, 288, 292, 294, 296, 298, 300, 302, 
 	304, 325, 346, 348, 350, 352, 354, 358, 
 	360, 364, 366, 368, 370, 372, 377, 380, 
-	386, 391, 397, 400, 405, 409, 412, 417, 
-	422, 425, 431, 456, 481, 484, 487, 490, 
-	497, 502
+	386, 392, 398, 401, 406, 413, 420, 427, 
+	434, 441, 448, 453, 457, 460, 465, 470, 
+	473, 479, 504, 529, 532, 535, 538, 545, 
+	550
 };
 
 static const char _date_parser_trans_keys[] = {
@@ -167,9 +172,15 @@ static const char _date_parser_trans_keys[] = {
 	72, 85, 104, 117, 85, 117, 69, 101, 
 	69, 101, 68, 100, 32, 84, 116, 9, 
 	13, 32, 9, 13, 32, 50, 9, 13, 
-	48, 49, 32, 43, 45, 9, 13, 32, 
-	58, 9, 13, 48, 57, 32, 9, 13, 
-	32, 9, 13, 48, 57, 32, 58, 9, 
+	48, 49, 32, 43, 45, 46, 9, 13, 
+	32, 58, 9, 13, 48, 57, 32, 9, 
+	13, 32, 9, 13, 48, 57, 32, 43, 
+	45, 9, 13, 48, 57, 32, 43, 45, 
+	9, 13, 48, 57, 32, 43, 45, 9, 
+	13, 48, 57, 32, 43, 45, 9, 13, 
+	48, 57, 32, 43, 45, 9, 13, 48, 
+	57, 32, 43, 45, 9, 13, 48, 57, 
+	32, 43, 45, 9, 13, 32, 58, 9, 
 	13, 32, 9, 13, 32, 43, 45, 9, 
 	13, 32, 43, 45, 9, 13, 32, 9, 
 	13, 32, 50, 9, 13, 48, 49, 32, 
@@ -202,9 +213,10 @@ static const char _date_parser_single_lengths[] = {
 	2, 4, 2, 2, 2, 2, 2, 2, 
 	17, 17, 0, 0, 2, 2, 4, 2, 
 	4, 2, 2, 2, 2, 3, 1, 2, 
-	3, 2, 1, 1, 2, 1, 3, 3, 
-	1, 2, 15, 15, 1, 1, 1, 5, 
-	3, 3
+	4, 2, 1, 1, 3, 3, 3, 3, 
+	3, 3, 3, 2, 1, 3, 3, 1, 
+	2, 15, 15, 1, 1, 1, 5, 3, 
+	3
 };
 
 static const char _date_parser_range_lengths[] = {
@@ -224,9 +236,10 @@ static const char _date_parser_range_lengths[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	2, 2, 1, 1, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 1, 1, 2, 
-	1, 2, 1, 2, 1, 1, 1, 1, 
-	1, 2, 5, 5, 1, 1, 1, 1, 
-	1, 1
+	1, 2, 1, 2, 2, 2, 2, 2, 
+	2, 2, 1, 1, 1, 1, 1, 1, 
+	2, 5, 5, 1, 1, 1, 1, 1, 
+	1
 };
 
 static const short _date_parser_index_offsets[] = {
@@ -246,9 +259,10 @@ static const short _date_parser_index_offsets[] = {
 	322, 325, 330, 333, 336, 339, 342, 345, 
 	348, 368, 388, 390, 392, 395, 398, 403, 
 	406, 411, 414, 417, 420, 423, 428, 431, 
-	436, 441, 446, 449, 453, 457, 460, 465, 
-	470, 473, 478, 499, 520, 523, 526, 529, 
-	536, 541
+	436, 442, 447, 450, 454, 460, 466, 472, 
+	478, 484, 490, 495, 499, 502, 507, 512, 
+	515, 520, 541, 562, 565, 568, 571, 578, 
+	583
 };
 
 static const unsigned char _date_parser_indicies[] = {
@@ -306,21 +320,26 @@ static const unsigned char _date_parser_indicies[] = {
 	127, 128, 1, 79, 79, 1, 79, 79, 
 	1, 129, 129, 1, 79, 79, 1, 131, 
 	132, 132, 130, 1, 130, 130, 1, 130, 
-	36, 130, 35, 1, 133, 134, 134, 133, 
-	1, 135, 137, 135, 136, 1, 135, 135, 
-	1, 135, 135, 136, 1, 138, 139, 138, 
-	1, 138, 138, 1, 140, 141, 141, 140, 
-	1, 142, 141, 141, 142, 1, 143, 143, 
-	1, 104, 145, 104, 144, 1, 146, 147, 
-	147, 149, 149, 150, 149, 149, 151, 149, 
-	149, 150, 149, 149, 151, 146, 148, 148, 
-	148, 148, 1, 152, 147, 147, 149, 149, 
-	150, 149, 149, 151, 149, 149, 150, 149, 
-	149, 151, 152, 148, 148, 148, 148, 1, 
-	153, 153, 1, 154, 154, 1, 155, 155, 
-	1, 155, 156, 156, 156, 156, 155, 1, 
-	155, 156, 156, 155, 1, 155, 116, 116, 
-	155, 1, 0
+	36, 130, 35, 1, 133, 134, 134, 135, 
+	133, 1, 136, 138, 136, 137, 1, 136, 
+	136, 1, 136, 136, 137, 1, 139, 140, 
+	140, 139, 141, 1, 139, 140, 140, 139, 
+	142, 1, 139, 140, 140, 139, 143, 1, 
+	139, 140, 140, 139, 144, 1, 139, 140, 
+	140, 139, 145, 1, 139, 140, 140, 139, 
+	146, 1, 139, 140, 140, 139, 1, 147, 
+	148, 147, 1, 147, 147, 1, 149, 150, 
+	150, 149, 1, 151, 150, 150, 151, 1, 
+	152, 152, 1, 104, 154, 104, 153, 1, 
+	155, 156, 156, 158, 158, 159, 158, 158, 
+	160, 158, 158, 159, 158, 158, 160, 155, 
+	157, 157, 157, 157, 1, 161, 156, 156, 
+	158, 158, 159, 158, 158, 160, 158, 158, 
+	159, 158, 158, 160, 161, 157, 157, 157, 
+	157, 1, 162, 162, 1, 163, 163, 1, 
+	164, 164, 1, 164, 165, 165, 165, 165, 
+	164, 1, 164, 165, 165, 164, 1, 164, 
+	116, 116, 164, 1, 0
 };
 
 static const unsigned char _date_parser_trans_targs[] = {
@@ -331,42 +350,44 @@ static const unsigned char _date_parser_trans_targs[] = {
 	20, 129, 130, 12, 22, 28, 29, 30, 
 	52, 54, 56, 59, 61, 63, 65, 31, 
 	51, 32, 33, 34, 35, 35, 36, 37, 
-	132, 39, 50, 40, 41, 42, 43, 44, 
-	45, 134, 47, 48, 49, 136, 53, 55, 
+	139, 39, 50, 40, 41, 42, 43, 44, 
+	45, 141, 47, 48, 49, 143, 53, 55, 
 	57, 58, 60, 62, 64, 66, 70, 71, 
 	72, 73, 74, 114, 115, 112, 113, 75, 
 	76, 97, 99, 101, 104, 106, 108, 110, 
 	77, 96, 78, 79, 80, 80, 81, 82, 
-	137, 84, 85, 86, 87, 88, 89, 138, 
-	91, 92, 93, 140, 142, 98, 100, 102, 
+	144, 84, 85, 86, 87, 88, 89, 145, 
+	91, 92, 93, 147, 149, 98, 100, 102, 
 	103, 105, 107, 109, 111, 117, 119, 121, 
-	122, 124, 126, 127, 23, 126, 19, 126, 
-	21, 131, 133, 38, 135, 46, 135, 133, 
-	83, 95, 139, 90, 142, 143, 144, 145, 
-	139, 141, 141, 141, 94
+	122, 124, 126, 127, 23, 126, 19, 132, 
+	126, 21, 131, 126, 19, 133, 134, 135, 
+	136, 137, 138, 140, 38, 142, 46, 142, 
+	140, 83, 95, 146, 90, 149, 150, 151, 
+	152, 146, 148, 148, 148, 94
 };
 
 static const char _date_parser_trans_actions[] = {
-	0, 0, 1, 55, 55, 55, 1, 19, 
-	19, 19, 19, 19, 0, 0, 0, 0, 
+	0, 0, 1, 57, 57, 57, 1, 21, 
+	21, 21, 21, 21, 0, 0, 0, 0, 
 	0, 3, 3, 0, 0, 5, 5, 5, 
 	0, 0, 0, 9, 0, 0, 11, 0, 
-	0, 0, 0, 7, 7, 0, 0, 39, 
-	39, 39, 39, 39, 39, 39, 39, 0, 
-	0, 0, 0, 41, 41, 0, 0, 0, 
-	0, 43, 43, 0, 0, 45, 0, 0, 
-	47, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 7, 7, 0, 0, 41, 
+	41, 41, 41, 41, 41, 41, 41, 0, 
+	0, 0, 0, 43, 43, 0, 0, 0, 
+	0, 45, 45, 0, 0, 47, 0, 0, 
+	49, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 21, 21, 21, 21, 21, 21, 0, 
-	23, 23, 23, 23, 23, 23, 23, 23, 
-	0, 0, 0, 25, 25, 0, 0, 0, 
-	0, 0, 0, 29, 0, 0, 31, 0, 
+	0, 23, 23, 23, 23, 23, 23, 0, 
+	25, 25, 25, 25, 25, 25, 25, 25, 
+	0, 0, 0, 27, 27, 0, 0, 0, 
+	0, 0, 0, 31, 0, 0, 33, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 15, 13, 61, 
-	0, 0, 0, 0, 51, 49, 0, 76, 
-	27, 27, 35, 33, 33, 33, 33, 33, 
-	0, 67, 0, 70, 0
+	0, 0, 0, 0, 0, 17, 15, 13, 
+	69, 0, 0, 66, 63, 0, 0, 0, 
+	0, 0, 0, 0, 0, 53, 51, 0, 
+	84, 29, 29, 37, 35, 35, 35, 35, 
+	35, 0, 75, 0, 78, 0
 };
 
 static const char _date_parser_eof_actions[] = {
@@ -385,10 +406,11 @@ static const char _date_parser_eof_actions[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 17, 17, 17, 
-	58, 79, 79, 79, 53, 53, 73, 53, 
-	91, 37, 64, 37, 83, 37, 87, 87, 
-	87, 87
+	0, 0, 0, 0, 0, 19, 19, 19, 
+	60, 91, 91, 91, 87, 87, 87, 87, 
+	87, 87, 87, 55, 55, 81, 55, 103, 
+	39, 72, 39, 95, 39, 99, 99, 99, 
+	99
 };
 
 static const int date_parser_start = 1;
@@ -398,7 +420,7 @@ static const int date_parser_error = 0;
 static const int date_parser_en_main = 1;
 
 
-#line 185 "date_parser.rl"
+#line 192 "date_parser.rl"
 
 
 VALUE rhrd__ragel_parse(char * p, long len) {
@@ -414,6 +436,7 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  double sec_fraction = 0;
 
   VALUE rzone;
   char * zone = NULL;
@@ -427,6 +450,7 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   char * t_iso_hour= NULL;
   char * t_iso_minute = NULL;
   char * t_iso_second = NULL;
+  char * t_iso_sec_fraction = NULL;
   char * t_iso_zone = NULL;
   char * t_iso_zone_end = NULL;
 
@@ -458,14 +482,14 @@ VALUE rhrd__ragel_parse(char * p, long len) {
   eof = pe;
 
   
-#line 462 "date_parser.c"
+#line 486 "date_parser.c"
 	{
 	cs = date_parser_start;
 	}
 
-#line 244 "date_parser.rl"
+#line 253 "date_parser.rl"
   
-#line 469 "date_parser.c"
+#line 493 "date_parser.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -540,134 +564,142 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 89 "date_parser.rl"
+#line 91 "date_parser.rl"
 	{ t_iso_year = p; }
 	break;
 	case 1:
-#line 90 "date_parser.rl"
+#line 92 "date_parser.rl"
 	{ t_iso_month = p; }
 	break;
 	case 2:
-#line 91 "date_parser.rl"
+#line 93 "date_parser.rl"
 	{ t_iso_day = p; }
 	break;
 	case 3:
-#line 92 "date_parser.rl"
+#line 94 "date_parser.rl"
 	{ t_iso_hour = p; }
 	break;
 	case 4:
-#line 93 "date_parser.rl"
+#line 95 "date_parser.rl"
 	{ t_iso_minute = p; }
 	break;
 	case 5:
-#line 94 "date_parser.rl"
+#line 96 "date_parser.rl"
 	{ t_iso_second = p; }
 	break;
 	case 6:
-#line 95 "date_parser.rl"
-	{ t_iso_zone = p; }
+#line 97 "date_parser.rl"
+	{ t_iso_sec_fraction = p; }
 	break;
 	case 7:
-#line 97 "date_parser.rl"
-	{ iso_state |= RHRR_ISO_TIME_SET; }
+#line 98 "date_parser.rl"
+	{ t_iso_zone = p; }
 	break;
 	case 8:
-#line 98 "date_parser.rl"
+#line 100 "date_parser.rl"
+	{ iso_state |= RHRR_ISO_TIME_SET; }
+	break;
+	case 9:
+#line 101 "date_parser.rl"
+	{ iso_state |= RHRR_ISO_SEC_FRACTION_SET; }
+	break;
+	case 10:
+#line 102 "date_parser.rl"
 	{
     t_iso_zone_end = p;
     iso_state |= RHRR_ISO_ZONE_SET;
   }
 	break;
-	case 10:
-#line 118 "date_parser.rl"
+	case 12:
+#line 125 "date_parser.rl"
 	{ t_rfc_wday = p; }
 	break;
-	case 11:
-#line 119 "date_parser.rl"
+	case 13:
+#line 126 "date_parser.rl"
 	{ t_rfc_day = p; }
 	break;
-	case 12:
-#line 120 "date_parser.rl"
+	case 14:
+#line 127 "date_parser.rl"
 	{ t_rfc_month = p; }
 	break;
-	case 13:
-#line 121 "date_parser.rl"
+	case 15:
+#line 128 "date_parser.rl"
 	{ t_rfc_year = p; }
 	break;
-	case 14:
-#line 122 "date_parser.rl"
+	case 16:
+#line 129 "date_parser.rl"
 	{ t_rfc_hour = p; }
 	break;
-	case 15:
-#line 123 "date_parser.rl"
+	case 17:
+#line 130 "date_parser.rl"
 	{ t_rfc_minute = p; }
 	break;
-	case 16:
-#line 124 "date_parser.rl"
+	case 18:
+#line 131 "date_parser.rl"
 	{ t_rfc_second = p; }
 	break;
-	case 17:
-#line 125 "date_parser.rl"
+	case 19:
+#line 132 "date_parser.rl"
 	{ t_rfc_zone = p; }
 	break;
-	case 18:
-#line 127 "date_parser.rl"
+	case 20:
+#line 134 "date_parser.rl"
 	{ rfc_state |= RHRR_RFC_TIME_SET; }
 	break;
-	case 19:
-#line 128 "date_parser.rl"
+	case 21:
+#line 135 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NUM_SET;
   }
 	break;
-	case 20:
-#line 132 "date_parser.rl"
+	case 22:
+#line 139 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NAME_SET;
   }
 	break;
-	case 22:
-#line 155 "date_parser.rl"
+	case 24:
+#line 162 "date_parser.rl"
 	{ t_clf_day = p; }
 	break;
-	case 23:
-#line 156 "date_parser.rl"
+	case 25:
+#line 163 "date_parser.rl"
 	{ t_clf_month = p; }
 	break;
-	case 24:
-#line 157 "date_parser.rl"
+	case 26:
+#line 164 "date_parser.rl"
 	{ t_clf_year = p; }
 	break;
-	case 25:
-#line 158 "date_parser.rl"
+	case 27:
+#line 165 "date_parser.rl"
 	{ t_clf_hour = p; }
 	break;
-	case 26:
-#line 159 "date_parser.rl"
+	case 28:
+#line 166 "date_parser.rl"
 	{ t_clf_minute = p; }
 	break;
-	case 27:
-#line 160 "date_parser.rl"
+	case 29:
+#line 167 "date_parser.rl"
 	{ t_clf_second = p; }
 	break;
-	case 28:
-#line 161 "date_parser.rl"
+	case 30:
+#line 168 "date_parser.rl"
 	{ t_clf_zone = p; }
 	break;
-	case 29:
-#line 163 "date_parser.rl"
+	case 31:
+#line 170 "date_parser.rl"
 	{ clf_state |= RHRR_CLF_TIME_SET; }
 	break;
-	case 30:
-#line 164 "date_parser.rl"
+	case 32:
+#line 171 "date_parser.rl"
 	{
     t_clf_zone_end = p;
     clf_state |= RHRR_CLF_ZONE_SET;
   }
 	break;
-#line 671 "date_parser.c"
+#line 703 "date_parser.c"
 		}
 	}
 
@@ -683,59 +715,63 @@ _again:
 	unsigned int __nacts = (unsigned int) *__acts++;
 	while ( __nacts-- > 0 ) {
 		switch ( *__acts++ ) {
-	case 7:
-#line 97 "date_parser.rl"
+	case 8:
+#line 100 "date_parser.rl"
 	{ iso_state |= RHRR_ISO_TIME_SET; }
 	break;
-	case 8:
-#line 98 "date_parser.rl"
+	case 9:
+#line 101 "date_parser.rl"
+	{ iso_state |= RHRR_ISO_SEC_FRACTION_SET; }
+	break;
+	case 10:
+#line 102 "date_parser.rl"
 	{
     t_iso_zone_end = p;
     iso_state |= RHRR_ISO_ZONE_SET;
   }
 	break;
-	case 9:
-#line 102 "date_parser.rl"
+	case 11:
+#line 106 "date_parser.rl"
 	{ parsers |= RHRR_ISO_PARSER; }
 	break;
-	case 18:
-#line 127 "date_parser.rl"
+	case 20:
+#line 134 "date_parser.rl"
 	{ rfc_state |= RHRR_RFC_TIME_SET; }
 	break;
-	case 19:
-#line 128 "date_parser.rl"
+	case 21:
+#line 135 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NUM_SET;
   }
 	break;
-	case 20:
-#line 132 "date_parser.rl"
+	case 22:
+#line 139 "date_parser.rl"
 	{
     t_rfc_zone_end = p;
     rfc_state |= RHRR_RFC_ZONE_SET | RHRR_RFC_ZONE_NAME_SET;
   }
 	break;
-	case 21:
-#line 136 "date_parser.rl"
+	case 23:
+#line 143 "date_parser.rl"
 	{ parsers |= RHRR_RFC_PARSER; }
 	break;
-	case 29:
-#line 163 "date_parser.rl"
+	case 31:
+#line 170 "date_parser.rl"
 	{ clf_state |= RHRR_CLF_TIME_SET; }
 	break;
-	case 30:
-#line 164 "date_parser.rl"
+	case 32:
+#line 171 "date_parser.rl"
 	{
     t_clf_zone_end = p;
     clf_state |= RHRR_CLF_ZONE_SET;
   }
 	break;
-	case 31:
-#line 168 "date_parser.rl"
+	case 33:
+#line 175 "date_parser.rl"
 	{ parsers |= RHRR_CLF_PARSER; }
 	break;
-#line 739 "date_parser.c"
+#line 775 "date_parser.c"
 		}
 	}
 	}
@@ -743,7 +779,7 @@ _again:
 	_out: {}
 	}
 
-#line 245 "date_parser.rl"
+#line 254 "date_parser.rl"
 
   switch(parsers) {
     case RHRR_ISO_PARSER:
@@ -756,6 +792,10 @@ _again:
         minute = atol(t_iso_minute);
         second = atol(t_iso_second);
         state |= RHRR_HOUR_SET | RHRR_MINUTE_SET | RHRR_SECOND_SET;
+        if (iso_state & RHRR_ISO_SEC_FRACTION_SET) {
+          sec_fraction = rb_cstr_to_dbl(t_iso_sec_fraction, Qfalse);
+          state |= RHRR_SEC_FRACTION_SET;
+        }
         if (iso_state & RHRR_ISO_ZONE_SET) {
           zone = t_iso_zone;
           zone_len = t_iso_zone_end - zone;
@@ -849,6 +889,9 @@ _again:
   if(state & RHRR_SECOND_SET) {
     rb_hash_aset(hash, rhrd_sym_sec, LONG2NUM(second));
   } 
+  if(state & RHRR_SEC_FRACTION_SET) {
+    rb_hash_aset(hash, rhrd_sym_sec_fraction, rb_float_new(sec_fraction));
+  }
   if(state & RHRR_ZONE_SET) {
     rzone = rb_str_new(zone, zone_len);
     rb_hash_aset(hash, rhrd_sym_zone, rzone);
