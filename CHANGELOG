@@ -1,3 +1,9 @@
+=== 1.0.2 (2011-03-18)
+
+* Support fractional timestamps in the ISO date parser (funny-falcon)
+
+* Support more variations in timezone formats in the ISO date parser (funny-falcon)
+
 === 1.0.1 (2011-02-28)
 
 * Make #step with a 0 step value raise an ArgumentError (jeremyevans)

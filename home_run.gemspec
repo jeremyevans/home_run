@@ -1,6 +1,6 @@
 HOME_RUN_GEMSPEC = Gem::Specification.new do |s|
   s.name = 'home_run'
-  s.version = '1.0.1'
+  s.version = '1.0.2'
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
   s.extra_rdoc_files = ["README.rdoc", "CHANGELOG", "LICENSE"]
