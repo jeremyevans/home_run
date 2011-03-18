@@ -8,5 +8,5 @@ end
 
 class MSpecScript
   set :flags, %w'-I ext/date_ext -I lib -r date'
-  set :files, ['spec/date/*', 'spec/datetime/*']
+  set :files, ['spec/date/*.rb', 'spec/datetime/*.rb']
 end
