@@ -116,6 +116,15 @@ easily use this library.  If you need to do this and you are using
 Rails 3, make sure you require home_run before rails/all in
 config/application.rb.
 
+== Usage with bundler
+
+Use the following in your Gemfile:
+
+  gem 'home_run', :require=>'date'
+
+You need the :require option because otherwise it will require
+'home_run', which can lead to problems.
+
 == Running the specs
 
 You can run the rubyspec based specs after installing the gem, if
