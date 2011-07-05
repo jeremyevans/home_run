@@ -1,3 +1,7 @@
+=== 1.0.3 (2011-07-05)
+
+* Work around segfault in rb_ary_push during extension initialization (jeremyevans)
+
 === 1.0.2 (2011-03-18)
 
 * Support fractional timestamps in the ISO date parser (funny-falcon)
@@ -12,7 +16,7 @@
 
 === 1.0.0 (2011-02-01)
 
-* Define the ZONES hash in ruby to work around probably interpreter bug (jeremyevans)
+* Define the ZONES hash in ruby to work around probable interpreter bug (jeremyevans)
 
 === 0.9.4 (2010-10-18)
 

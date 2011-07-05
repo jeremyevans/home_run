@@ -4011,6 +4011,10 @@ static VALUE rhrd_s_valid_time_q(VALUE klass, VALUE rh, VALUE rm, VALUE rs) {
  * */
 void Init_date_ext(void) {
   int i;
+  VALUE monthnames[13];
+  VALUE abbr_monthnames[13];
+  VALUE daynames[7];
+  VALUE abbr_daynames[7];
 
   /* Setup static IDs and symbols */
 
@@ -4165,21 +4169,21 @@ void Init_date_ext(void) {
 
   /* Setup static constants */
 
-  rhrd_monthnames = rb_ary_new2(13);
-  rhrd_abbr_monthnames = rb_ary_new2(13);
-  rb_ary_push(rhrd_monthnames, Qnil);
-  rb_ary_push(rhrd_abbr_monthnames, Qnil);
+  monthnames[0] = Qnil;
+  abbr_monthnames[0] = Qnil;
   for(i = 1; i < 13; i++) {
-    rb_ary_push(rhrd_monthnames, rb_str_new2((const char *)rhrd__month_names[i]));
-    rb_ary_push(rhrd_abbr_monthnames, rb_str_new2(rhrd__abbr_month_names[i]));
+    monthnames[i] =  rb_str_new2((const char *)rhrd__month_names[i]);
+    abbr_monthnames[i] =  rb_str_new2(rhrd__abbr_month_names[i]);
   }
+  rhrd_monthnames = rb_ary_new4(13, monthnames);
+  rhrd_abbr_monthnames = rb_ary_new4(13, abbr_monthnames);
 
-  rhrd_daynames = rb_ary_new2(7);
-  rhrd_abbr_daynames = rb_ary_new2(7);
   for(i = 0; i < 7; i++) {
-    rb_ary_push(rhrd_daynames, rb_str_new2(rhrd__day_names[i]));
-    rb_ary_push(rhrd_abbr_daynames, rb_str_new2(rhrd__abbr_day_names[i]));
+    daynames[i] =  rb_str_new2(rhrd__day_names[i]);
+    abbr_daynames[i] =  rb_str_new2(rhrd__abbr_day_names[i]);
   }
+  rhrd_daynames = rb_ary_new4(7, daynames);
+  rhrd_abbr_daynames = rb_ary_new4(7, abbr_daynames);
 
   rhrd_start_num = LONG2NUM(RHR_JD_MIN - 1);
   rhrd_empty_string = rb_str_new("", 0);
