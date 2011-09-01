@@ -222,6 +222,8 @@ bugs, so please report any other differences you find.
 Some other libraries are known to be incompatible with this
 extension due to the above differences:
 
+* ActiveSupport 3.1 - DateTime#<=> broken because it relies on
+  Date#<=> working for DateTimes.
 * Date::Performance - Date#<=> assumes @ajd instance variable
   (unnecessary anyway, as home_run is faster)
 * Runt - assumes @ajd instance variable
