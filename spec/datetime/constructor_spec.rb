@@ -149,4 +149,18 @@ describe "DateTime constructors" do
     c.new!.should be_kind_of(c)
     c.new.should be_kind_of(c)
   end
+
+  it "should handle strings for the offset" do
+    DateTime.jd(2008, 0, 0, 0, 'Z').should == DateTime.jd(2008, 0, 0, 0, 0)
+    DateTime.civil(2008, 1, 1, 0, 0, 0, 'Z').should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0)
+    DateTime.commercial(2008, 1, 1, 0, 0, 0, 'Z').should == DateTime.commercial(2008, 1, 1, 0, 0, 0, 0)
+    DateTime.ordinal(2008, 1, 0, 0, 0, 'Z').should == DateTime.ordinal(2008, 1, 0, 0, 0, 0)
+    DateTime.new(2008, 1, 1, 0, 0, 0, 'Z').should == DateTime.new(2008, 1, 1, 0, 0, 0, 0)
+
+    DateTime.jd(2008, 0, 0, 0, '+1200').should == DateTime.jd(2008, 0, 0, 0, 0.5)
+    DateTime.civil(2008, 1, 1, 0, 0, 0, '+1200').should == DateTime.civil(2008, 1, 1, 0, 0, 0, 0.5)
+    DateTime.commercial(2008, 1, 1, 0, 0, 0, '+1200').should == DateTime.commercial(2008, 1, 1, 0, 0, 0, 0.5)
+    DateTime.ordinal(2008, 1, 0, 0, 0, '+1200').should == DateTime.ordinal(2008, 1, 0, 0, 0, 0.5)
+    DateTime.new(2008, 1, 1, 0, 0, 0, '+1200').should == DateTime.new(2008, 1, 1, 0, 0, 0, 0.5)
+  end
 end

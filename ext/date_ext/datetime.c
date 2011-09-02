@@ -512,6 +512,15 @@ VALUE rhrdt__new_offset(VALUE self, double offset) {
   return rhrdt__from_jd_nanos(rb_obj_class(self), dt->jd, dt->nanos - (dt->offset - offset_min)*RHR_NANOS_PER_MINUTE, (short)offset_min);
 }
 
+/* Handle both string timezones and numeric offsets in
+ * constructors and new_offset */
+double rhrdt__constructor_offset(VALUE self, VALUE offset) {
+  if (TYPE(offset) == T_STRING) {
+    return NUM2LONG(rhrd_s_zone_to_diff(self, offset))/RHR_SECONDS_PER_DAYD;
+  }
+  return NUM2DBL(offset);
+}
+
 /* Class methods */
 
 /* call-seq:
@@ -618,7 +627,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
       return rdt;
     case 8:
     case 7:
-      offset = NUM2DBL(argv[6]);
+      offset = rhrdt__constructor_offset(klass, argv[6]);
     case 6:
       second = NUM2LONG(argv[5]);
     case 5:
@@ -672,7 +681,7 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 8:
     case 7:
-      offset = NUM2DBL(argv[6]);
+      offset = rhrdt__constructor_offset(klass, argv[6]);
     case 6:
       second = NUM2LONG(argv[5]);
     case 5:
@@ -727,7 +736,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
       return rdt;
     case 6:
     case 5:
-      offset = NUM2DBL(argv[4]);
+      offset = rhrdt__constructor_offset(klass, argv[4]);
     case 4:
       second = NUM2LONG(argv[3]);
     case 3:
@@ -842,7 +851,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   switch(argc) {
     case 7:
     case 6:
-      offset = NUM2DBL(argv[5]);
+      offset = rhrdt__constructor_offset(klass, argv[5]);
     case 5:
       second = NUM2LONG(argv[4]);
     case 4:
@@ -1378,11 +1387,7 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
       offset = 0;
       break;
     case 1:
-      if (RTEST(rb_obj_is_kind_of(argv[0], rb_cString))) {
-        offset = NUM2LONG(rhrd_s_zone_to_diff(self, argv[0]))/RHR_SECONDS_PER_DAYD;
-      } else {
-        offset = NUM2DBL(argv[0]);
-      }
+      offset= rhrdt__constructor_offset(rb_obj_class(self), argv[0]);
       break;
     default:
       rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);

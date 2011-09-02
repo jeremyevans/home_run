@@ -5,6 +5,10 @@ describe "DateTime conversions" do
     DateTime.new(2008, 1, 1).new_offset(0.5).to_s.should == DateTime.new(2008, 1, 1, 12, 0, 0, 0.5).to_s
   end
 
+  it "#new_offset should work with strings" do
+    DateTime.new(2008, 1, 1).new_offset('+12:00').to_s.should == DateTime.new(2008, 1, 1, 12, 0, 0, 0.5).to_s
+  end
+
   it "#new_offset result should be equal to the receiver" do
     DateTime.new(2008, 1, 1).new_offset(0.5).should == DateTime.new(2008, 1, 1)
   end
