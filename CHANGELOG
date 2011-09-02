@@ -1,3 +1,7 @@
+=== 1.0.4 (2011-09-02)
+
+* Handle time zone offsets given as strings in the constructors (jeremyevans) (#37)
+
 === 1.0.3 (2011-07-05)
 
 * Work around segfault in rb_ary_push during extension initialization (jeremyevans)
