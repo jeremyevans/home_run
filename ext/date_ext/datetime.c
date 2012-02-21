@@ -743,6 +743,9 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
       minute = NUM2LONG(argv[2]);
     case 2:
       hour = NUM2LONG(argv[1]);
+      if (TYPE(argv[0]) == T_FLOAT) {
+        rb_raise(rb_eArgError, "can't use float for first argument if providing multiple arguments");
+      }
     case 1:
       dt->jd = NUM2LONG(argv[0]);
       break;
@@ -754,7 +757,11 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   RHR_CHECK_JD(dt)
   dt->flags = RHR_HAVE_JD;
   rhrdt__set_time(dt, hour, minute, second, offset);
-  return rdt;
+  if (TYPE(argv[0]) == T_FLOAT) {
+    return rhrdt__add_days(rdt, NUM2DBL(argv[0]) - NUM2LONG(argv[0]));
+  } else {
+    return rdt;
+  }
 }
 
 /* call-seq:

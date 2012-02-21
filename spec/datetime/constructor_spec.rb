@@ -72,6 +72,19 @@ describe "DateTime constructors" do
     d.offset.should == 1/24.0
   end
   
+  it ".jd handles a fractional date as first argument" do
+    d = DateTime.jd(2000.5)
+    d.jd.should == 2000
+    d.hour.should == 12
+    d.min.should == 0
+    d.sec.should == 0
+    d.offset.should == 0
+  end
+  
+  it ".jd should raise an error if given a float as first argument and any additional arguments" do
+    proc{DateTime.jd(2000.5, 1)}.should raise_error(ArgumentError)
+  end
+
   it ".jd should have defaults and an optional sg value" do
     DateTime.jd.should == DateTime.jd(0, 0, 0, 0, 0)
     DateTime.jd(0).should == DateTime.jd(0, 0, 0, 0, 0)
