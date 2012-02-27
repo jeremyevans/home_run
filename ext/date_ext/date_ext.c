@@ -2906,30 +2906,69 @@ static VALUE rhrd_op_relationship(VALUE self, VALUE other) {
  * For an unrecognized type, return +nil+.
  */
 static VALUE rhrd_op_spaceship(VALUE self, VALUE other) {
-  rhrd_t *d, *o;
-  rhrdt_t *odt;
-  long diff;
-  Data_Get_Struct(self, rhrd_t, d);
+  if (RTEST(rb_obj_is_kind_of(self, rhrdt_class))) {
+    rhrdt_t *dt, *odt;
+    rhrd_t *od;
+    double diff;
+    int res;
 
-  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
-    Data_Get_Struct(other, rhrdt_t, odt);
-    RHR_FILL_JD(d)
-    RHRDT_FILL_JD(odt)
-    RHR_SPACE_SHIP(diff, d->jd, odt->jd)
-    if (diff == 0) {
-      RHRDT_FILL_NANOS(odt)
-      RHR_SPACE_SHIP(diff, 0, odt->nanos)
+    if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+      self = rhrdt__new_offset(self, 0.0);
+      other = rhrdt__new_offset(other, 0.0);
+      Data_Get_Struct(self, rhrdt_t, dt);
+      Data_Get_Struct(other, rhrdt_t, odt);
+      return LONG2NUM(rhrdt__spaceship(dt, odt));
     }
-    return LONG2NUM(diff);
-  } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
-    Data_Get_Struct(other, rhrd_t, o);
-    return LONG2NUM(rhrd__spaceship(d, o));
-  } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
-    diff = NUM2LONG(other);
-    RHR_FILL_JD(d)
-    RHR_SPACE_SHIP(diff, d->jd, diff)
-    return LONG2NUM(diff);
+    if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+      Data_Get_Struct(self, rhrdt_t, dt);
+      Data_Get_Struct(other, rhrd_t, od);
+      RHRDT_FILL_JD(dt)
+      RHR_FILL_JD(od)
+      RHR_SPACE_SHIP(res, dt->jd, od->jd)
+      if (res == 0) {
+        RHRDT_FILL_NANOS(dt)
+        RHR_SPACE_SHIP(res, dt->nanos, 0)
+      }
+      return LONG2NUM(res);
+    }
+    if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+      Data_Get_Struct(self, rhrdt_t, dt);
+      diff = NUM2DBL(other);
+      RHRDT_FILL_JD(dt)
+      RHR_SPACE_SHIP(res, dt->jd, (long)diff)
+      if (res == 0) {
+        RHRDT_FILL_NANOS(dt)
+        RHR_SPACE_SHIP(res, dt->nanos, llround((diff - floor(diff)) * RHR_NANOS_PER_DAY))
+      }
+      return LONG2NUM(res);
+    }
+  } else {
+    rhrd_t *d, *o;
+    rhrdt_t *odt;
+    long diff;
+    Data_Get_Struct(self, rhrd_t, d);
+
+    if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
+      Data_Get_Struct(other, rhrdt_t, odt);
+      RHR_FILL_JD(d)
+      RHRDT_FILL_JD(odt)
+      RHR_SPACE_SHIP(diff, d->jd, odt->jd)
+      if (diff == 0) {
+        RHRDT_FILL_NANOS(odt)
+        RHR_SPACE_SHIP(diff, 0, odt->nanos)
+      }
+      return LONG2NUM(diff);
+    } else if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
+      Data_Get_Struct(other, rhrd_t, o);
+      return LONG2NUM(rhrd__spaceship(d, o));
+    } else if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
+      diff = NUM2LONG(other);
+      RHR_FILL_JD(d)
+      RHR_SPACE_SHIP(diff, d->jd, diff)
+      return LONG2NUM(diff);
+    }
   }
+
   return Qnil;
 }
 

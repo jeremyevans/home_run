@@ -181,6 +181,8 @@ VALUE rhrd_s_zone_to_diff(VALUE self, VALUE zone);
 VALUE rhrd__strftime(rhrdt_t *d, const char * fmt, int fmt_len);
 long rhrd__ordinal_day(long year, unsigned char month, unsigned char day);
 VALUE rhrd__ragel_parse(char * p, long len);
+VALUE rhrdt__new_offset(VALUE self, double offset);
+long rhrdt__spaceship(rhrdt_t *dt, rhrdt_t *odt);
 void Init_datetime(void);
 
 #endif /* DATE_EXT_H */

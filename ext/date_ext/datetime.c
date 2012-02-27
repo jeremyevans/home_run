@@ -14,7 +14,6 @@ extern const char * rhrd__abbr_day_names[];
 
 static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self);
 static VALUE rhrdt_to_s(VALUE self);
-VALUE rhrdt__new_offset(VALUE self, double offset);
 void rhrdt__jd_to_civil(rhrdt_t *date);
 void rhrdt__nanos_to_hms(rhrdt_t *d);
 
@@ -1908,67 +1907,6 @@ static VALUE rhrdt_op_relationship(VALUE self, VALUE other) {
   return dt->jd == jd ? Qtrue : Qfalse;
 }
 
-/* call-seq:
- *   <=>(other) -> -1, 0, 1, or nil
- *
- * If +other+ is a +DateTime+, returns -1 if the absolute date and time of
- * +other+ is before the absolute time of the receiver chronologically,
- * 0 if +other+ is the same absolute date and time as the receiver,
- * or 1 if the absolute date and time of +other+ is before the receiver
- * chronologically.  Absolute date and time in this case means after taking
- * account the time zone offset.
- *
- * If +other+ is a +Date+, return 0 if +other+ has the same
- * julian date as the receiver and the receiver has no fractional part,
- * 1 if +other+ has a julian date greater than the receiver's, or
- * -1 if +other+ has a julian date less than the receiver's or
- * a julian date the same as the receiver's and the receiver has a
- * fractional part. 
- *
- * If +other+ is a +Numeric+, convert it to an +Float+ and compare
- * it to the receiver's julian date plus the fractional part. 
- *
- * For an unrecognized type, return +nil+.
- */
-static VALUE rhrdt_op_spaceship(VALUE self, VALUE other) {
-  rhrdt_t *dt, *odt;
-  rhrd_t *od;
-  double diff;
-  int res;
-
-  if (RTEST(rb_obj_is_kind_of(other, rhrdt_class))) {
-    self = rhrdt__new_offset(self, 0.0);
-    other = rhrdt__new_offset(other, 0.0);
-    Data_Get_Struct(self, rhrdt_t, dt);
-    Data_Get_Struct(other, rhrdt_t, odt);
-    return LONG2NUM(rhrdt__spaceship(dt, odt));
-  }
-  if (RTEST(rb_obj_is_kind_of(other, rhrd_class))) {
-    Data_Get_Struct(self, rhrdt_t, dt);
-    Data_Get_Struct(other, rhrd_t, od);
-    RHRDT_FILL_JD(dt)
-    RHR_FILL_JD(od)
-    RHR_SPACE_SHIP(res, dt->jd, od->jd)
-    if (res == 0) {
-      RHRDT_FILL_NANOS(dt)
-      RHR_SPACE_SHIP(res, dt->nanos, 0)
-    }
-    return LONG2NUM(res);
-  }
-  if (RTEST((rb_obj_is_kind_of(other, rb_cNumeric)))) {
-    Data_Get_Struct(self, rhrdt_t, dt);
-    diff = NUM2DBL(other);
-    RHRDT_FILL_JD(dt)
-    RHR_SPACE_SHIP(res, dt->jd, (long)diff)
-    if (res == 0) {
-      RHRDT_FILL_NANOS(dt)
-      RHR_SPACE_SHIP(res, dt->nanos, llround((diff - floor(diff)) * RHR_NANOS_PER_DAY))
-    }
-    return LONG2NUM(res);
-  }
-  return Qnil;
-}
-
 #ifdef RUBY19
 
 /* Ruby 1.9 helper methods */
@@ -2858,7 +2796,6 @@ void Init_datetime(void) {
   rb_define_method(rhrdt_class, "+", rhrdt_op_plus, 1);
   rb_define_method(rhrdt_class, "-", rhrdt_op_minus, 1);
   rb_define_method(rhrdt_class, "===", rhrdt_op_relationship, 1);
-  rb_define_method(rhrdt_class, "<=>", rhrdt_op_spaceship, 1);
 
   rb_define_alias(rhrdt_class, "ctime", "asctime");
   rb_define_alias(rhrdt_class, "mday", "day");
