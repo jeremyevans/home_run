@@ -176,4 +176,12 @@ describe "DateTime constructors" do
     DateTime.ordinal(2008, 1, 0, 0, 0, '+1200').should == DateTime.ordinal(2008, 1, 0, 0, 0, 0.5)
     DateTime.new(2008, 1, 1, 0, 0, 0, '+1200').should == DateTime.new(2008, 1, 1, 0, 0, 0, 0.5)
   end
+
+  it "should handle fractional seconds in seconds" do
+    DateTime.jd(2008, 0, 0, 1.5).should == DateTime.jd(2008, 0, 0, 1) + (0.5/86400)
+    DateTime.civil(2008, 1, 1, 0, 0, 1.5).should == DateTime.civil(2008, 1, 1, 0, 0, 1) + (0.5/86400)
+    DateTime.commercial(2008, 1, 1, 0, 0, 1.5).should == DateTime.commercial(2008, 1, 1, 0, 0, 1) + (0.5/86400)
+    DateTime.ordinal(2008, 1, 0, 0, 1.5).should == DateTime.ordinal(2008, 1, 0, 0, 1) + (0.5/86400)
+    DateTime.new(2008, 1, 1, 0, 0, 1.5).should == DateTime.new(2008, 1, 1, 0, 0, 1) + (0.5/86400)
+  end
 end

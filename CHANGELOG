@@ -1,6 +1,10 @@
+=== 1.0.7 (2012-08-08)
+
+* Make DateTime constructors handle fractional seconds in seconds argument (jeremyevans)
+
 === 1.0.6 (2012-02-27)
 
-* Merge DateTime#<=> into Date#<=> to work around ActiveSupport bug (#45, #41, #38, #36)
+* Merge DateTime#<=> into Date#<=> to work around ActiveSupport bug (jeremyevans) (#45, #41, #38, #36)
 
 === 1.0.5 (2011-12-22)
 

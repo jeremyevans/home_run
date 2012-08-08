@@ -154,6 +154,33 @@ void rhrdt__set_time(rhrdt_t *dt, long h, long m, long s, double offset) {
   dt->flags |= RHR_HAVE_HMS;
 }
 
+/* Call rhrdt__set_time without the nanos.  If there are any nanos, convert the hms information
+ * to nanos and add the given nanos.  Note that the given nanos should be less than or equal to
+ * 1,000,000,000. */
+void rhrdt__set_time_nanos(rhrdt_t *dt, long h, long m, long s, long long nanos, double offset) {
+  rhrdt__set_time(dt, h, m, s, offset);
+  if (nanos) {
+    rhrdt__hms_to_nanos(dt);
+    dt->nanos += nanos;
+    if (nanos == 1000000000) {
+      dt->second++;
+    }
+  }
+}
+
+/* Return the number of nano seconds in the given VALUE. Should
+ * return 0 unless rsecond has a fractional part, and should never
+ * be more than 1,000,000,000. */
+long long rhrdt__nanos_from_second(VALUE rsecond, long second) {
+  double sec_fraction;
+
+  if ((sec_fraction = (NUM2DBL(rsecond) - second)) > 0) {
+    return llround(sec_fraction * 1000000000);
+  }
+
+  return 0;
+}
+
 /* Same as rhrd__civil_to_jd for rhrdt_t. */
 void rhrdt__civil_to_jd(rhrdt_t *d) {
   d->jd = rhrd__ymd_to_jd(d->year, d->month, d->day);
@@ -617,6 +644,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  long long nanos = 0;
   double offset = 0.0;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
@@ -629,6 +657,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
       offset = rhrdt__constructor_offset(klass, argv[6]);
     case 6:
       second = NUM2LONG(argv[5]);
+      nanos = rhrdt__nanos_from_second(argv[5], second);
     case 5:
       minute = NUM2LONG(argv[4]);
     case 4:
@@ -648,7 +677,7 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
   if (!rhrdt__valid_civil(dt, year, month, day)) {
     rb_raise(rb_eArgError, "invalid date (year: %li, month: %li, day: %li)", year, month, day);
   }
-  rhrdt__set_time(dt, hour, minute, second, offset);
+  rhrdt__set_time_nanos(dt, hour, minute, second, nanos, offset);
   return rdt;
 }
 
@@ -674,6 +703,7 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  long long nanos = 0;
   double offset = 0.0;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
@@ -683,6 +713,7 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
       offset = rhrdt__constructor_offset(klass, argv[6]);
     case 6:
       second = NUM2LONG(argv[5]);
+      nanos = rhrdt__nanos_from_second(argv[5], second);
     case 5:
       minute = NUM2LONG(argv[4]);
     case 4:
@@ -709,7 +740,7 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
   if(!rhrdt__valid_commercial(dt, cwyear, cweek, cwday)) {
     rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %li, cwday: %li)", cwyear, cweek, cwday);
   }
-  rhrdt__set_time(dt, hour, minute, second, offset);
+  rhrdt__set_time_nanos(dt, hour, minute, second, nanos, offset);
   return rdt;
 }
 
@@ -726,6 +757,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  long long nanos = 0;
   double offset = 0.0;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
 
@@ -738,6 +770,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
       offset = rhrdt__constructor_offset(klass, argv[4]);
     case 4:
       second = NUM2LONG(argv[3]);
+      nanos = rhrdt__nanos_from_second(argv[3], second);
     case 3:
       minute = NUM2LONG(argv[2]);
     case 2:
@@ -755,7 +788,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
 
   RHR_CHECK_JD(dt)
   dt->flags = RHR_HAVE_JD;
-  rhrdt__set_time(dt, hour, minute, second, offset);
+  rhrdt__set_time_nanos(dt, hour, minute, second, nanos, offset);
   if (TYPE(argv[0]) == T_FLOAT) {
     return rhrdt__add_days(rdt, NUM2DBL(argv[0]) - NUM2LONG(argv[0]));
   } else {
@@ -850,6 +883,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
   long hour = 0;
   long minute = 0;
   long second = 0;
+  long long nanos = 0;
   double offset = 0.0;
   rhrdt_t *dt;
   VALUE rdt = Data_Make_Struct(klass, rhrdt_t, NULL, -1, dt);
@@ -860,6 +894,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
       offset = rhrdt__constructor_offset(klass, argv[5]);
     case 5:
       second = NUM2LONG(argv[4]);
+      nanos = rhrdt__nanos_from_second(argv[4], second);
     case 4:
       minute = NUM2LONG(argv[3]);
     case 3:
@@ -881,7 +916,7 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
     RHR_CHECK_JD(dt)
     rb_raise(rb_eArgError, "invalid date (year: %li, yday: %li)", year, day);
   }
-  rhrdt__set_time(dt, hour, minute, second, offset);
+  rhrdt__set_time_nanos(dt, hour, minute, second, nanos, offset);
   return rdt;
 }
 
