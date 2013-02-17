@@ -4,6 +4,14 @@ home_run is an implementation of ruby's Date/DateTime classes in C,
 with much better performance (20-200x) than the version in the
 standard library, while being almost completely compatible.
 
+== Not necessary in 1.9.3+
+
+Ruby 1.9.3+ replaced the old date library with one written in C,
+based partially on the design of home_run (but implemented
+differently).  In most cases, if you are using Ruby 1.9.3+, you
+will not need to use home_run.
+
+
 == Performance increase (microbenchmarks)
 
 The speedup you'll get depends mostly on your version of ruby, but
