@@ -1,3 +1,7 @@
+=== 1.0.8 (2013-02-28)
+
+* Switch %i to %d in format strings to work on ruby 2.0 (jeremyevans)
+
 === 1.0.7 (2012-08-08)
 
 * Make DateTime constructors handle fractional seconds in seconds argument (jeremyevans)

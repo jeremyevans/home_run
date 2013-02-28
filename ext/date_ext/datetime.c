@@ -102,7 +102,7 @@ int rhrdt__valid_civil(rhrdt_t *dt, long year, long month, long day) {
   }
 
   if(!rhrd__valid_civil_limits(year, month, day)) {
-    rb_raise(rb_eRangeError, "datetime out of range: year = %li, month = %li, day = %li", year, month, day);
+    rb_raise(rb_eRangeError, "datetime out of range: year = %ld, month = %ld, day = %ld", year, month, day);
   } 
 
   dt->year = year;
@@ -607,7 +607,7 @@ static VALUE rhrdt_s__strptime(int argc, VALUE *argv, VALUE klass) {
     case 1:
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
   }
 
@@ -670,12 +670,12 @@ static VALUE rhrdt_s_civil(int argc, VALUE *argv, VALUE klass) {
       year = NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 8", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 8", argc);
       break;
   }
 
   if (!rhrdt__valid_civil(dt, year, month, day)) {
-    rb_raise(rb_eArgError, "invalid date (year: %li, month: %li, day: %li)", year, month, day);
+    rb_raise(rb_eArgError, "invalid date (year: %ld, month: %ld, day: %ld)", year, month, day);
   }
   rhrdt__set_time_nanos(dt, hour, minute, second, nanos, offset);
   return rdt;
@@ -734,11 +734,11 @@ static VALUE rhrdt_s_commercial(int argc, VALUE *argv, VALUE klass) {
       break;
 #endif
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 8", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 8", argc);
       break;
   }
   if(!rhrdt__valid_commercial(dt, cwyear, cweek, cwday)) {
-    rb_raise(rb_eArgError, "invalid date (cwyear: %li, cweek: %li, cwday: %li)", cwyear, cweek, cwday);
+    rb_raise(rb_eArgError, "invalid date (cwyear: %ld, cweek: %ld, cwday: %ld)", cwyear, cweek, cwday);
   }
   rhrdt__set_time_nanos(dt, hour, minute, second, nanos, offset);
   return rdt;
@@ -782,7 +782,7 @@ static VALUE rhrdt_s_jd(int argc, VALUE *argv, VALUE klass) {
       dt->jd = NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 6", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 6", argc);
       break;
   }
 
@@ -835,7 +835,7 @@ static VALUE rhrdt_s_new_b(int argc, VALUE *argv, VALUE klass) {
       dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS;
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 3", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 3", argc);
       break;
   }
 
@@ -859,7 +859,7 @@ static VALUE rhrdt_s_now(int argc, VALUE *argv, VALUE klass) {
     case 1:
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -908,13 +908,13 @@ static VALUE rhrdt_s_ordinal(int argc, VALUE *argv, VALUE klass) {
       dt->flags = RHR_HAVE_JD | RHR_HAVE_NANOS | RHR_HAVE_HMS;
       return rdt;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 7", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 7", argc);
       break;
   }
 
   if(!rhrdt__valid_ordinal(dt, year, day)) {
     RHR_CHECK_JD(dt)
-    rb_raise(rb_eArgError, "invalid date (year: %li, yday: %li)", year, day);
+    rb_raise(rb_eArgError, "invalid date (year: %ld, yday: %ld)", year, day);
   }
   rhrdt__set_time_nanos(dt, hour, minute, second, nanos, offset);
   return rdt;
@@ -948,7 +948,7 @@ static VALUE rhrdt_s_parse(int argc, VALUE *argv, VALUE klass) {
       rhrdt__fill_from_hash(dt, rb_funcall(klass, rhrd_id__parse, 2, argv[0], argv[1]));
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 3)", argc);
       break;
   }
 
@@ -980,7 +980,7 @@ static VALUE rhrdt_s_strptime(int argc, VALUE *argv, VALUE klass) {
     case 2:
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 3)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 3)", argc);
       break;
   }
 
@@ -1050,7 +1050,7 @@ static VALUE rhrdt_asctime(VALUE self) {
   RHRDT_FILL_HMS(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2i %02i:%02i:%02i %04li", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s %s %2d %02d:%02d:%02d %04ld", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
         rhrd__abbr_month_names[d->month],
         (int)d->day, (int)d->hour, (int)d->minute, (int)d->second,
@@ -1303,7 +1303,7 @@ static VALUE rhrdt_inspect(VALUE self) {
   RHRDT_FILL_HMS(dt)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "#<DateTime %04li-%02i-%02iT%02i:%02i:%02i%+03i:%02i>",
+  len = snprintf(RSTRING_PTR(s), 128, "#<DateTime %04ld-%02d-%02dT%02d:%02d:%02d%+03d:%02d>",
         dt->year, (int)dt->month, (int)dt->day, (int)dt->hour, (int)dt->minute, (int)dt->second, dt->offset/60, abs(dt->offset % 60));
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#inspect (in snprintf)");
@@ -1431,7 +1431,7 @@ static VALUE rhrdt_new_offset(int argc, VALUE *argv, VALUE self) {
       offset= rhrdt__constructor_offset(rb_obj_class(self), argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
   return rhrdt__new_offset(self, offset);
@@ -1560,7 +1560,7 @@ static VALUE rhrdt_step(int argc, VALUE *argv, VALUE self) {
       }
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 2", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 2", argc);
       break;
   }
   rlimit = argv[0];
@@ -1648,7 +1648,7 @@ static VALUE rhrdt_strftime(int argc, VALUE *argv, VALUE self) {
       r = rb_str_to_str(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -1677,7 +1677,7 @@ static VALUE rhrdt_to_s(VALUE self) {
   RHRDT_FILL_HMS(dt)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%04li-%02i-%02iT%02i:%02i:%02i%+03i:%02i",
+  len = snprintf(RSTRING_PTR(s), 128, "%04ld-%02d-%02dT%02d:%02d:%02d%+03d:%02d",
         dt->year, (int)dt->month, (int)dt->day, (int)dt->hour, (int)dt->minute, (int)dt->second, dt->offset/60, abs(dt->offset % 60));
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
@@ -1769,7 +1769,7 @@ static VALUE rhrdt_zone(VALUE self) {
   Data_Get_Struct(self, rhrdt_t, dt);
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%+03i:%02i", dt->offset/60, abs(dt->offset % 60));
+  len = snprintf(RSTRING_PTR(s), 128, "%+03d:%02d", dt->offset/60, abs(dt->offset % 60));
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#zone (in snprintf)");
   }
@@ -1988,7 +1988,7 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
     i = 9;
   }
 
-  l = snprintf(str + len, (size_t)(128 - len), "T%02i:%02i:%02i", (int)dt->hour, (int)dt->minute, (int)dt->second);
+  l = snprintf(str + len, (size_t)(128 - len), "T%02d:%02d:%02d", (int)dt->hour, (int)dt->minute, (int)dt->second);
   if (l == -1 || l > 127) {
     rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
   }
@@ -2003,7 +2003,7 @@ long rhrdt__add_iso_time_format(rhrdt_t *dt, char *str, long len, long i) {
     len += i + 1;
   }
 
-  l = snprintf(str + len, (size_t)(128 - len), "%+03i:%02i", dt->offset/60, abs(dt->offset % 60));
+  l = snprintf(str + len, (size_t)(128 - len), "%+03d:%02d", dt->offset/60, abs(dt->offset % 60));
   if (l == -1 || l > 127) {
     rb_raise(rb_eNoMemError, "in DateTime formatting method (in snprintf)");
   }
@@ -2043,7 +2043,7 @@ static VALUE rhrdt_s_httpdate(int argc, VALUE *argv, VALUE klass) {
       rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__httpdate, 1, argv[0]));
       return rd;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
   }
 }
@@ -2078,7 +2078,7 @@ static VALUE rhrdt_s_iso8601(int argc, VALUE *argv, VALUE klass) {
       rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__iso8601, 1, argv[0]));
       return rd;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
   }
 }
@@ -2113,7 +2113,7 @@ static VALUE rhrdt_s_jisx0301(int argc, VALUE *argv, VALUE klass) {
       rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__jisx0301, 1, argv[0]));
       return rd;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
   }
 }
@@ -2148,7 +2148,7 @@ static VALUE rhrdt_s_rfc2822(int argc, VALUE *argv, VALUE klass) {
       rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__rfc2822, 1, argv[0]));
       return rd;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
   }
 }
@@ -2183,7 +2183,7 @@ static VALUE rhrdt_s_rfc3339(int argc, VALUE *argv, VALUE klass) {
       rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__rfc3339, 1, argv[0]));
       return rd;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
   }
 }
@@ -2218,7 +2218,7 @@ static VALUE rhrdt_s_xmlschema(int argc, VALUE *argv, VALUE klass) {
       rhrdt__fill_from_hash(d, rb_funcall(klass, rhrd_id__xmlschema, 1, argv[0]));
       return rd;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments (%i for 2)", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for 2)", argc);
       break;
   }
 }
@@ -2245,7 +2245,7 @@ static VALUE rhrdt_httpdate(VALUE self) {
   RHRDT_FILL_HMS(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s, %02i %s %04li %02i:%02i:%02i GMT", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %02d %s %04ld %02d:%02d:%02d GMT", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
         (int)d->day,
         rhrd__abbr_month_names[d->month],
@@ -2288,14 +2288,14 @@ static VALUE rhrdt_iso8601(int argc, VALUE *argv, VALUE self) {
       i = 0;
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
   s = rb_str_buf_new(128);
   str = RSTRING_PTR(s);
 
-  len = snprintf(str, 128, "%04li-%02i-%02i", dt->year, (int)dt->month, (int)dt->day);
+  len = snprintf(str, 128, "%04ld-%02d-%02d", dt->year, (int)dt->month, (int)dt->day);
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#to_s (in snprintf)");
   }
@@ -2338,7 +2338,7 @@ static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
       i = 0;
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -2346,7 +2346,7 @@ static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
   str = RSTRING_PTR(s); 
 
   if (d->jd < 2405160) {
-    len = snprintf(str, 128, "%04li-%02i-%02i", d->year, (int)d->month, (int)d->day);
+    len = snprintf(str, 128, "%04ld-%02d-%02d", d->year, (int)d->month, (int)d->day);
   } else {
     if (d->jd >= 2447535) {
       c = 'H';
@@ -2361,7 +2361,7 @@ static VALUE rhrdt_jisx0301(int argc, VALUE *argv, VALUE self) {
       c = 'M';
       year = d->year - 1867;
     }
-    len = snprintf(RSTRING_PTR(s), 128, "%c%02li.%02i.%02i", c, year, (int)d->month, (int)d->day);
+    len = snprintf(RSTRING_PTR(s), 128, "%c%02ld.%02d.%02d", c, year, (int)d->month, (int)d->day);
   }
   if (len == -1 || len > 127) {
     rb_raise(rb_eNoMemError, "in DateTime#jisx0301 (in snprintf)");
@@ -2395,7 +2395,7 @@ static VALUE rhrdt_next_day(int argc, VALUE *argv, VALUE self) {
       i = NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -2426,7 +2426,7 @@ static VALUE rhrdt_next_month(int argc, VALUE *argv, VALUE self) {
       i = NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -2457,7 +2457,7 @@ static VALUE rhrdt_next_year(int argc, VALUE *argv, VALUE self) {
       i = NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -2488,7 +2488,7 @@ static VALUE rhrdt_prev_day(int argc, VALUE *argv, VALUE self) {
       i = -NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -2519,7 +2519,7 @@ static VALUE rhrdt_prev_month(int argc, VALUE *argv, VALUE self) {
       i = -NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -2550,7 +2550,7 @@ static VALUE rhrdt_prev_year(int argc, VALUE *argv, VALUE self) {
       i = -NUM2LONG(argv[0]);
       break;
     default:
-      rb_raise(rb_eArgError, "wrong number of arguments: %i for 1", argc);
+      rb_raise(rb_eArgError, "wrong number of arguments: %d for 1", argc);
       break;
   }
 
@@ -2576,7 +2576,7 @@ static VALUE rhrdt_rfc2822(VALUE self) {
   RHRDT_FILL_HMS(d)
 
   s = rb_str_buf_new(128);
-  len = snprintf(RSTRING_PTR(s), 128, "%s, %i %s %04li %02i:%02i:%02i %+03i%02i", 
+  len = snprintf(RSTRING_PTR(s), 128, "%s, %d %s %04ld %02d:%02d:%02d %+03d%02d", 
         rhrd__abbr_day_names[rhrd__jd_to_wday(d->jd)],
         (int)d->day,
         rhrd__abbr_month_names[d->month],
