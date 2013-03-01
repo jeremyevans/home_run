@@ -7,7 +7,7 @@ compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1)}}
 compare(".gregorian_leap?"){|dc| n.times{dc.gregorian_leap?(2000)}}
 compare(".jd"){|dc| n.times{dc.jd(2010)}}
 compare(".julian_leap?"){|dc| n.times{dc.julian_leap?(2000)}}
-compare(".new!"){|dc| n.times{dc.new!(2012)}}
+compare(".new!"){|dc| n.times{dc.new!(2012)}} if RUBY_VERSION < '1.9.3'
 compare(".ordinal"){|dc| n.times{dc.ordinal(2012, 100)}}
 compare(".parse"){|dc| n.times{dc.parse('2010-12-13')}}
 compare(".strptime"){|dc| n.times{dc.strptime('fri jan 5 00:00:00 2007', '%c')}}
@@ -22,7 +22,7 @@ dt_compare("._strptime"){|dc| n.times{dc._strptime('fri jan 5 13:43:37 2007', '%
 dt_compare(".civil"){|dc| n.times{dc.civil(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".commercial"){|dc| n.times{dc.commercial(2010, 1, 1, 13, 43, 57)}}
 dt_compare(".jd"){|dc| n.times{dc.jd(2010, 13, 43, 57)}}
-dt_compare(".new!"){|dc| n.times{dc.new!(201013.3, -8/24.0)}}
+dt_compare(".new!"){|dc| n.times{dc.new!(201013.3, -8/24.0)}} if RUBY_VERSION < '1.9.3'
 dt_compare(".now"){|dc| n.times{dc.now}}
 dt_compare(".ordinal"){|dc| n.times{dc.ordinal(2010, 1, 13, 43, 57)}}
 dt_compare(".parse"){|dc| n.times{dc.parse('2010-12-13T13:43:57+08:00')}}
