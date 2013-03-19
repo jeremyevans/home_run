@@ -1,3 +1,7 @@
+=== 1.0.9 (2013-03-19)
+
+* Add Date::Infinity implementation (jeremyevans) (#50)
+
 === 1.0.8 (2013-02-28)
 
 * Switch %i to %d in format strings to work on ruby 2.0 (jeremyevans)
